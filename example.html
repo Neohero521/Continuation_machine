@@ -1,33 +1,37 @@
-<!-- 扩展设置面板入口（ST扩展页内显示） -->
-<div class="cy-xiaomeng-extension-entry">
+<!-- 扩展面板入口（必须正确挂载，否则面板里找不到插件） -->
+<div class="cy-xiaomeng-extension">
     <div class="inline-drawer">
         <div class="inline-drawer-toggle inline-drawer-header">
-            <b>彩云小梦风格续写</b>
+            <b>彩云小梦小说续写</b>
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
-            <div class="entry-desc">1:1复刻彩云小梦交互，自动复用SillyTavern当前连接的API后端，无需额外配置</div>
-            <input id="open_editor_btn" class="menu_button primary" type="submit" value="打开续写编辑器" />
+            <div class="extension-desc">
+                1:1复刻彩云小梦网页版编辑器，自动复用SillyTavern当前连接的AI后端，无需额外配置
+            </div>
+            <div class="extension-btn-group">
+                <input id="open_editor_btn" class="menu_button primary" type="button" value="打开续写编辑器" />
+            </div>
             <hr class="sysHR" />
-            <div class="settings-block">
+            <div class="extension-settings">
                 <div class="flex-container">
                     <input id="sync_st_content" type="checkbox" checked />
                     <label for="sync_st_content">自动同步ST聊天输入框内容</label>
                 </div>
                 <div class="flex-container">
-                    <input id="inherit_st_settings" type="checkbox" checked />
-                    <label for="inherit_st_settings">继承ST全局生成参数（温度/Top-P等）</label>
+                    <input id="inherit_st_params" type="checkbox" checked />
+                    <label for="inherit_st_params">继承ST全局生成参数</label>
                 </div>
                 <div class="flex-container">
-                    <input id="auto_save_story" type="checkbox" checked />
-                    <label for="auto_save_story">自动保存内容到ST本地存储</label>
+                    <input id="auto_save_content" type="checkbox" checked />
+                    <label for="auto_save_content">自动保存编辑内容</label>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 全屏续写编辑器（1:1复刻彩云小梦网页版） -->
+<!-- 全屏编辑器主体（1:1复刻彩云小梦网页版） -->
 <div id="cy_xiaomeng_editor" class="cy-editor-fullscreen">
     <!-- 顶部导航栏 -->
     <header class="cy-editor-header">
@@ -37,7 +41,7 @@
             </button>
             <div class="header-logo">
                 <i class="fa-solid fa-cloud"></i>
-                <span>彩云小梦风格续写</span>
+                <span>彩云小梦续写</span>
             </div>
         </div>
 
@@ -46,15 +50,12 @@
             <label for="mode_v" class="mode-btn">V模式</label>
             <input type="radio" name="editor_mode" id="mode_o" value="o_mode" />
             <label for="mode_o" class="mode-btn">O模式</label>
-            <span class="mode-desc">V模式严谨贴合原文 | O模式开放脑洞创作</span>
+            <span class="mode-tip">V模式严谨贴合 | O模式开放脑洞</span>
         </div>
 
         <div class="header-right">
-            <button class="header-btn" id="story_list_btn" title="故事列表">
-                <i class="fa-solid fa-list"></i>
-            </button>
-            <button class="header-btn" id="world_info_btn" title="世界设定">
-                <i class="fa-solid fa-book"></i>
+            <button class="header-btn" title="保存">
+                <i class="fa-solid fa-save"></i>
             </button>
             <button class="header-btn" title="菜单">
                 <i class="fa-solid fa-bars"></i>
@@ -65,15 +66,12 @@
     <!-- 核心编辑区域 -->
     <main class="cy-editor-main">
         <div class="editor-content">
-            <!-- 标题输入框 -->
             <input 
                 id="editor_title" 
                 class="editor-title" 
                 type="text" 
                 placeholder="标题"
             />
-
-            <!-- 章节名输入框 -->
             <div class="editor-chapter">
                 <i class="fa-solid fa-book-open"></i>
                 <input 
@@ -83,8 +81,6 @@
                     placeholder="第_章 章节名"
                 />
             </div>
-
-            <!-- 文本编辑框 -->
             <textarea 
                 id="editor_textarea" 
                 class="editor-textarea" 
@@ -93,10 +89,9 @@
         </div>
     </main>
 
-    <!-- 编辑操作栏（紧贴编辑框下方，复刻原版） -->
+    <!-- 编辑操作栏（复刻原版底部操作按钮） -->
     <div class="editor-action-bar">
         <button class="action-btn" id="action_undo">撤回</button>
-        <button class="action-btn" id="action_redo">重做</button>
         <button class="action-btn" id="action_modify">修改</button>
         <button class="action-btn" id="action_save">保存</button>
         <button class="action-btn primary" id="action_ai_continue">AI继续</button>
@@ -104,51 +99,49 @@
 
     <!-- 底部固定功能区 -->
     <footer class="cy-editor-footer">
-        <!-- 功能抽屉触发区 -->
-        <div class="footer-function-drawer" id="function_drawer_trigger">
-            <button class="function-btn" id="function_toggle">
+        <!-- 功能抽屉 -->
+        <div class="footer-function-drawer">
+            <button class="function-toggle-btn" id="function_toggle">
                 <i class="fa-solid fa-pen-to-square"></i>
-                <span>续写</span>
+                <span id="function_name">续写</span>
                 <i class="fa-solid fa-chevron-up"></i>
             </button>
-
-            <!-- 功能抽屉内容 -->
-            <div class="function-drawer-content" id="function_drawer_content">
-                <button class="drawer-item" data-function="continuation">
+            <div class="function-drawer-content" id="function_drawer">
+                <button class="drawer-item" data-func="continuation">
                     <i class="fa-solid fa-arrow-right"></i>
                     <span>续写</span>
                 </button>
-                <button class="drawer-item" data-function="expand">
+                <button class="drawer-item" data-func="expand">
                     <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
                     <span>扩写</span>
                 </button>
-                <button class="drawer-item" data-function="shorten">
+                <button class="drawer-item" data-func="shorten">
                     <i class="fa-solid fa-down-left-and-up-right-to-center"></i>
                     <span>缩写</span>
                 </button>
-                <button class="drawer-item" data-function="rewrite">
+                <button class="drawer-item" data-func="rewrite">
                     <i class="fa-solid fa-rotate-right"></i>
                     <span>改写</span>
                 </button>
-                <button class="drawer-item" data-function="custom">
+                <button class="drawer-item" data-func="custom">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                     <span>定向续写</span>
                 </button>
             </div>
         </div>
 
-        <!-- 自定义指令输入框 复刻原版左下角 -->
+        <!-- 自定义指令输入框 -->
         <div class="footer-prompt-input">
             <i class="fa-solid fa-sparkles"></i>
             <input 
-                id="custom_prompt_input" 
+                id="custom_prompt" 
                 type="text" 
-                placeholder="例: 请帮我增加更多战斗场景的描写，丰富人物表情动作"
+                placeholder="例: 请帮我增加更多战斗场景的描写"
             />
         </div>
 
-        <!-- 风格选择下拉 -->
-        <div class="footer-style-select">
+        <!-- 风格+字数选择 -->
+        <div class="footer-select-group">
             <select id="style_select" class="style-select">
                 <option value="标准">标准</option>
                 <option value="脑洞大开">脑洞大开</option>
@@ -159,38 +152,29 @@
                 <option value="悬疑">悬疑</option>
                 <option value="都市">都市</option>
                 <option value="仙侠">仙侠</option>
-                <option value="科幻">科幻</option>
-                <option value="历史">历史</option>
             </select>
-        </div>
-
-        <!-- 字数选择 -->
-        <div class="footer-length-select">
             <select id="length_select" class="length-select">
                 <option value="100">100字</option>
                 <option value="200" selected>200字</option>
                 <option value="400">400字</option>
                 <option value="800">800字</option>
-                <option value="1000">1000字</option>
             </select>
         </div>
 
-        <!-- AI结果展示区 横向滚动卡片 复刻原版 -->
+        <!-- AI结果展示区（横向滚动卡片，复刻原版） -->
         <div class="footer-results">
             <div class="results-header">
                 <span class="results-title">
                     <i class="fa-solid fa-robot"></i>
                     看看AI写的
                 </span>
-                <button class="refresh-btn" id="refresh_results_btn" disabled>
+                <button class="refresh-btn" id="refresh_btn" disabled>
                     <i class="fa-solid fa-rotate-right"></i>
                     换一批
                 </button>
             </div>
-
-            <!-- 横向滚动的结果卡片容器 -->
-            <div class="results-cards-container" id="results_cards">
-                <div class="empty-tip">点击「AI继续」生成多分支续写内容</div>
+            <div class="results-cards" id="results_container">
+                <div class="empty-tip">点击「AI继续」生成多分支内容</div>
             </div>
         </div>
     </footer>
