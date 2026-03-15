@@ -1,37 +1,71 @@
-<!-- 扩展面板入口（必须正确挂载，否则面板里找不到插件） -->
-<div class="cy-xiaomeng-extension">
+<!-- 严格保留官方模板的外层容器，确保ST能识别 -->
+<div class="example-extension-settings">
     <div class="inline-drawer">
+        <!-- 完全保留模板的折叠头部结构，仅修改标题 -->
         <div class="inline-drawer-toggle inline-drawer-header">
             <b>彩云小梦小说续写</b>
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
+
+        <!-- 仅在模板的内容区内添加功能，不修改外层结构 -->
         <div class="inline-drawer-content">
-            <div class="extension-desc">
-                1:1复刻彩云小梦网页版编辑器，自动复用SillyTavern当前连接的AI后端，无需额外配置
+            <!-- 1. 核心功能按钮：打开编辑器 -->
+            <div class="example-extension_block flex-container">
+                <input id="open_editor_btn" class="menu_button primary" type="submit" value="打开续写编辑器" />
             </div>
-            <div class="extension-btn-group">
-                <input id="open_editor_btn" class="menu_button primary" type="button" value="打开续写编辑器" />
-            </div>
+
             <hr class="sysHR" />
-            <div class="extension-settings">
-                <div class="flex-container">
-                    <input id="sync_st_content" type="checkbox" checked />
-                    <label for="sync_st_content">自动同步ST聊天输入框内容</label>
-                </div>
-                <div class="flex-container">
-                    <input id="inherit_st_params" type="checkbox" checked />
-                    <label for="inherit_st_params">继承ST全局生成参数</label>
-                </div>
-                <div class="flex-container">
-                    <input id="auto_save_content" type="checkbox" checked />
-                    <label for="auto_save_content">自动保存编辑内容</label>
+
+            <!-- 2. 基础设置项，完全复用模板的flex-container结构 -->
+            <div class="example-extension_block flex-container">
+                <input id="sync_st_content" type="checkbox" checked />
+                <label for="sync_st_content">自动同步ST聊天输入框内容</label>
+            </div>
+
+            <div class="example-extension_block flex-container">
+                <input id="inherit_st_settings" type="checkbox" checked />
+                <label for="inherit_st_settings">继承ST全局生成参数</label>
+            </div>
+
+            <div class="example-extension_block flex-container">
+                <input id="auto_save_story" type="checkbox" checked />
+                <label for="auto_save_story">自动保存故事内容</label>
+            </div>
+
+            <hr class="sysHR" />
+
+            <!-- 3. 续写参数设置 -->
+            <div class="example-extension_block">
+                <label><b>默认续写字数</b></label>
+                <div class="flex-container" style="margin-top: 8px; gap: 16px;">
+                    <input type="radio" name="default_length" id="length_100" value="100" />
+                    <label for="length_100">100字</label>
+                    <input type="radio" name="default_length" id="length_200" value="200" checked />
+                    <label for="length_200">200字</label>
+                    <input type="radio" name="default_length" id="length_400" value="400" />
+                    <label for="length_400">400字</label>
                 </div>
             </div>
+
+            <div class="example-extension_block flex-container">
+                <label for="default_style"><b>默认续写风格</b></label>
+                <select id="default_style" class="menu_select" style="margin-left: 12px;">
+                    <option value="标准">标准</option>
+                    <option value="脑洞大开">脑洞大开</option>
+                    <option value="细节狂魔">细节狂魔</option>
+                    <option value="纯爱">纯爱</option>
+                    <option value="言情">言情</option>
+                    <option value="玄幻">玄幻</option>
+                    <option value="悬疑">悬疑</option>
+                </select>
+            </div>
+
+            <hr class="sysHR" />
         </div>
     </div>
 </div>
 
-<!-- 全屏编辑器主体（1:1复刻彩云小梦网页版） -->
+<!-- 全屏编辑器（独立容器，不影响模板核心结构） -->
 <div id="cy_xiaomeng_editor" class="cy-editor-fullscreen">
     <!-- 顶部导航栏 -->
     <header class="cy-editor-header">
@@ -50,7 +84,7 @@
             <label for="mode_v" class="mode-btn">V模式</label>
             <input type="radio" name="editor_mode" id="mode_o" value="o_mode" />
             <label for="mode_o" class="mode-btn">O模式</label>
-            <span class="mode-tip">V模式严谨贴合 | O模式开放脑洞</span>
+            <span class="mode-desc">V模式严谨贴合原文 | O模式开放脑洞创作</span>
         </div>
 
         <div class="header-right">
@@ -66,30 +100,16 @@
     <!-- 核心编辑区域 -->
     <main class="cy-editor-main">
         <div class="editor-content">
-            <input 
-                id="editor_title" 
-                class="editor-title" 
-                type="text" 
-                placeholder="标题"
-            />
+            <input id="editor_title" class="editor-title" type="text" placeholder="标题" />
             <div class="editor-chapter">
                 <i class="fa-solid fa-book-open"></i>
-                <input 
-                    id="editor_chapter" 
-                    class="chapter-input" 
-                    type="text" 
-                    placeholder="第_章 章节名"
-                />
+                <input id="editor_chapter" class="chapter-input" type="text" placeholder="第_章 章节名" />
             </div>
-            <textarea 
-                id="editor_textarea" 
-                class="editor-textarea" 
-                placeholder="开始写下你的故事，AI将为你续写后续内容..."
-            ></textarea>
+            <textarea id="editor_textarea" class="editor-textarea" placeholder="开始写下你的故事，AI将为你续写后续内容..."></textarea>
         </div>
     </main>
 
-    <!-- 编辑操作栏（复刻原版底部操作按钮） -->
+    <!-- 编辑操作栏 -->
     <div class="editor-action-bar">
         <button class="action-btn" id="action_undo">撤回</button>
         <button class="action-btn" id="action_modify">修改</button>
@@ -97,33 +117,33 @@
         <button class="action-btn primary" id="action_ai_continue">AI继续</button>
     </div>
 
-    <!-- 底部固定功能区 -->
+    <!-- 底部功能区 -->
     <footer class="cy-editor-footer">
-        <!-- 功能抽屉 -->
-        <div class="footer-function-drawer">
-            <button class="function-toggle-btn" id="function_toggle">
+        <!-- 功能选择抽屉 -->
+        <div class="footer-function-drawer" id="function_drawer_trigger">
+            <button class="function-btn" id="function_toggle">
                 <i class="fa-solid fa-pen-to-square"></i>
-                <span id="function_name">续写</span>
+                <span>续写</span>
                 <i class="fa-solid fa-chevron-up"></i>
             </button>
-            <div class="function-drawer-content" id="function_drawer">
-                <button class="drawer-item" data-func="continuation">
+            <div class="function-drawer-content" id="function_drawer_content">
+                <button class="drawer-item" data-function="continuation">
                     <i class="fa-solid fa-arrow-right"></i>
                     <span>续写</span>
                 </button>
-                <button class="drawer-item" data-func="expand">
+                <button class="drawer-item" data-function="expand">
                     <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
                     <span>扩写</span>
                 </button>
-                <button class="drawer-item" data-func="shorten">
+                <button class="drawer-item" data-function="shorten">
                     <i class="fa-solid fa-down-left-and-up-right-to-center"></i>
                     <span>缩写</span>
                 </button>
-                <button class="drawer-item" data-func="rewrite">
+                <button class="drawer-item" data-function="rewrite">
                     <i class="fa-solid fa-rotate-right"></i>
                     <span>改写</span>
                 </button>
-                <button class="drawer-item" data-func="custom">
+                <button class="drawer-item" data-function="custom">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                     <span>定向续写</span>
                 </button>
@@ -133,16 +153,12 @@
         <!-- 自定义指令输入框 -->
         <div class="footer-prompt-input">
             <i class="fa-solid fa-sparkles"></i>
-            <input 
-                id="custom_prompt" 
-                type="text" 
-                placeholder="例: 请帮我增加更多战斗场景的描写"
-            />
+            <input id="custom_prompt_input" type="text" placeholder="例: 请帮我增加更多战斗场景的描写" />
         </div>
 
-        <!-- 风格+字数选择 -->
-        <div class="footer-select-group">
-            <select id="style_select" class="style-select">
+        <!-- 风格选择 -->
+        <div class="footer-style-select">
+            <select id="editor_style_select" class="style-select">
                 <option value="标准">标准</option>
                 <option value="脑洞大开">脑洞大开</option>
                 <option value="细节狂魔">细节狂魔</option>
@@ -150,31 +166,33 @@
                 <option value="言情">言情</option>
                 <option value="玄幻">玄幻</option>
                 <option value="悬疑">悬疑</option>
-                <option value="都市">都市</option>
-                <option value="仙侠">仙侠</option>
             </select>
-            <select id="length_select" class="length-select">
+        </div>
+
+        <!-- 字数选择 -->
+        <div class="footer-length-select">
+            <select id="editor_length_select" class="length-select">
                 <option value="100">100字</option>
-                <option value="200" selected>200字</option>
+                <option value="200">200字</option>
                 <option value="400">400字</option>
                 <option value="800">800字</option>
             </select>
         </div>
 
-        <!-- AI结果展示区（横向滚动卡片，复刻原版） -->
+        <!-- AI结果展示区 -->
         <div class="footer-results">
             <div class="results-header">
                 <span class="results-title">
                     <i class="fa-solid fa-robot"></i>
                     看看AI写的
                 </span>
-                <button class="refresh-btn" id="refresh_btn" disabled>
+                <button class="refresh-btn" id="refresh_results_btn" disabled>
                     <i class="fa-solid fa-rotate-right"></i>
                     换一批
                 </button>
             </div>
-            <div class="results-cards" id="results_container">
-                <div class="empty-tip">点击「AI继续」生成多分支内容</div>
+            <div class="results-cards-container" id="results_cards">
+                <div class="empty-tip">点击「AI继续」生成多分支续写内容</div>
             </div>
         </div>
     </footer>
