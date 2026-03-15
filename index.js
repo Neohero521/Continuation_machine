@@ -9,7 +9,7 @@ import {
 import { saveSettingsDebounced } from "../../../../script.js";
 
 // 严格和模板一致：extensionName必须和仓库/文件夹名称完全一致
-const extensionName = "st-extension-example";
+const extensionName = "Continuation_machine";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const extensionSettings = extension_settings[extensionName];
 
