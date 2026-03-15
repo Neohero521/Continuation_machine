@@ -8,7 +8,7 @@ import {
 import { saveSettingsDebounced } from "../../../../script.js";
 
 // ====================== 核心配置 ======================
-const extensionName = "st-extension-example";
+const extensionName = "Continuation_machine";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const extensionSettings = extension_settings[extensionName];
 
