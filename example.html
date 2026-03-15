@@ -25,7 +25,7 @@
 </div>
 
 <!-- ==============================================
-     第二部分：彩云小梦编辑器主体（1:1还原截图）
+     第二部分：彩云小梦编辑器主体（布局重构）
      ============================================== -->
 <div id="xiaomeng_full_editor" class="xiaomeng-editor-container">
     <!-- 顶部导航栏 -->
@@ -79,34 +79,31 @@
                 />
             </div>
 
-            <!-- 正文可编辑区域（续写内容标红） -->
+            <!-- 正文可编辑区域 -->
             <div 
                 id="xiaomeng_editor_textarea" 
                 class="editor-main-content" 
                 contenteditable="true" 
                 placeholder="该开始创建你自己的故事了"
             ></div>
-
-            <!-- 续写操作栏（生成内容后显示） -->
-            <div id="continuation_action_bar" class="editor-action-bar" style="display: none;">
-                <div class="action-bar-divider"></div>
-                <div class="action-bar-buttons">
-                    <button class="action-bar-btn" id="action_undo">撤回</button>
-                    <button class="action-bar-btn" id="action_modify">修改</button>
-                    <button class="action-bar-btn" id="action_save">保存</button>
-                    <button class="action-bar-btn primary" id="action_ai_continue_main">Ai 继续</button>
-                </div>
-            </div>
         </div>
     </main>
 
     <!-- ==============================================
-         底部底栏（1:1对齐截图，横向紧凑排列）
+         底部区域（重构：底栏+结果区域分离，适配切换逻辑）
          ============================================== -->
     <footer class="xiaomeng-footer">
-        <!-- 底栏主容器 -->
-        <div class="footer-bottom-bar">
-            <!-- 1. 粉色星星按钮（功能菜单） -->
+        <!-- 加载动画悬浮层 -->
+        <div class="loading-overlay" id="loading_overlay" style="display: none;">
+            <div class="loading-spinner">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>小梦正在创作中...</span>
+            </div>
+        </div>
+
+        <!-- 1. 底栏操作区（默认显示，生成后隐藏） -->
+        <div class="footer-bottom-bar" id="footer_operation_bar">
+            <!-- 粉色星星按钮（功能菜单） -->
             <div class="function-menu-wrapper">
                 <button class="star-function-btn" id="star_function_btn">
                     <i class="fa-solid fa-star"></i>
@@ -136,7 +133,7 @@
                 </div>
             </div>
 
-            <!-- 2. 撤回/重做按钮 -->
+            <!-- 撤回/重做按钮 -->
             <button class="arrow-btn" id="undo_btn">
                 <i class="fa-solid fa-rotate-left"></i>
             </button>
@@ -144,7 +141,7 @@
                 <i class="fa-solid fa-rotate-right"></i>
             </button>
 
-            <!-- 3. V1版本按钮 -->
+            <!-- V1版本按钮 -->
             <div class="version-btn-wrapper">
                 <button class="version-btn" id="version_btn">
                     <span>V1</span>
@@ -152,7 +149,7 @@
                 </button>
             </div>
 
-            <!-- 4. 风格选择按钮 -->
+            <!-- 风格选择按钮 -->
             <div class="style-select-wrapper">
                 <button class="style-select-btn" id="style_select_btn">
                     <i class="xiaomeng-icon"></i>
@@ -172,14 +169,14 @@
                 </div>
             </div>
 
-            <!-- 5. Ai 继续按钮 -->
+            <!-- Ai 继续按钮 -->
             <button class="ai-continue-btn" id="ai_continue_btn">
                 <i class="fa-solid fa-sparkles"></i>
                 <span>Ai 继续</span>
             </button>
         </div>
 
-        <!-- 定向续写提示输入框 -->
+        <!-- 定向续写提示输入框（随底栏一起隐藏） -->
         <div class="custom-prompt-bar" id="custom_prompt_bar" style="display: none;">
             <i class="fa-solid fa-star"></i>
             <input 
@@ -189,32 +186,28 @@
             />
         </div>
 
-        <!-- ==============================================
-             AI结果展示区（生成内容后显示，固定3条分支）
-             ============================================== -->
+        <!-- 2. 结果选择区（默认隐藏，生成后显示，无任何空白） -->
         <div class="footer-results-area" id="results_area" style="display: none;">
             <div class="results-header">
                 <span class="results-title">
                     <i class="xiaomeng-icon"></i>
                     看看小梦AI写的
                 </span>
-                <button class="refresh-btn" id="refresh_results_btn" disabled>
-                    <i class="fa-solid fa-rotate-right"></i>
-                    换一批
-                </button>
+                <div class="results-header-buttons">
+                    <button class="cancel-btn" id="cancel_results_btn">
+                        <i class="fa-solid fa-xmark"></i>
+                        取消
+                    </button>
+                    <button class="refresh-btn" id="refresh_results_btn">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        换一批
+                    </button>
+                </div>
             </div>
 
-            <!-- 横向滚动的结果卡片容器（固定3条） -->
+            <!-- 3个选择卡片容器（横向排列，无空白） -->
             <div class="results-cards-wrapper" id="results_cards_container">
                 <div class="empty-result-tip">正在生成内容，请稍候...</div>
-            </div>
-        </div>
-
-        <!-- 加载动画 -->
-        <div class="loading-overlay" id="loading_overlay" style="display: none;">
-            <div class="loading-spinner">
-                <i class="fa-solid fa-spinner fa-spin"></i>
-                <span>小梦正在创作中...</span>
             </div>
         </div>
     </footer>
