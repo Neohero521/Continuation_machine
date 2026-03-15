@@ -8,7 +8,7 @@ import {
 import { saveSettingsDebounced } from "../../../../script.js";
 
 // ====================== 核心配置（完全不变，保证功能一致） ======================
-const extensionName = "st-extension-example";
+const extensionName = "Continuation_machine";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 // 固定生成3条分支
 const FIXED_BRANCH_COUNT = 3;
