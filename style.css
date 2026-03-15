@@ -1,28 +1,18 @@
-/* ==============================================
-   完美还原彩云小梦网页版视觉设计
-   配色、间距、圆角、动效1:1对齐官网
-   适配SillyTavern浅色/深色主题，无样式冲突
-   ============================================== */
+/* 1:1还原彩云小梦APP截图样式，修复所有UI问题 */
 :root {
-  /* 彩云小梦官网主色 1:1提取 */
   --xiaomeng-primary: #FF5252;
   --xiaomeng-primary-hover: #FF3838;
   --xiaomeng-bg: #FFFFFF;
-  --xiaomeng-text-primary: #212121;
-  --xiaomeng-text-secondary: #757575;
-  --xiaomeng-text-tertiary: #9E9E9E;
-  --xiaomeng-border: #EEEEEE;
+  --xiaomeng-text-black: #333333;
+  --xiaomeng-text-gray: #999999;
+  --xiaomeng-border: #F5F5F5;
   --xiaomeng-card-bg: #FFFFFF;
-  --xiaomeng-card-border: #F5F5F5;
-  --xiaomeng-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --xiaomeng-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   --xiaomeng-header-height: 60px;
-  --xiaomeng-footer-height: 200px;
-  --xiaomeng-action-bar-height: 44px;
+  --xiaomeng-footer-height: 220px;
 }
 
-/* ==============================================
-   编辑器容器 全屏布局 1:1还原官网
-   ============================================== */
+/* 编辑器容器 */
 .xiaomeng-editor-container {
   position: fixed;
   top: 0;
@@ -34,16 +24,14 @@
   display: none;
   flex-direction: column;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
 }
 
 .xiaomeng-editor-container.show {
   display: flex;
 }
 
-/* ==============================================
-   顶部导航栏 1:1还原官网
-   ============================================== */
+/* 顶部导航栏 1:1还原截图 */
 .xiaomeng-header {
   position: fixed;
   top: 0;
@@ -51,11 +39,10 @@
   width: 100%;
   height: var(--xiaomeng-header-height);
   background: var(--xiaomeng-bg);
-  border-bottom: 1px solid var(--xiaomeng-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 16px;
   box-sizing: border-box;
   z-index: 100;
 }
@@ -71,7 +58,7 @@
   height: 36px;
   border: none;
   background: transparent;
-  color: var(--xiaomeng-text-secondary);
+  color: var(--xiaomeng-text-gray);
   font-size: 18px;
   cursor: pointer;
   border-radius: 50%;
@@ -83,26 +70,26 @@
 
 .header-icon-btn:hover {
   background: var(--xiaomeng-border);
-  color: var(--xiaomeng-text-primary);
+  color: var(--xiaomeng-text-black);
 }
 
 .header-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 18px;
-  font-weight: 600;
+  gap: 6px;
+  font-size: 17px;
+  font-weight: 500;
   color: var(--xiaomeng-primary);
 }
 
-/* 模式切换按钮 1:1还原官网 */
+/* 模式切换按钮 1:1还原截图 */
 .header-mode-switch {
   display: flex;
   align-items: center;
   gap: 0;
-  background: var(--xiaomeng-border);
+  background: #FFF0F0;
   border-radius: 20px;
-  padding: 4px;
+  padding: 3px;
 }
 
 .header-mode-switch input {
@@ -110,13 +97,13 @@
 }
 
 .mode-btn {
-  padding: 6px 20px;
-  border-radius: 16px;
+  padding: 5px 18px;
+  border-radius: 17px;
   cursor: pointer;
   user-select: none;
   font-size: 14px;
   font-weight: 500;
-  color: var(--xiaomeng-text-secondary);
+  color: var(--xiaomeng-text-gray);
   transition: all 0.2s ease;
 }
 
@@ -125,34 +112,32 @@
   color: white;
 }
 
-/* ==============================================
-   核心编辑区域 1:1还原官网居中排版
-   ============================================== */
+/* 核心编辑区域 */
 .xiaomeng-editor-main {
   flex: 1;
   margin-top: var(--xiaomeng-header-height);
-  margin-bottom: calc(var(--xiaomeng-footer-height) + var(--xiaomeng-action-bar-height) + 20px);
+  margin-bottom: var(--xiaomeng-footer-height);
   overflow-y: auto;
-  padding: 20px;
+  padding: 20px 16px;
   box-sizing: border-box;
 }
 
 .editor-content-wrapper {
-  max-width: 800px;
+  max-width: 750px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* 标题输入框 1:1还原官网 */
+/* 标题输入框 */
 .editor-title-input {
   width: 100%;
   border: none;
   outline: none;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
-  color: var(--xiaomeng-text-primary);
+  color: var(--xiaomeng-text-black);
   padding: 8px 0;
   background: transparent;
   box-sizing: border-box;
@@ -160,10 +145,10 @@
 }
 
 .editor-title-input::placeholder {
-  color: var(--xiaomeng-text-tertiary);
+  color: #E0E0E0;
 }
 
-/* 章节名输入框 1:1还原官网 */
+/* 章节名输入框 */
 .editor-chapter-row {
   display: flex;
   align-items: center;
@@ -171,63 +156,74 @@
 }
 
 .editor-chapter-row i {
-  color: var(--xiaomeng-text-tertiary);
-  font-size: 16px;
+  color: var(--xiaomeng-text-gray);
+  font-size: 15px;
 }
 
 .editor-chapter-input {
   flex: 1;
   border: none;
   outline: none;
-  font-size: 18px;
-  color: var(--xiaomeng-text-secondary);
+  font-size: 16px;
+  color: var(--xiaomeng-text-gray);
   padding: 4px 0;
   background: transparent;
   font-family: inherit;
 }
 
 .editor-chapter-input::placeholder {
-  color: var(--xiaomeng-text-tertiary);
+  color: #E0E0E0;
 }
 
-/* 正文编辑框 1:1还原官网 */
-.editor-main-textarea {
+/* 正文编辑区域 支持标红 */
+.editor-main-content {
   width: 100%;
-  min-height: 500px;
+  min-height: 400px;
   border: none;
   outline: none;
   font-size: 16px;
   line-height: 1.8;
-  color: var(--xiaomeng-text-primary);
+  color: var(--xiaomeng-text-black);
   padding: 0;
   background: transparent;
-  resize: none;
   box-sizing: border-box;
   font-family: inherit;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
-.editor-main-textarea::placeholder {
-  color: var(--xiaomeng-text-tertiary);
+.editor-main-content:empty:before {
+  content: attr(placeholder);
+  color: #E0E0E0;
 }
 
-.editor-main-textarea::selection {
-  background: rgba(255, 82, 82, 0.2);
+/* 续写内容红色标红 1:1还原截图 */
+.continuation-red-text {
   color: var(--xiaomeng-primary);
 }
 
-/* 编辑操作栏 1:1还原官网 紧贴文本框下方 */
+/* 续写操作栏 1:1还原截图 */
 .editor-action-bar {
-  position: fixed;
-  bottom: calc(var(--xiaomeng-footer-height) + 10px);
-  left: 50%;
-  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.action-bar-divider {
+  width: 100%;
+  height: 2px;
+  background: var(--xiaomeng-primary);
+}
+
+.action-bar-buttons {
   display: flex;
   align-items: center;
   gap: 2px;
   background: var(--xiaomeng-primary);
   border-radius: 8px;
   overflow: hidden;
-  z-index: 101;
 }
 
 .action-bar-btn {
@@ -236,7 +232,7 @@
   color: white;
   font-size: 14px;
   font-weight: 500;
-  padding: 10px 20px;
+  padding: 10px 18px;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -256,9 +252,7 @@
   cursor: not-allowed;
 }
 
-/* ==============================================
-   底部固定功能区 1:1还原官网
-   ============================================== */
+/* 底部固定功能区 1:1还原截图 */
 .xiaomeng-footer {
   position: fixed;
   bottom: 0;
@@ -273,10 +267,10 @@
   z-index: 100;
 }
 
-/* 功能选择抽屉 1:1还原官网 */
+/* 功能选择抽屉 */
 .footer-function-drawer {
   position: relative;
-  padding: 10px 20px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--xiaomeng-border);
 }
 
@@ -286,7 +280,7 @@
   gap: 8px;
   border: none;
   background: transparent;
-  color: var(--xiaomeng-text-secondary);
+  color: var(--xiaomeng-text-gray);
   font-size: 14px;
   cursor: pointer;
   padding: 6px 12px;
@@ -296,18 +290,18 @@
 
 .function-toggle-btn:hover {
   background: var(--xiaomeng-border);
-  color: var(--xiaomeng-text-primary);
+  color: var(--xiaomeng-text-black);
 }
 
 .function-dropdown {
   position: absolute;
   bottom: 100%;
-  left: 20px;
+  left: 16px;
   background: var(--xiaomeng-card-bg);
   border: 1px solid var(--xiaomeng-border);
   border-radius: 8px;
   box-shadow: var(--xiaomeng-shadow);
-  min-width: 160px;
+  min-width: 120px;
   display: none;
   flex-direction: column;
   overflow: hidden;
@@ -319,12 +313,9 @@
 }
 
 .dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   border: none;
   background: transparent;
-  color: var(--xiaomeng-text-primary);
+  color: var(--xiaomeng-text-black);
   font-size: 14px;
   padding: 12px 16px;
   cursor: pointer;
@@ -337,19 +328,19 @@
   color: var(--xiaomeng-primary);
 }
 
-/* 自定义指令输入框 1:1还原官网 */
+/* 自定义指令输入框 */
 .footer-prompt-input {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--xiaomeng-border);
   max-width: 50%;
 }
 
 .footer-prompt-input i {
   color: var(--xiaomeng-primary);
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .footer-prompt-input input {
@@ -357,14 +348,14 @@
   border: none;
   outline: none;
   font-size: 14px;
-  color: var(--xiaomeng-text-primary);
+  color: var(--xiaomeng-text-black);
   padding: 4px 0;
   background: transparent;
   font-family: inherit;
 }
 
 .footer-prompt-input input::placeholder {
-  color: var(--xiaomeng-text-tertiary);
+  color: var(--xiaomeng-text-gray);
 }
 
 /* 选择框通用样式 */
@@ -374,19 +365,19 @@
 }
 
 .footer-style-select {
-  right: 140px;
+  right: 130px;
 }
 
 .footer-length-select {
-  right: 20px;
+  right: 16px;
 }
 
 .style-select, .length-select {
   border: 1px solid var(--xiaomeng-border);
   border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 14px;
-  color: var(--xiaomeng-text-secondary);
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--xiaomeng-text-gray);
   background: transparent;
   outline: none;
   cursor: pointer;
@@ -397,10 +388,10 @@
   border-color: var(--xiaomeng-primary);
 }
 
-/* AI结果展示区 1:1还原官网横向卡片 */
+/* AI结果展示区 1:1还原截图 */
 .footer-results-area {
   flex: 1;
-  padding: 10px 20px;
+  padding: 10px 16px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -416,23 +407,24 @@
 .results-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--xiaomeng-text-primary);
+  color: var(--xiaomeng-text-black);
 }
 
 .results-title i {
   color: var(--xiaomeng-primary);
+  font-size: 16px;
 }
 
 .refresh-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   border: none;
   background: transparent;
-  color: var(--xiaomeng-text-secondary);
+  color: var(--xiaomeng-text-gray);
   font-size: 13px;
   cursor: pointer;
   padding: 4px 8px;
@@ -450,48 +442,34 @@
   cursor: not-allowed;
 }
 
-/* 结果卡片容器 横向滚动 1:1还原官网 */
+/* 结果卡片容器 1:1还原截图横向滚动 */
 .results-cards-wrapper {
   display: flex;
   gap: 12px;
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 10px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--xiaomeng-border) transparent;
+  scrollbar-width: none;
 }
 
 .results-cards-wrapper::-webkit-scrollbar {
-  height: 4px;
-}
-
-.results-cards-wrapper::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.results-cards-wrapper::-webkit-scrollbar-thumb {
-  background: var(--xiaomeng-border);
-  border-radius: 2px;
-}
-
-.results-cards-wrapper::-webkit-scrollbar-thumb:hover {
-  background: var(--xiaomeng-text-tertiary);
+  display: none;
 }
 
 .empty-result-tip {
   width: 100%;
   text-align: center;
-  color: var(--xiaomeng-text-tertiary);
+  color: var(--xiaomeng-text-gray);
   padding: 20px 0;
   font-size: 14px;
 }
 
-/* 结果卡片 1:1还原官网 带New标签 */
+/* 结果卡片 1:1还原截图样式 */
 .result-card {
-  min-width: 280px;
-  max-width: 280px;
-  border: 1px solid var(--xiaomeng-card-border);
-  border-radius: 8px;
+  min-width: 260px;
+  max-width: 260px;
+  border: 1px solid var(--xiaomeng-border);
+  border-radius: 12px;
   background: var(--xiaomeng-card-bg);
   padding: 12px;
   display: flex;
@@ -502,13 +480,14 @@
   transition: all 0.2s ease;
   cursor: pointer;
   position: relative;
+  box-shadow: var(--xiaomeng-shadow);
 }
 
 .result-card:hover {
   border-color: var(--xiaomeng-primary);
-  box-shadow: var(--xiaomeng-shadow);
 }
 
+/* New标签 1:1还原截图 */
 .new-tag {
   position: absolute;
   top: 8px;
@@ -517,14 +496,14 @@
   color: white;
   font-size: 10px;
   font-weight: 600;
-  padding: 2px 6px;
+  padding: 2px 5px;
   border-radius: 4px;
 }
 
 .card-preview-text {
   font-size: 14px;
   line-height: 1.6;
-  color: var(--xiaomeng-text-primary);
+  color: var(--xiaomeng-text-black);
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
@@ -533,6 +512,7 @@
   margin-top: 8px;
 }
 
+/* 使用按钮 1:1还原截图 */
 .card-use-btn {
   align-self: flex-end;
   border: none;
@@ -550,64 +530,83 @@
   background: var(--xiaomeng-primary-hover);
 }
 
-/* ==============================================
-   适配SillyTavern深色主题
-   ============================================== */
+/* 悬浮AI继续按钮 1:1还原截图 */
+.float-ai-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--xiaomeng-primary);
+  color: white;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(255, 82, 82, 0.3);
+  transition: all 0.2s ease;
+  z-index: 101;
+}
+
+.float-ai-btn:hover {
+  background: var(--xiaomeng-primary-hover);
+  transform: scale(1.05);
+}
+
+.float-ai-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.float-ai-btn.loading {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 深色主题适配 */
 [data-theme="dark"] .xiaomeng-editor-container {
   --xiaomeng-bg: #121212;
-  --xiaomeng-text-primary: #F5F5F5;
-  --xiaomeng-text-secondary: #BDBDBD;
-  --xiaomeng-text-tertiary: #757575;
+  --xiaomeng-text-black: #F5F5F5;
+  --xiaomeng-text-gray: #9E9E9E;
   --xiaomeng-border: #2D2D2D;
   --xiaomeng-card-bg: #1E1E1E;
-  --xiaomeng-card-border: #333333;
   --xiaomeng-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* ==============================================
-   移动端响应式适配 1:1还原官网移动端效果
-   ============================================== */
+/* 移动端适配 */
 @media (max-width: 768px) {
   .xiaomeng-header {
     padding: 0 12px;
   }
-
   .header-logo span {
     display: none;
   }
-
   .mode-btn {
-    padding: 6px 12px;
+    padding: 5px 12px;
   }
-
   .editor-title-input {
     font-size: 28px;
   }
-
-  .editor-action-bar {
-    width: calc(100% - 24px);
-    justify-content: space-between;
-  }
-
-  .action-bar-btn {
-    padding: 10px 8px;
-    font-size: 12px;
-  }
-
   .footer-prompt-input {
     max-width: 100%;
     padding: 10px 12px;
   }
-
   .footer-style-select, .footer-length-select {
     position: relative;
     top: auto;
     right: auto;
     padding: 0 12px;
   }
-
   .result-card {
-    min-width: 240px;
-    max-width: 240px;
+    min-width: 220px;
+    max-width: 220px;
   }
 }
