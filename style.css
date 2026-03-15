@@ -1,38 +1,38 @@
-/* 彩云小梦风格续写插件 - 样式文件
-   完全适配SillyTavern原生CSS变量，兼容浅色/深色主题
-*/
+/* 彩云小梦续写插件样式 */
 :root {
   --cy-primary: #FF5252;
   --cy-primary-hover: #FF3838;
   --cy-bg: var(--white);
-  --cy-text-primary: var(--black);
+  --cy-text-main: var(--black);
   --cy-text-secondary: var(--gray-600);
-  --cy-text-tertiary: var(--gray-500);
+  --cy-text-muted: var(--gray-500);
   --cy-border: var(--border-color);
   --cy-card-bg: var(--white);
-  --cy-card-border: var(--border-color-light);
   --cy-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   --cy-header-height: 60px;
   --cy-footer-height: 200px;
   --cy-action-bar-height: 44px;
 }
 
-/* 扩展入口面板样式 */
-.cy-xiaomeng-extension-entry .entry-desc {
+/* 扩展面板入口样式 */
+.cy-xiaomeng-extension .extension-desc {
   color: var(--text-muted);
   margin-bottom: 12px;
   font-size: 14px;
   line-height: 1.5;
 }
 
-.cy-xiaomeng-extension-entry .settings-block {
+.cy-xiaomeng-extension .extension-btn-group {
+  margin-bottom: 12px;
+}
+
+.cy-xiaomeng-extension .extension-settings {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 12px;
 }
 
-.cy-xiaomeng-extension-entry .settings-block .flex-container {
+.cy-xiaomeng-extension .extension-settings .flex-container {
   align-items: center;
   gap: 8px;
 }
@@ -95,7 +95,7 @@
 
 .header-btn:hover {
   background: var(--cy-border);
-  color: var(--cy-text-primary);
+  color: var(--cy-text-main);
 }
 
 .header-logo {
@@ -107,7 +107,7 @@
   color: var(--cy-primary);
 }
 
-/* 模式切换按钮 */
+/* 模式切换 */
 .header-mode {
   display: flex;
   align-items: center;
@@ -137,13 +137,13 @@
   color: white;
 }
 
-.mode-desc {
+.mode-tip {
   font-size: 12px;
-  color: var(--cy-text-tertiary);
+  color: var(--cy-text-muted);
   margin-left: 12px;
 }
 
-/* 核心编辑区域 */
+/* 编辑区域 */
 .cy-editor-main {
   flex: 1;
   margin-top: var(--cy-header-height);
@@ -161,25 +161,22 @@
   gap: 16px;
 }
 
-/* 标题输入框 */
 .editor-title {
   width: 100%;
   border: none;
   outline: none;
   font-size: 36px;
   font-weight: 700;
-  color: var(--cy-text-primary);
+  color: var(--cy-text-main);
   padding: 8px 0;
   background: transparent;
-  box-sizing: border-box;
   font-family: inherit;
 }
 
 .editor-title::placeholder {
-  color: var(--cy-text-tertiary);
+  color: var(--cy-text-muted);
 }
 
-/* 章节名输入框 */
 .editor-chapter {
   display: flex;
   align-items: center;
@@ -187,7 +184,7 @@
 }
 
 .editor-chapter i {
-  color: var(--cy-text-tertiary);
+  color: var(--cy-text-muted);
   font-size: 16px;
 }
 
@@ -203,10 +200,9 @@
 }
 
 .chapter-input::placeholder {
-  color: var(--cy-text-tertiary);
+  color: var(--cy-text-muted);
 }
 
-/* 文本编辑框 */
 .editor-textarea {
   width: 100%;
   min-height: 500px;
@@ -214,16 +210,15 @@
   outline: none;
   font-size: 16px;
   line-height: 1.8;
-  color: var(--cy-text-primary);
+  color: var(--cy-text-main);
   padding: 0;
   background: transparent;
   resize: none;
-  box-sizing: border-box;
   font-family: inherit;
 }
 
 .editor-textarea::placeholder {
-  color: var(--cy-text-tertiary);
+  color: var(--cy-text-muted);
 }
 
 .editor-textarea::selection {
@@ -272,7 +267,7 @@
   cursor: not-allowed;
 }
 
-/* 底部固定功能区 */
+/* 底部功能区 */
 .cy-editor-footer {
   position: fixed;
   bottom: 0;
@@ -294,7 +289,7 @@
   border-bottom: 1px solid var(--cy-border);
 }
 
-.function-btn {
+.function-toggle-btn {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -308,9 +303,9 @@
   transition: all 0.2s ease;
 }
 
-.function-btn:hover {
+.function-toggle-btn:hover {
   background: var(--cy-border);
-  color: var(--cy-text-primary);
+  color: var(--cy-text-main);
 }
 
 .function-drawer-content {
@@ -338,7 +333,7 @@
   gap: 10px;
   border: none;
   background: transparent;
-  color: var(--cy-text-primary);
+  color: var(--cy-text-main);
   font-size: 14px;
   padding: 12px 16px;
   cursor: pointer;
@@ -351,14 +346,13 @@
   color: var(--cy-primary);
 }
 
-/* 底部工具栏 */
+/* 自定义指令输入框 */
 .footer-prompt-input {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
   border-bottom: 1px solid var(--cy-border);
-  max-width: 50%;
 }
 
 .footer-prompt-input i {
@@ -371,28 +365,23 @@
   border: none;
   outline: none;
   font-size: 14px;
-  color: var(--cy-text-primary);
+  color: var(--cy-text-main);
   padding: 4px 0;
   background: transparent;
   font-family: inherit;
 }
 
 .footer-prompt-input input::placeholder {
-  color: var(--cy-text-tertiary);
+  color: var(--cy-text-muted);
 }
 
-/* 选择框通用样式 */
-.footer-style-select, .footer-length-select {
+/* 选择框组 */
+.footer-select-group {
   position: absolute;
   top: 10px;
-}
-
-.footer-style-select {
-  right: 140px;
-}
-
-.footer-length-select {
   right: 20px;
+  display: flex;
+  gap: 10px;
 }
 
 .style-select, .length-select {
@@ -411,7 +400,7 @@
   border-color: var(--cy-primary);
 }
 
-/* AI结果展示区 */
+/* 结果展示区 */
 .footer-results {
   flex: 1;
   padding: 10px 20px;
@@ -433,7 +422,7 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--cy-text-primary);
+  color: var(--cy-text-main);
 }
 
 .results-title i {
@@ -464,8 +453,8 @@
   cursor: not-allowed;
 }
 
-/* 结果卡片容器 横向滚动 */
-.results-cards-container {
+/* 结果卡片容器 */
+.results-cards {
   display: flex;
   gap: 12px;
   overflow-x: auto;
@@ -475,36 +464,36 @@
   scrollbar-color: var(--cy-border) transparent;
 }
 
-.results-cards-container::-webkit-scrollbar {
+.results-cards::-webkit-scrollbar {
   height: 4px;
 }
 
-.results-cards-container::-webkit-scrollbar-track {
+.results-cards::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.results-cards-container::-webkit-scrollbar-thumb {
+.results-cards::-webkit-scrollbar-thumb {
   background: var(--cy-border);
   border-radius: 2px;
 }
 
-.results-cards-container::-webkit-scrollbar-thumb:hover {
-  background: var(--cy-text-tertiary);
+.results-cards::-webkit-scrollbar-thumb:hover {
+  background: var(--cy-text-muted);
 }
 
-.results-cards-container .empty-tip {
+.results-cards .empty-tip {
   width: 100%;
   text-align: center;
-  color: var(--cy-text-tertiary);
+  color: var(--cy-text-muted);
   padding: 20px 0;
   font-size: 14px;
 }
 
-/* 结果卡片 复刻彩云小梦 */
-.cy-result-card {
+/* 结果卡片 */
+.result-card {
   min-width: 280px;
   max-width: 280px;
-  border: 1px solid var(--cy-card-border);
+  border: 1px solid var(--cy-border);
   border-radius: 8px;
   background: var(--cy-card-bg);
   padding: 12px;
@@ -517,7 +506,7 @@
   cursor: pointer;
 }
 
-.cy-result-card:hover {
+.result-card:hover {
   border-color: var(--cy-primary);
   box-shadow: var(--cy-shadow);
 }
@@ -525,7 +514,7 @@
 .card-preview {
   font-size: 14px;
   line-height: 1.6;
-  color: var(--cy-text-primary);
+  color: var(--cy-text-main);
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
@@ -533,7 +522,7 @@
   word-break: break-all;
 }
 
-.card-use-btn {
+.use-btn {
   align-self: flex-end;
   border: none;
   background: var(--cy-primary);
@@ -546,67 +535,54 @@
   transition: all 0.2s ease;
 }
 
-.card-use-btn:hover {
+.use-btn:hover {
   background: var(--cy-primary-hover);
 }
 
-/* 适配ST深色主题 */
+/* 深色主题适配 */
 [data-theme="dark"] .cy-editor-fullscreen {
   --cy-bg: #121212;
-  --cy-text-primary: #F5F5F5;
+  --cy-text-main: #F5F5F5;
   --cy-text-secondary: #BDBDBD;
-  --cy-text-tertiary: #757575;
+  --cy-text-muted: #757575;
   --cy-border: #2D2D2D;
   --cy-card-bg: #1E1E1E;
-  --cy-card-border: #333333;
   --cy-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-/* 响应式适配移动端 */
+/* 移动端适配 */
 @media (max-width: 768px) {
   .cy-editor-header {
     padding: 0 12px;
   }
-
-  .header-logo span {
+  .header-logo span, .mode-tip {
     display: none;
   }
-
   .mode-btn {
     padding: 6px 12px;
   }
-
-  .mode-desc {
-    display: none;
-  }
-
   .editor-title {
     font-size: 28px;
   }
-
   .editor-action-bar {
     width: calc(100% - 24px);
     justify-content: space-between;
   }
-
   .action-btn {
     padding: 10px 8px;
     font-size: 12px;
   }
-
   .footer-prompt-input {
     max-width: 100%;
     padding: 10px 12px;
   }
-
-  .footer-style-select, .footer-length-select {
+  .footer-select-group {
     position: relative;
     top: auto;
     right: auto;
     padding: 0 12px;
   }
-
-  .cy-result-card {
+  .result-card {
     min-width: 240px;
     max-width: 240px;
   }
