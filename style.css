@@ -1,4 +1,4 @@
-/* 1:1还原彩云小梦最新UI样式，像素级对齐截图 */
+/* 1:1还原彩云小梦原生UI，全量动画优化，尺寸完全对齐截图 */
 :root {
   --xiaomeng-primary: #FF5252;
   --xiaomeng-primary-hover: #FF3838;
@@ -10,13 +10,61 @@
   --xiaomeng-text-red: #FF5252;
   --xiaomeng-border: #F5F5F5;
   --xiaomeng-card-bg: #FFFFFF;
-  --xiaomeng-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --xiaomeng-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --xiaomeng-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --xiaomeng-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --xiaomeng-header-height: 60px;
-  --xiaomeng-footer-height: 240px;
-  --xiaomeng-bottom-bar-height: 60px;
+  --xiaomeng-footer-height: 220px;
+  --xiaomeng-bottom-bar-height: 56px;
+  /* 动画时长统一规范 */
+  --ani-fast: 150ms;
+  --ani-normal: 200ms;
+  --ani-slow: 300ms;
 }
 
-/* 编辑器容器 */
+/* 全局动画关键帧 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* 动画通用类 */
+.fade-in {
+  animation: fadeIn var(--ani-normal) ease forwards;
+}
+
+.slide-in {
+  animation: slideUp var(--ani-normal) ease forwards;
+}
+
+.slide-down {
+  animation: slideDown var(--ani-normal) ease forwards;
+}
+
+/* ==============================================
+   编辑器容器
+   ============================================== */
 .xiaomeng-editor-container {
   position: fixed;
   top: 0;
@@ -29,13 +77,16 @@
   flex-direction: column;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  animation: fadeIn var(--ani-normal) ease forwards;
 }
 
 .xiaomeng-editor-container.show {
   display: flex;
 }
 
-/* 顶部导航栏 */
+/* ==============================================
+   顶部导航栏
+   ============================================== */
 .xiaomeng-header {
   position: fixed;
   top: 0;
@@ -49,6 +100,7 @@
   padding: 0 16px;
   box-sizing: border-box;
   z-index: 100;
+  border-bottom: 1px solid var(--xiaomeng-border);
 }
 
 .header-left, .header-right {
@@ -69,7 +121,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ani-fast) ease;
 }
 
 .header-icon-btn:hover {
@@ -108,7 +160,7 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--xiaomeng-text-gray);
-  transition: all 0.2s ease;
+  transition: all var(--ani-fast) ease;
 }
 
 .header-mode-switch input:checked + .mode-btn {
@@ -116,7 +168,9 @@
   color: white;
 }
 
-/* 核心编辑区域 */
+/* ==============================================
+   核心编辑区域
+   ============================================== */
 .xiaomeng-editor-main {
   flex: 1;
   margin-top: var(--xiaomeng-header-height);
@@ -124,6 +178,7 @@
   overflow-y: auto;
   padding: 20px 16px;
   box-sizing: border-box;
+  scroll-behavior: smooth;
 }
 
 .editor-content-wrapper {
@@ -146,10 +201,15 @@
   background: transparent;
   box-sizing: border-box;
   font-family: inherit;
+  transition: all var(--ani-fast) ease;
 }
 
 .editor-title-input::placeholder {
   color: #E0E0E0;
+}
+
+.editor-title-input:focus {
+  color: var(--xiaomeng-primary);
 }
 
 /* 章节名输入框 */
@@ -179,7 +239,7 @@
   color: #E0E0E0;
 }
 
-/* 正文编辑区域 支持标红 */
+/* 正文编辑区域 */
 .editor-main-content {
   width: 100%;
   min-height: 400px;
@@ -208,17 +268,19 @@
 
 /* 续写操作栏 */
 .editor-action-bar {
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
   margin-top: 8px;
+  animation: slideUp var(--ani-normal) ease forwards;
 }
 
 .action-bar-divider {
   width: 100%;
   height: 2px;
   background: var(--xiaomeng-primary);
+  border-radius: 1px;
 }
 
 .action-bar-buttons {
@@ -228,6 +290,7 @@
   background: var(--xiaomeng-primary);
   border-radius: 8px;
   overflow: hidden;
+  box-shadow: var(--xiaomeng-shadow-sm);
 }
 
 .action-bar-btn {
@@ -238,7 +301,7 @@
   font-weight: 500;
   padding: 10px 18px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ani-fast) ease;
   white-space: nowrap;
 }
 
@@ -251,8 +314,13 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
+.action-bar-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ==============================================
-   底部底栏 1:1还原截图UI
+   底部底栏（1:1对齐截图，尺寸缩小，横向紧凑排列）
    ============================================== */
 .xiaomeng-footer {
   position: fixed;
@@ -268,38 +336,40 @@
   z-index: 100;
 }
 
-/* 底栏主容器 */
+/* 底栏主容器（横向一排排列，和截图完全一致） */
 .footer-bottom-bar {
   width: 100%;
   height: var(--xiaomeng-bottom-bar-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 12px;
   box-sizing: border-box;
-  gap: 12px;
+  gap: 8px;
   border-bottom: 1px solid var(--xiaomeng-border);
 }
 
-/* 1. 星星功能按钮 */
+/* 1. 粉色星星按钮 */
 .function-menu-wrapper {
   position: relative;
+  flex-shrink: 0;
 }
 
 .star-function-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: none;
   border-radius: 50%;
   background: var(--xiaomeng-star-gradient);
   color: white;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ani-normal) ease;
   position: relative;
+  flex-shrink: 0;
 }
 
 .star-function-btn::after {
@@ -307,8 +377,8 @@
   position: absolute;
   bottom: -2px;
   right: -2px;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: var(--xiaomeng-star-gradient);
   opacity: 0.6;
@@ -316,47 +386,51 @@
 
 .star-function-btn:hover {
   transform: scale(1.05);
+  box-shadow: var(--xiaomeng-shadow-sm);
 }
 
-/* 功能下拉菜单 对应第三张截图 */
+/* 功能下拉菜单 */
 .function-dropdown-menu {
   position: absolute;
   bottom: 100%;
   left: 0;
   margin-bottom: 12px;
   background: var(--xiaomeng-card-bg);
-  border-radius: 16px;
-  box-shadow: var(--xiaomeng-shadow);
-  min-width: 180px;
+  border-radius: 12px;
+  box-shadow: var(--xiaomeng-shadow-md);
+  min-width: 160px;
   display: none;
   flex-direction: column;
   overflow: hidden;
   z-index: 102;
+  transform-origin: bottom left;
 }
 
 .function-dropdown-menu.show {
   display: flex;
+  animation: slideUp var(--ani-normal) ease forwards;
 }
 
 .function-dropdown-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   border: none;
   background: transparent;
   color: var(--xiaomeng-text-black);
-  font-size: 16px;
-  padding: 14px 16px;
+  font-size: 14px;
+  padding: 12px 14px;
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s ease;
+  transition: all var(--ani-fast) ease;
 }
 
 .function-dropdown-item i {
   color: var(--xiaomeng-text-gray);
-  font-size: 18px;
-  width: 24px;
+  font-size: 16px;
+  width: 20px;
   text-align: center;
+  transition: all var(--ani-fast) ease;
 }
 
 .function-dropdown-item:hover {
@@ -370,18 +444,19 @@
 
 /* 2. 撤回/重做箭头按钮 */
 .arrow-btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border: none;
   background: transparent;
   color: var(--xiaomeng-text-black);
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
 }
 
 .arrow-btn:last-child {
@@ -390,64 +465,80 @@
 
 .arrow-btn:hover {
   background: var(--xiaomeng-border);
+  transform: scale(1.05);
 }
 
-/* 3. V1版本按钮 粉橙渐变 */
+/* 3. V1版本按钮（粉橙渐变，尺寸缩小） */
 .version-btn-wrapper {
   position: relative;
+  flex-shrink: 0;
 }
 
 .version-btn {
   border: none;
-  border-radius: 24px;
+  border-radius: 20px;
   background: var(--xiaomeng-version-gradient);
   color: white;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
-  padding: 8px 20px;
+  padding: 6px 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
+  gap: 4px;
+  transition: all var(--ani-normal) ease;
+  flex-shrink: 0;
 }
 
 .version-btn:hover {
   opacity: 0.9;
+  transform: scale(1.02);
+  box-shadow: var(--xiaomeng-shadow-sm);
 }
 
-/* 4. 风格选择按钮 带小梦图标 */
+.version-btn i {
+  font-size: 12px;
+}
+
+/* 4. 风格选择按钮（带小梦图标，文字缩小，和截图一致） */
 .style-select-wrapper {
   position: relative;
   flex: 1;
-  max-width: 200px;
+  max-width: 160px;
+  flex-shrink: 0;
 }
 
 .style-select-btn {
   width: 100%;
   border: none;
-  border-radius: 24px;
+  border-radius: 20px;
   background: #F9F9F9;
   color: var(--xiaomeng-text-red);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
-  padding: 8px 16px;
+  padding: 6px 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  transition: all 0.2s ease;
+  gap: 4px;
+  transition: all var(--ani-normal) ease;
+  flex-shrink: 0;
 }
 
 .style-select-btn:hover {
   background: #F5F5F5;
+  transform: scale(1.02);
+}
+
+.style-select-btn i:last-child {
+  font-size: 12px;
 }
 
 /* 小梦图标 */
 .xiaomeng-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   background: var(--xiaomeng-text-red);
   border-radius: 50% 50% 40% 40%;
   position: relative;
@@ -457,22 +548,22 @@
 .xiaomeng-icon::before, .xiaomeng-icon::after {
   content: "";
   position: absolute;
-  top: 6px;
-  width: 4px;
-  height: 4px;
+  top: 5px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
   background: white;
 }
 
 .xiaomeng-icon::before {
-  left: 5px;
+  left: 4px;
 }
 
 .xiaomeng-icon::after {
-  right: 5px;
+  right: 4px;
 }
 
-/* 风格下拉菜单 对应第二张截图 */
+/* 风格下拉菜单 */
 .style-dropdown-menu {
   position: absolute;
   bottom: 100%;
@@ -480,28 +571,30 @@
   transform: translateX(-50%);
   margin-bottom: 12px;
   background: var(--xiaomeng-card-bg);
-  border-radius: 16px;
-  box-shadow: var(--xiaomeng-shadow);
-  min-width: 160px;
+  border-radius: 12px;
+  box-shadow: var(--xiaomeng-shadow-md);
+  min-width: 140px;
   display: none;
   flex-direction: column;
   overflow: hidden;
   z-index: 102;
+  transform-origin: bottom center;
 }
 
 .style-dropdown-menu.show {
   display: flex;
+  animation: slideUp var(--ani-normal) ease forwards;
 }
 
 .style-dropdown-item {
   border: none;
   background: transparent;
   color: var(--xiaomeng-text-black);
-  font-size: 16px;
-  padding: 12px 16px;
+  font-size: 14px;
+  padding: 10px 14px;
   cursor: pointer;
   text-align: center;
-  transition: all 0.2s ease;
+  transition: all var(--ani-fast) ease;
 }
 
 .style-dropdown-item:hover, .style-dropdown-item.active {
@@ -509,54 +602,67 @@
   background: #FFF0F0;
 }
 
-/* 5. Ai 继续按钮 红色圆角 */
+/* 5. Ai 继续按钮（尺寸缩小，和截图一致） */
 .ai-continue-btn {
   border: none;
-  border-radius: 28px;
+  border-radius: 24px;
   background: var(--xiaomeng-primary);
   color: white;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
-  padding: 10px 24px;
+  padding: 8px 18px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: all 0.2s ease;
+  transition: all var(--ani-normal) ease;
   flex-shrink: 0;
+  box-shadow: var(--xiaomeng-shadow-sm);
 }
 
 .ai-continue-btn:hover {
   background: var(--xiaomeng-primary-hover);
   transform: scale(1.02);
+  box-shadow: var(--xiaomeng-shadow-md);
+  animation: pulse 1s ease infinite;
 }
 
 .ai-continue-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+  animation: none;
+}
+
+.ai-continue-btn.loading {
+  animation: spin 1s linear infinite;
+}
+
+.ai-continue-btn i {
+  font-size: 14px;
 }
 
 /* 定向续写提示输入框 */
 .custom-prompt-bar {
   width: 100%;
-  padding: 10px 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--xiaomeng-border);
-  display: flex;
+  display: none;
   align-items: center;
   gap: 8px;
+  animation: slideDown var(--ani-normal) ease forwards;
 }
 
 .custom-prompt-bar i {
   color: var(--xiaomeng-star-gradient);
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .custom-prompt-bar input {
   flex: 1;
   border: none;
   outline: none;
-  font-size: 16px;
+  font-size: 14px;
   color: var(--xiaomeng-text-black);
   padding: 4px 0;
   background: transparent;
@@ -567,14 +673,17 @@
   color: var(--xiaomeng-text-gray);
 }
 
-/* AI结果展示区 */
+/* ==============================================
+   AI结果展示区（初始隐藏，生成后显示）
+   ============================================== */
 .footer-results-area {
   flex: 1;
-  padding: 10px 16px;
+  padding: 10px 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  animation: slideUp var(--ani-slow) ease forwards;
 }
 
 .results-header {
@@ -608,7 +717,7 @@
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
-  transition: all 0.2s ease;
+  transition: all var(--ani-fast) ease;
 }
 
 .refresh-btn:hover {
@@ -624,7 +733,7 @@
 /* 结果卡片容器 */
 .results-cards-wrapper {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 10px;
@@ -645,41 +754,44 @@
 
 /* 结果卡片 */
 .result-card {
-  min-width: 260px;
-  max-width: 260px;
+  min-width: 240px;
+  max-width: 240px;
   border: 1px solid var(--xiaomeng-border);
   border-radius: 12px;
   background: var(--xiaomeng-card-bg);
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: all var(--ani-normal) ease;
   cursor: pointer;
   position: relative;
-  box-shadow: var(--xiaomeng-shadow);
+  box-shadow: var(--xiaomeng-shadow-sm);
 }
 
 .result-card:hover {
   border-color: var(--xiaomeng-primary);
+  box-shadow: var(--xiaomeng-shadow-md);
+  transform: translateY(-2px);
 }
 
+/* New标签 */
 .new-tag {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 6px;
+  right: 6px;
   background: var(--xiaomeng-primary);
   color: white;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
-  padding: 2px 5px;
-  border-radius: 4px;
+  padding: 2px 4px;
+  border-radius: 3px;
 }
 
 .card-preview-text {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
   color: var(--xiaomeng-text-black);
   display: -webkit-box;
@@ -695,29 +807,77 @@
   border: none;
   background: var(--xiaomeng-primary);
   color: white;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--ani-fast) ease;
 }
 
 .card-use-btn:hover {
   background: var(--xiaomeng-primary-hover);
+  transform: scale(1.05);
 }
 
-/* 深色主题适配 */
+/* ==============================================
+   加载动画悬浮层
+   ============================================== */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn var(--ani-fast) ease forwards;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--xiaomeng-primary);
+  animation: slideUp var(--ani-normal) ease forwards;
+}
+
+.loading-spinner i {
+  font-size: 32px;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ==============================================
+   深色主题适配
+   ============================================== */
 [data-theme="dark"] .xiaomeng-editor-container {
   --xiaomeng-bg: #121212;
   --xiaomeng-text-black: #F5F5F5;
   --xiaomeng-text-gray: #9E9E9E;
   --xiaomeng-border: #2D2D2D;
   --xiaomeng-card-bg: #1E1E1E;
-  --xiaomeng-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --xiaomeng-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --xiaomeng-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --xiaomeng-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
-/* 移动端适配 */
+[data-theme="dark"] .loading-overlay {
+  background: rgba(18, 18, 18, 0.8);
+}
+
+/* ==============================================
+   移动端适配
+   ============================================== */
 @media (max-width: 768px) {
   .xiaomeng-header {
     padding: 0 12px;
@@ -732,15 +892,23 @@
     font-size: 28px;
   }
   .footer-bottom-bar {
-    padding: 0 12px;
-    gap: 8px;
+    padding: 0 8px;
+    gap: 6px;
   }
   .style-select-wrapper {
-    max-width: 150px;
+    max-width: 130px;
+  }
+  .style-select-btn {
+    font-size: 13px;
+    padding: 6px 8px;
   }
   .ai-continue-btn {
-    padding: 10px 16px;
-    font-size: 16px;
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+  .version-btn {
+    padding: 6px 12px;
+    font-size: 13px;
   }
   .result-card {
     min-width: 220px;
