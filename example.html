@@ -1,11 +1,10 @@
 <!-- ==============================================
-     第一部分：SillyTavern扩展面板入口（必须保留，确保插件正常显示）
-     严格遵循官方模板结构，无修改
+     第一部分：SillyTavern扩展面板入口（必须保留，ST官方规范）
      ============================================== -->
 <div class="example-extension-settings">
     <div class="inline-drawer">
         <div class="inline-drawer-toggle inline-drawer-header">
-            <b>彩云小梦最新UI复刻</b>
+            <b>彩云小梦完美复刻版</b>
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
@@ -26,8 +25,7 @@
 </div>
 
 <!-- ==============================================
-     第二部分：1:1还原彩云小梦最新UI编辑器
-     底栏完全对齐你提供的3张截图
+     第二部分：彩云小梦编辑器主体（布局1:1对齐截图+动画结构）
      ============================================== -->
 <div id="xiaomeng_full_editor" class="xiaomeng-editor-container">
     <!-- 顶部导航栏 -->
@@ -81,7 +79,7 @@
                 />
             </div>
 
-            <!-- 正文可编辑区域（支持续写内容标红） -->
+            <!-- 正文可编辑区域（支持续写内容标红+淡入动画） -->
             <div 
                 id="xiaomeng_editor_textarea" 
                 class="editor-main-content" 
@@ -89,8 +87,8 @@
                 placeholder="该开始创建你自己的故事了"
             ></div>
 
-            <!-- 续写操作栏（生成内容后显示） -->
-            <div id="continuation_action_bar" class="editor-action-bar" style="display: none;">
+            <!-- 续写操作栏（生成内容后显示，带滑入动画） -->
+            <div id="continuation_action_bar" class="editor-action-bar">
                 <div class="action-bar-divider"></div>
                 <div class="action-bar-buttons">
                     <button class="action-bar-btn" id="action_undo">撤回</button>
@@ -103,18 +101,17 @@
     </main>
 
     <!-- ==============================================
-         底部底栏 1:1还原截图UI
-         完全对齐你提供的3张截图的布局、按钮顺序、样式
+         底部底栏（1:1对齐截图+横向紧凑排列+尺寸缩小）
          ============================================== -->
     <footer class="xiaomeng-footer">
-        <!-- 底栏主容器 -->
+        <!-- 底栏主容器（横向一排排列，和截图完全一致） -->
         <div class="footer-bottom-bar">
-            <!-- 1. 最左侧：粉色星星按钮（点击弹出功能菜单） -->
+            <!-- 1. 粉色星星按钮（功能菜单） -->
             <div class="function-menu-wrapper">
                 <button class="star-function-btn" id="star_function_btn">
                     <i class="fa-solid fa-star"></i>
                 </button>
-                <!-- 功能下拉菜单（对应第三张截图：扩写/缩写/改写/定向续写） -->
+                <!-- 功能下拉菜单（带滑入动画） -->
                 <div class="function-dropdown-menu" id="function_dropdown_menu">
                     <button class="function-dropdown-item" data-function="continuation">
                         <i class="fa-solid fa-pen-to-square"></i>
@@ -147,7 +144,7 @@
                 <i class="fa-solid fa-rotate-right"></i>
             </button>
 
-            <!-- 3. V1版本按钮（粉橙渐变） -->
+            <!-- 3. V1版本按钮（粉橙渐变，尺寸缩小） -->
             <div class="version-btn-wrapper">
                 <button class="version-btn" id="version_btn">
                     <span>V1</span>
@@ -155,14 +152,14 @@
                 </button>
             </div>
 
-            <!-- 4. 风格选择按钮（带小梦图标，对应第二张截图：脑洞大开下拉） -->
+            <!-- 4. 风格选择按钮（带小梦图标，文字缩小，和截图一致） -->
             <div class="style-select-wrapper">
                 <button class="style-select-btn" id="style_select_btn">
                     <i class="xiaomeng-icon"></i>
                     <span id="current_style_text">脑洞大开</span>
                     <i class="fa-solid fa-chevron-down"></i>
                 </button>
-                <!-- 风格下拉菜单（对应第二张截图） -->
+                <!-- 风格下拉菜单（带滑入动画） -->
                 <div class="style-dropdown-menu" id="style_dropdown_menu">
                     <button class="style-dropdown-item active" data-style="脑洞大开">脑洞大开</button>
                     <button class="style-dropdown-item" data-style="细节狂魔">细节狂魔</button>
@@ -175,14 +172,15 @@
                 </div>
             </div>
 
-            <!-- 5. 最右侧：Ai 继续按钮（红色圆角） -->
+            <!-- 5. 最右侧：Ai 继续按钮（尺寸缩小，和截图一致） -->
             <button class="ai-continue-btn" id="ai_continue_btn">
+                <i class="fa-solid fa-sparkles"></i>
                 <span>Ai 继续</span>
             </button>
         </div>
 
-        <!-- 定向续写提示输入框（仅选择定向续写时显示） -->
-        <div class="custom-prompt-bar" id="custom_prompt_bar" style="display: none;">
+        <!-- 定向续写提示输入框（仅选择定向续写时显示，带动画） -->
+        <div class="custom-prompt-bar" id="custom_prompt_bar">
             <i class="fa-solid fa-star"></i>
             <input 
                 id="custom_prompt_input" 
@@ -191,11 +189,13 @@
             />
         </div>
 
-        <!-- AI结果展示区 -->
-        <div class="footer-results-area">
+        <!-- ==============================================
+             AI结果展示区（初始隐藏，生成内容后显示，带动画）
+             ============================================== -->
+        <div class="footer-results-area" id="results_area" style="display: none;">
             <div class="results-header">
                 <span class="results-title">
-                    <i class="fa-solid fa-face-smile"></i>
+                    <i class="xiaomeng-icon"></i>
                     看看小梦AI写的
                 </span>
                 <button class="refresh-btn" id="refresh_results_btn" disabled>
@@ -203,8 +203,18 @@
                     换一批
                 </button>
             </div>
+
+            <!-- 横向滚动的结果卡片容器（带滑入动画） -->
             <div class="results-cards-wrapper" id="results_cards_container">
-                <div class="empty-result-tip">点击「Ai 继续」生成多分支内容</div>
+                <div class="empty-result-tip">正在生成内容，请稍候...</div>
+            </div>
+        </div>
+
+        <!-- 加载动画悬浮层 -->
+        <div class="loading-overlay" id="loading_overlay" style="display: none;">
+            <div class="loading-spinner">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>小梦正在创作中...</span>
             </div>
         </div>
     </footer>
