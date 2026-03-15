@@ -1,10 +1,10 @@
 <!-- ==============================================
-     第一部分：SillyTavern扩展面板入口（ST官方规范必须保留）
+     仅保留扩展面板入口按钮，无任何编辑器UI污染主页面
      ============================================== -->
 <div class="example-extension-settings">
     <div class="inline-drawer">
         <div class="inline-drawer-toggle inline-drawer-header">
-            <b>彩云小梦完美复刻版</b>
+            <b>彩云小梦悬浮窗版</b>
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
@@ -25,190 +25,194 @@
 </div>
 
 <!-- ==============================================
-     第二部分：彩云小梦编辑器主体（布局重构）
+     编辑器悬浮窗（默认完全隐藏，点击按钮才显示，独立全屏隔离，零主页面污染）
      ============================================== -->
-<div id="xiaomeng_full_editor" class="xiaomeng-editor-container">
-    <!-- 顶部导航栏 -->
-    <header class="xiaomeng-header">
-        <div class="header-left">
-            <button class="header-icon-btn" id="close_editor_btn">
-                <i class="fa-solid fa-arrow-left"></i>
-            </button>
-            <div class="header-logo">
-                <i class="fa-solid fa-cloud"></i>
-                <span>彩云小梦</span>
+<div id="xiaomeng_full_editor" class="xiaomeng-editor-container" style="display: none;">
+    <!-- 全屏悬浮窗遮罩（隔离主页面） -->
+    <div class="xiaomeng-mask" id="xiaomeng_mask"></div>
+    
+    <!-- 编辑器主体（独立弹窗，不侵入主页面流） -->
+    <div class="xiaomeng-editor-main-window">
+        <!-- 顶部导航栏 -->
+        <header class="xiaomeng-header">
+            <div class="header-left">
+                <button class="header-icon-btn" id="close_editor_btn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="header-logo">
+                    <i class="fa-solid fa-cloud"></i>
+                    <span>彩云小梦</span>
+                </div>
             </div>
-        </div>
 
-        <div class="header-mode-switch">
-            <input type="radio" name="editor_mode" id="mode_v" value="v_mode" checked />
-            <label for="mode_v" class="mode-btn">V模式</label>
-            <input type="radio" name="editor_mode" id="mode_o" value="o_mode" />
-            <label for="mode_o" class="mode-btn">O模式</label>
-        </div>
+            <div class="header-mode-switch">
+                <input type="radio" name="editor_mode" id="mode_v" value="v_mode" checked />
+                <label for="mode_v" class="mode-btn">V模式</label>
+                <input type="radio" name="editor_mode" id="mode_o" value="o_mode" />
+                <label for="mode_o" class="mode-btn">O模式</label>
+            </div>
 
-        <div class="header-right">
-            <button class="header-icon-btn" title="菜单">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-            <button class="header-icon-btn" title="分享">
-                <i class="fa-solid fa-share-nodes"></i>
-            </button>
-        </div>
-    </header>
+            <div class="header-right">
+                <button class="header-icon-btn" title="菜单">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <button class="header-icon-btn" title="分享">
+                    <i class="fa-solid fa-share-nodes"></i>
+                </button>
+            </div>
+        </header>
 
-    <!-- 核心编辑区域 -->
-    <main class="xiaomeng-editor-main">
-        <div class="editor-content-wrapper">
-            <!-- 标题输入框 -->
-            <input 
-                id="xiaomeng_editor_title" 
-                class="editor-title-input" 
-                type="text" 
-                placeholder="标题"
-            />
-
-            <!-- 章节名输入框 -->
-            <div class="editor-chapter-row">
-                <i class="fa-solid fa-book-open"></i>
+        <!-- 核心编辑区域 -->
+        <main class="xiaomeng-editor-content">
+            <div class="editor-content-wrapper">
+                <!-- 标题输入框 -->
                 <input 
-                    id="xiaomeng_editor_chapter" 
-                    class="editor-chapter-input" 
+                    id="xiaomeng_editor_title" 
+                    class="editor-title-input" 
                     type="text" 
-                    placeholder="第_章 章节名"
+                    placeholder="标题"
+                />
+
+                <!-- 章节名输入框 -->
+                <div class="editor-chapter-row">
+                    <i class="fa-solid fa-book-open"></i>
+                    <input 
+                        id="xiaomeng_editor_chapter" 
+                        class="editor-chapter-input" 
+                        type="text" 
+                        placeholder="第_章 章节名"
+                    />
+                </div>
+
+                <!-- 正文可编辑区域 -->
+                <div 
+                    id="xiaomeng_editor_textarea" 
+                    class="editor-main-content" 
+                    contenteditable="true" 
+                    placeholder="该开始创建你自己的故事了"
+                ></div>
+            </div>
+        </main>
+
+        <!-- 底部操作区域 -->
+        <footer class="xiaomeng-footer">
+            <!-- 加载动画悬浮层 -->
+            <div class="loading-overlay" id="loading_overlay" style="display: none;">
+                <div class="loading-spinner">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>小梦正在创作中...</span>
+                </div>
+            </div>
+
+            <!-- 1. 底栏操作区（默认显示，生成后隐藏） -->
+            <div class="footer-bottom-bar" id="footer_operation_bar">
+                <!-- 粉色星星按钮（功能菜单） -->
+                <div class="function-menu-wrapper">
+                    <button class="star-function-btn" id="star_function_btn">
+                        <i class="fa-solid fa-star"></i>
+                    </button>
+                    <!-- 功能下拉菜单 -->
+                    <div class="function-dropdown-menu" id="function_dropdown_menu">
+                        <button class="function-dropdown-item" data-function="continuation">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            <span>续写</span>
+                        </button>
+                        <button class="function-dropdown-item" data-function="expand">
+                            <i class="fa-solid fa-align-left"></i>
+                            <span>扩写</span>
+                        </button>
+                        <button class="function-dropdown-item" data-function="shorten">
+                            <i class="fa-solid fa-align-center"></i>
+                            <span>缩写</span>
+                        </button>
+                        <button class="function-dropdown-item" data-function="rewrite">
+                            <i class="fa-solid fa-pen-ruler"></i>
+                            <span>改写</span>
+                        </button>
+                        <button class="function-dropdown-item" data-function="custom">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>定向续写</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 撤回/重做按钮 -->
+                <button class="arrow-btn" id="undo_btn">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+                <button class="arrow-btn" id="redo_btn">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+
+                <!-- V1版本按钮 -->
+                <div class="version-btn-wrapper">
+                    <button class="version-btn" id="version_btn">
+                        <span>V1</span>
+                        <i class="fa-solid fa-chevron-up"></i>
+                    </button>
+                </div>
+
+                <!-- 风格选择按钮 -->
+                <div class="style-select-wrapper">
+                    <button class="style-select-btn" id="style_select_btn">
+                        <i class="xiaomeng-icon"></i>
+                        <span id="current_style_text">脑洞大开</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <!-- 风格下拉菜单 -->
+                    <div class="style-dropdown-menu" id="style_dropdown_menu">
+                        <button class="style-dropdown-item active" data-style="脑洞大开">脑洞大开</button>
+                        <button class="style-dropdown-item" data-style="细节狂魔">细节狂魔</button>
+                        <button class="style-dropdown-item" data-style="纯爱">纯爱</button>
+                        <button class="style-dropdown-item" data-style="言情">言情</button>
+                        <button class="style-dropdown-item" data-style="玄幻">玄幻</button>
+                        <button class="style-dropdown-item" data-style="悬疑">悬疑</button>
+                        <button class="style-dropdown-item" data-style="都市">都市</button>
+                        <button class="style-dropdown-item" data-style="仙侠">仙侠</button>
+                    </div>
+                </div>
+
+                <!-- Ai 继续按钮 -->
+                <button class="ai-continue-btn" id="ai_continue_btn">
+                    <i class="fa-solid fa-sparkles"></i>
+                    <span>Ai 继续</span>
+                </button>
+            </div>
+
+            <!-- 定向续写提示输入框（随底栏一起隐藏） -->
+            <div class="custom-prompt-bar" id="custom_prompt_bar" style="display: none;">
+                <i class="fa-solid fa-star"></i>
+                <input 
+                    id="custom_prompt_input" 
+                    type="text" 
+                    placeholder="例: 请帮我增加更多战斗场景的描写"
                 />
             </div>
 
-            <!-- 正文可编辑区域 -->
-            <div 
-                id="xiaomeng_editor_textarea" 
-                class="editor-main-content" 
-                contenteditable="true" 
-                placeholder="该开始创建你自己的故事了"
-            ></div>
-        </div>
-    </main>
+            <!-- 2. 结果选择区（默认隐藏，生成后显示，无任何空白） -->
+            <div class="footer-results-area" id="results_area" style="display: none;">
+                <div class="results-header">
+                    <span class="results-title">
+                        <i class="xiaomeng-icon"></i>
+                        看看小梦AI写的
+                    </span>
+                    <div class="results-header-buttons">
+                        <button class="cancel-btn" id="cancel_results_btn">
+                            <i class="fa-solid fa-xmark"></i>
+                            取消
+                        </button>
+                        <button class="refresh-btn" id="refresh_results_btn">
+                            <i class="fa-solid fa-rotate-right"></i>
+                            换一批
+                        </button>
+                    </div>
+                </div>
 
-    <!-- ==============================================
-         底部区域（重构：底栏+结果区域分离，适配切换逻辑）
-         ============================================== -->
-    <footer class="xiaomeng-footer">
-        <!-- 加载动画悬浮层 -->
-        <div class="loading-overlay" id="loading_overlay" style="display: none;">
-            <div class="loading-spinner">
-                <i class="fa-solid fa-spinner fa-spin"></i>
-                <span>小梦正在创作中...</span>
-            </div>
-        </div>
-
-        <!-- 1. 底栏操作区（默认显示，生成后隐藏） -->
-        <div class="footer-bottom-bar" id="footer_operation_bar">
-            <!-- 粉色星星按钮（功能菜单） -->
-            <div class="function-menu-wrapper">
-                <button class="star-function-btn" id="star_function_btn">
-                    <i class="fa-solid fa-star"></i>
-                </button>
-                <!-- 功能下拉菜单 -->
-                <div class="function-dropdown-menu" id="function_dropdown_menu">
-                    <button class="function-dropdown-item" data-function="continuation">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                        <span>续写</span>
-                    </button>
-                    <button class="function-dropdown-item" data-function="expand">
-                        <i class="fa-solid fa-align-left"></i>
-                        <span>扩写</span>
-                    </button>
-                    <button class="function-dropdown-item" data-function="shorten">
-                        <i class="fa-solid fa-align-center"></i>
-                        <span>缩写</span>
-                    </button>
-                    <button class="function-dropdown-item" data-function="rewrite">
-                        <i class="fa-solid fa-pen-ruler"></i>
-                        <span>改写</span>
-                    </button>
-                    <button class="function-dropdown-item" data-function="custom">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        <span>定向续写</span>
-                    </button>
+                <!-- 3个选择卡片容器 -->
+                <div class="results-cards-wrapper" id="results_cards_container">
+                    <div class="empty-result-tip">正在生成内容，请稍候...</div>
                 </div>
             </div>
-
-            <!-- 撤回/重做按钮 -->
-            <button class="arrow-btn" id="undo_btn">
-                <i class="fa-solid fa-rotate-left"></i>
-            </button>
-            <button class="arrow-btn" id="redo_btn">
-                <i class="fa-solid fa-rotate-right"></i>
-            </button>
-
-            <!-- V1版本按钮 -->
-            <div class="version-btn-wrapper">
-                <button class="version-btn" id="version_btn">
-                    <span>V1</span>
-                    <i class="fa-solid fa-chevron-up"></i>
-                </button>
-            </div>
-
-            <!-- 风格选择按钮 -->
-            <div class="style-select-wrapper">
-                <button class="style-select-btn" id="style_select_btn">
-                    <i class="xiaomeng-icon"></i>
-                    <span id="current_style_text">脑洞大开</span>
-                    <i class="fa-solid fa-chevron-down"></i>
-                </button>
-                <!-- 风格下拉菜单 -->
-                <div class="style-dropdown-menu" id="style_dropdown_menu">
-                    <button class="style-dropdown-item active" data-style="脑洞大开">脑洞大开</button>
-                    <button class="style-dropdown-item" data-style="细节狂魔">细节狂魔</button>
-                    <button class="style-dropdown-item" data-style="纯爱">纯爱</button>
-                    <button class="style-dropdown-item" data-style="言情">言情</button>
-                    <button class="style-dropdown-item" data-style="玄幻">玄幻</button>
-                    <button class="style-dropdown-item" data-style="悬疑">悬疑</button>
-                    <button class="style-dropdown-item" data-style="都市">都市</button>
-                    <button class="style-dropdown-item" data-style="仙侠">仙侠</button>
-                </div>
-            </div>
-
-            <!-- Ai 继续按钮 -->
-            <button class="ai-continue-btn" id="ai_continue_btn">
-                <i class="fa-solid fa-sparkles"></i>
-                <span>Ai 继续</span>
-            </button>
-        </div>
-
-        <!-- 定向续写提示输入框（随底栏一起隐藏） -->
-        <div class="custom-prompt-bar" id="custom_prompt_bar" style="display: none;">
-            <i class="fa-solid fa-star"></i>
-            <input 
-                id="custom_prompt_input" 
-                type="text" 
-                placeholder="例: 请帮我增加更多战斗场景的描写"
-            />
-        </div>
-
-        <!-- 2. 结果选择区（默认隐藏，生成后显示，无任何空白） -->
-        <div class="footer-results-area" id="results_area" style="display: none;">
-            <div class="results-header">
-                <span class="results-title">
-                    <i class="xiaomeng-icon"></i>
-                    看看小梦AI写的
-                </span>
-                <div class="results-header-buttons">
-                    <button class="cancel-btn" id="cancel_results_btn">
-                        <i class="fa-solid fa-xmark"></i>
-                        取消
-                    </button>
-                    <button class="refresh-btn" id="refresh_results_btn">
-                        <i class="fa-solid fa-rotate-right"></i>
-                        换一批
-                    </button>
-                </div>
-            </div>
-
-            <!-- 3个选择卡片容器（横向排列，无空白） -->
-            <div class="results-cards-wrapper" id="results_cards_container">
-                <div class="empty-result-tip">正在生成内容，请稍候...</div>
-            </div>
-        </div>
-    </footer>
+        </footer>
+    </div>
 </div>
