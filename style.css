@@ -1,168 +1,579 @@
-/* 彩云小梦风格小说续写插件样式 */
-.cy-novel-continuation-settings .inline-drawer-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+/* 彩云小梦网页版复刻编辑器 全局样式变量 */
+:root {
+    --cy-primary-red: #FF5252;
+    --cy-primary-red-hover: #FF3838;
+    --cy-bg-white: #FFFFFF;
+    --cy-text-black: #212121;
+    --cy-text-gray: #757575;
+    --cy-text-light-gray: #9E9E9E;
+    --cy-border-light: #EEEEEE;
+    --cy-card-bg: #FFFFFF;
+    --cy-card-border: #F5F5F5;
+    --cy-card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --cy-header-height: 60px;
+    --cy-footer-height: 180px;
+    --cy-action-bar-height: 44px;
 }
 
-/* 模式切换组 复刻原版顶部的V/O模式 */
-.cy-novel-continuation-settings .cy-mode-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.cy-novel-continuation-settings .cy-mode-group input {
-    display: none;
-}
-
-.cy-novel-continuation-settings .cy-mode-btn {
-    padding: 6px 16px;
-    border-radius: 20px;
-    border: 1px solid var(--input-border);
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.2s ease;
-    font-weight: 500;
-}
-
-.cy-novel-continuation-settings .cy-mode-group input:checked + .cy-mode-btn {
-    background: var(--button-primary-bg);
-    color: var(--button-primary-color);
-    border-color: var(--button-primary-bg);
-}
-
-.cy-novel-continuation-settings .cy-mode-desc {
-    font-size: 12px;
+/* 扩展入口面板样式 */
+.cy-xiaomeng-extension-entry .entry-desc {
     color: var(--text-muted);
-    margin-left: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
 }
 
-/* 功能块通用样式 */
-.cy-novel-continuation-settings .cy-function-block,
-.cy-novel-continuation-settings .cy-custom-prompt-block,
-.cy-novel-continuation-settings .cy-length-block,
-.cy-novel-continuation-settings .cy-style-block {
+.cy-xiaomeng-extension-entry .settings-block {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    width: 100%;
+    margin-top: 12px;
 }
 
-/* 字数选择组 */
-.cy-novel-continuation-settings .cy-length-select-group {
+/* 全屏编辑器容器 */
+.cy-editor-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--cy-bg-white);
+    z-index: 99999;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.cy-editor-fullscreen.show {
     display: flex;
-    gap: 20px;
+}
+
+/* 顶部导航栏 */
+.cy-editor-header {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    flex-wrap: wrap;
+    height: var(--cy-header-height);
+    background: var(--cy-bg-white);
+    border-bottom: 1px solid var(--cy-border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+    z-index: 100;
 }
 
-.cy-novel-continuation-settings .cy-length-select-group input {
-    margin-right: 4px;
+.header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
-.cy-novel-continuation-settings .cy-length-select-group label {
+.header-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--cy-text-gray);
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.header-btn:hover {
+    background: var(--cy-border-light);
+    color: var(--cy-text-black);
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--cy-primary-red);
+}
+
+/* 模式切换按钮 */
+.header-mode {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--cy-border-light);
+    border-radius: 20px;
+    padding: 4px;
+}
+
+.header-mode input {
+    display: none;
+}
+
+.mode-btn {
+    padding: 6px 20px;
+    border-radius: 16px;
     cursor: pointer;
     user-select: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--cy-text-gray);
+    transition: all 0.2s ease;
 }
 
-/* 按钮组 */
-.cy-novel-continuation-settings .cy-button-group {
-    display: flex;
-    gap: 10px;
-    width: 100%;
+.header-mode input:checked + .mode-btn {
+    background: var(--cy-primary-red);
+    color: white;
 }
 
-.cy-novel-continuation-settings .cy-button-group .menu_button {
+.member-btn {
+    color: #FFB74D;
+}
+
+.member-btn:hover {
+    background: #FFF3E0;
+    color: #FF9800;
+}
+
+/* 核心编辑区域 */
+.cy-editor-main {
     flex: 1;
+    margin-top: var(--cy-header-height);
+    margin-bottom: calc(var(--cy-footer-height) + var(--cy-action-bar-height) + 20px);
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-.cy-novel-continuation-settings .cy-button-group .menu_button.primary {
-    background: var(--button-primary-bg);
-    color: var(--button-primary-color);
-    font-weight: 600;
+.editor-content {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
-/* 结果区域 */
-.cy-novel-continuation-settings .cy-results-area {
-    margin-top: 8px;
+/* 标题输入框 */
+.editor-title {
     width: 100%;
+    border: none;
+    outline: none;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--cy-text-black);
+    padding: 8px 0;
+    background: transparent;
+    box-sizing: border-box;
 }
 
-.cy-novel-continuation-settings .cy-results-header {
-    margin-bottom: 12px;
-    font-weight: bold;
+.editor-title::placeholder {
+    color: var(--cy-text-light-gray);
+}
+
+/* 章节名输入框 */
+.editor-chapter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-chapter i {
+    color: var(--cy-text-light-gray);
+    font-size: 16px;
+}
+
+.chapter-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 18px;
+    color: var(--cy-text-gray);
+    padding: 4px 0;
+    background: transparent;
+}
+
+.chapter-input::placeholder {
+    color: var(--cy-text-light-gray);
+}
+
+/* 文本编辑框 */
+.editor-textarea {
+    width: 100%;
+    min-height: 500px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--cy-text-black);
+    padding: 0;
+    background: transparent;
+    resize: none;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.editor-textarea::placeholder {
+    color: var(--cy-text-light-gray);
+}
+
+.editor-textarea::selection {
+    background: rgba(255, 82, 82, 0.2);
+    color: var(--cy-primary-red);
+}
+
+/* 编辑操作栏 */
+.editor-action-bar {
+    position: fixed;
+    bottom: calc(var(--cy-footer-height) + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--cy-primary-red);
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 101;
+}
+
+.action-btn {
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.action-btn:hover {
+    background: var(--cy-primary-red-hover);
+}
+
+.action-btn.primary {
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 底部固定功能区 */
+.cy-editor-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--cy-footer-height);
+    background: var(--cy-bg-white);
+    border-top: 1px solid var(--cy-border-light);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    z-index: 100;
+}
+
+/* 功能抽屉 */
+.footer-function-drawer {
+    position: relative;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--cy-border-light);
+}
+
+.function-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: transparent;
+    color: var(--cy-text-gray);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.function-btn:hover {
+    background: var(--cy-border-light);
+    color: var(--cy-text-black);
+}
+
+.function-drawer-content {
+    position: absolute;
+    bottom: 100%;
+    left: 20px;
+    background: var(--cy-card-bg);
+    border: 1px solid var(--cy-border-light);
+    border-radius: 8px;
+    box-shadow: var(--cy-card-hover-shadow);
+    min-width: 160px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 102;
+}
+
+.function-drawer-content.show {
+    display: flex;
+}
+
+.drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: none;
+    background: transparent;
+    color: var(--cy-text-black);
+    font-size: 14px;
+    padding: 12px 16px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.drawer-item:hover {
+    background: var(--cy-border-light);
+    color: var(--cy-primary-red);
+}
+
+/* 自定义指令输入框 */
+.footer-prompt-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--cy-border-light);
+}
+
+.footer-prompt-input i {
+    color: var(--cy-primary-red);
+    font-size: 16px;
+}
+
+.footer-prompt-input input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: var(--cy-text-black);
+    padding: 4px 0;
+    background: transparent;
+}
+
+.footer-prompt-input input::placeholder {
+    color: var(--cy-text-light-gray);
+}
+
+/* 风格选择下拉 */
+.footer-style-select {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+}
+
+.style-select {
+    border: 1px solid var(--cy-border-light);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 14px;
+    color: var(--cy-text-gray);
+    background: transparent;
+    outline: none;
+    cursor: pointer;
+}
+
+.style-select:focus {
+    border-color: var(--cy-primary-red);
+}
+
+/* AI结果展示区 */
+.footer-results {
+    flex: 1;
+    padding: 10px 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.results-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.cy-novel-continuation-settings .cy-results-container {
+.results-title {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cy-text-black);
 }
 
-.cy-novel-continuation-settings .cy-empty-tip,
-.cy-novel-continuation-settings .cy-loading {
-    text-align: center;
-    color: var(--text-muted);
-    padding: 24px 0;
-    width: 100%;
-    border-radius: 6px;
-    border: 1px dashed var(--input-border);
+.results-title i {
+    color: var(--cy-primary-red);
 }
 
-/* 结果卡片 完全复刻彩云小梦的卡片样式 */
-.cy-novel-continuation-settings .cy-result-card {
-    border: 1px solid var(--input-border);
-    border-radius: 8px;
-    padding: 12px;
-    background: var(--input-bg);
+.refresh-btn {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    background: transparent;
+    color: var(--cy-text-gray);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
     transition: all 0.2s ease;
 }
 
-.cy-novel-continuation-settings .cy-result-card:hover {
-    border-color: var(--button-primary-bg);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+.refresh-btn:hover {
+    background: var(--cy-border-light);
+    color: var(--cy-primary-red);
 }
 
-.cy-novel-continuation-settings .cy-result-preview {
-    color: var(--input-color);
-    line-height: 1.5;
-    font-size: 14px;
-    word-break: break-all;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.cy-novel-continuation-settings .cy-use-btn {
-    width: fit-content;
-    align-self: flex-end;
-    margin: 0;
-    padding: 4px 12px;
-    font-size: 13px;
-}
-
-/* 禁用按钮样式 */
-.cy-novel-continuation-settings .menu_button:disabled {
+.refresh-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
 
-/* 响应式适配 */
+/* 结果卡片容器 横向滚动 */
+.results-cards-container {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--cy-border-light) transparent;
+}
+
+.results-cards-container::-webkit-scrollbar {
+    height: 4px;
+}
+
+.results-cards-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.results-cards-container::-webkit-scrollbar-thumb {
+    background: var(--cy-border-light);
+    border-radius: 2px;
+}
+
+.results-cards-container::-webkit-scrollbar-thumb:hover {
+    background: var(--cy-text-light-gray);
+}
+
+.results-cards-container .empty-tip {
+    width: 100%;
+    text-align: center;
+    color: var(--cy-text-light-gray);
+    padding: 20px 0;
+    font-size: 14px;
+}
+
+/* 结果卡片 完全复刻彩云小梦 */
+.cy-result-card {
+    min-width: 280px;
+    max-width: 280px;
+    border: 1px solid var(--cy-card-border);
+    border-radius: 8px;
+    background: var(--cy-card-bg);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.cy-result-card:hover {
+    border-color: var(--cy-primary-red);
+    box-shadow: var(--cy-card-hover-shadow);
+}
+
+.card-preview {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--cy-text-black);
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-all;
+}
+
+.card-use-btn {
+    align-self: flex-end;
+    border: none;
+    background: var(--cy-primary-red);
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.card-use-btn:hover {
+    background: var(--cy-primary-red-hover);
+}
+
+/* 适配ST深色模式 */
+[data-theme="dark"] .cy-editor-fullscreen {
+    --cy-bg-white: #121212;
+    --cy-text-black: #F5F5F5;
+    --cy-text-gray: #BDBDBD;
+    --cy-text-light-gray: #757575;
+    --cy-border-light: #2D2D2D;
+    --cy-card-bg: #1E1E1E;
+    --cy-card-border: #333333;
+}
+
+/* 响应式适配移动端 */
 @media (max-width: 768px) {
-    .cy-novel-continuation-settings .cy-button-group {
-        flex-direction: column;
+    .cy-editor-header {
+        padding: 0 12px;
     }
-    .cy-novel-continuation-settings .cy-length-select-group {
-        gap: 12px;
+
+    .header-logo span {
+        display: none;
+    }
+
+    .mode-btn {
+        padding: 6px 12px;
+    }
+
+    .editor-title {
+        font-size: 28px;
+    }
+
+    .editor-action-bar {
+        width: calc(100% - 24px);
+        justify-content: space-between;
+    }
+
+    .action-btn {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .cy-result-card {
+        min-width: 240px;
+        max-width: 240px;
     }
 }
