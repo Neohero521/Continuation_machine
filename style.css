@@ -1,15 +1,19 @@
-/* 1:1还原彩云小梦APP截图样式，修复所有UI问题 */
+/* 1:1还原彩云小梦最新UI样式，像素级对齐截图 */
 :root {
   --xiaomeng-primary: #FF5252;
   --xiaomeng-primary-hover: #FF3838;
+  --xiaomeng-star-gradient: linear-gradient(135deg, #FF79C6 0%, #FF52A2 100%);
+  --xiaomeng-version-gradient: linear-gradient(90deg, #FF80D0 0%, #FF9E7D 100%);
   --xiaomeng-bg: #FFFFFF;
   --xiaomeng-text-black: #333333;
   --xiaomeng-text-gray: #999999;
+  --xiaomeng-text-red: #FF5252;
   --xiaomeng-border: #F5F5F5;
   --xiaomeng-card-bg: #FFFFFF;
-  --xiaomeng-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --xiaomeng-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   --xiaomeng-header-height: 60px;
-  --xiaomeng-footer-height: 220px;
+  --xiaomeng-footer-height: 240px;
+  --xiaomeng-bottom-bar-height: 60px;
 }
 
 /* 编辑器容器 */
@@ -31,7 +35,7 @@
   display: flex;
 }
 
-/* 顶部导航栏 1:1还原截图 */
+/* 顶部导航栏 */
 .xiaomeng-header {
   position: fixed;
   top: 0;
@@ -82,7 +86,7 @@
   color: var(--xiaomeng-primary);
 }
 
-/* 模式切换按钮 1:1还原截图 */
+/* 模式切换按钮 */
 .header-mode-switch {
   display: flex;
   align-items: center;
@@ -197,12 +201,12 @@
   color: #E0E0E0;
 }
 
-/* 续写内容红色标红 1:1还原截图 */
+/* 续写内容红色标红 */
 .continuation-red-text {
-  color: var(--xiaomeng-primary);
+  color: var(--xiaomeng-text-red);
 }
 
-/* 续写操作栏 1:1还原截图 */
+/* 续写操作栏 */
 .editor-action-bar {
   display: flex;
   flex-direction: column;
@@ -247,12 +251,9 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
-.action-bar-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* 底部固定功能区 1:1还原截图 */
+/* ==============================================
+   底部底栏 1:1还原截图UI
+   ============================================== */
 .xiaomeng-footer {
   position: fixed;
   bottom: 0;
@@ -267,128 +268,306 @@
   z-index: 100;
 }
 
-/* 功能选择抽屉 */
-.footer-function-drawer {
-  position: relative;
-  padding: 10px 16px;
+/* 底栏主容器 */
+.footer-bottom-bar {
+  width: 100%;
+  height: var(--xiaomeng-bottom-bar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  box-sizing: border-box;
+  gap: 12px;
   border-bottom: 1px solid var(--xiaomeng-border);
 }
 
-.function-toggle-btn {
+/* 1. 星星功能按钮 */
+.function-menu-wrapper {
+  position: relative;
+}
+
+.star-function-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--xiaomeng-star-gradient);
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  border: none;
-  background: transparent;
-  color: var(--xiaomeng-text-gray);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 6px 12px;
-  border-radius: 6px;
+  justify-content: center;
   transition: all 0.2s ease;
+  position: relative;
 }
 
-.function-toggle-btn:hover {
-  background: var(--xiaomeng-border);
-  color: var(--xiaomeng-text-black);
+.star-function-btn::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--xiaomeng-star-gradient);
+  opacity: 0.6;
 }
 
-.function-dropdown {
+.star-function-btn:hover {
+  transform: scale(1.05);
+}
+
+/* 功能下拉菜单 对应第三张截图 */
+.function-dropdown-menu {
   position: absolute;
   bottom: 100%;
-  left: 16px;
+  left: 0;
+  margin-bottom: 12px;
   background: var(--xiaomeng-card-bg);
-  border: 1px solid var(--xiaomeng-border);
-  border-radius: 8px;
+  border-radius: 16px;
   box-shadow: var(--xiaomeng-shadow);
-  min-width: 120px;
+  min-width: 180px;
   display: none;
   flex-direction: column;
   overflow: hidden;
   z-index: 102;
 }
 
-.function-dropdown.show {
+.function-dropdown-menu.show {
   display: flex;
 }
 
-.dropdown-item {
+.function-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   border: none;
   background: transparent;
   color: var(--xiaomeng-text-black);
-  font-size: 14px;
-  padding: 12px 16px;
+  font-size: 16px;
+  padding: 14px 16px;
   cursor: pointer;
   text-align: left;
   transition: all 0.2s ease;
 }
 
-.dropdown-item:hover {
-  background: var(--xiaomeng-border);
-  color: var(--xiaomeng-primary);
+.function-dropdown-item i {
+  color: var(--xiaomeng-text-gray);
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
 }
 
-/* 自定义指令输入框 */
-.footer-prompt-input {
+.function-dropdown-item:hover {
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-text-red);
+}
+
+.function-dropdown-item:hover i {
+  color: var(--xiaomeng-text-red);
+}
+
+/* 2. 撤回/重做箭头按钮 */
+.arrow-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--xiaomeng-text-black);
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.arrow-btn:last-child {
+  color: var(--xiaomeng-text-gray);
+}
+
+.arrow-btn:hover {
+  background: var(--xiaomeng-border);
+}
+
+/* 3. V1版本按钮 粉橙渐变 */
+.version-btn-wrapper {
+  position: relative;
+}
+
+.version-btn {
+  border: none;
+  border-radius: 24px;
+  background: var(--xiaomeng-version-gradient);
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 8px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.version-btn:hover {
+  opacity: 0.9;
+}
+
+/* 4. 风格选择按钮 带小梦图标 */
+.style-select-wrapper {
+  position: relative;
+  flex: 1;
+  max-width: 200px;
+}
+
+.style-select-btn {
+  width: 100%;
+  border: none;
+  border-radius: 24px;
+  background: #F9F9F9;
+  color: var(--xiaomeng-text-red);
+  font-size: 16px;
+  font-weight: 500;
+  padding: 8px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.style-select-btn:hover {
+  background: #F5F5F5;
+}
+
+/* 小梦图标 */
+.xiaomeng-icon {
+  width: 20px;
+  height: 20px;
+  background: var(--xiaomeng-text-red);
+  border-radius: 50% 50% 40% 40%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.xiaomeng-icon::before, .xiaomeng-icon::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: white;
+}
+
+.xiaomeng-icon::before {
+  left: 5px;
+}
+
+.xiaomeng-icon::after {
+  right: 5px;
+}
+
+/* 风格下拉菜单 对应第二张截图 */
+.style-dropdown-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 12px;
+  background: var(--xiaomeng-card-bg);
+  border-radius: 16px;
+  box-shadow: var(--xiaomeng-shadow);
+  min-width: 160px;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 102;
+}
+
+.style-dropdown-menu.show {
+  display: flex;
+}
+
+.style-dropdown-item {
+  border: none;
+  background: transparent;
+  color: var(--xiaomeng-text-black);
+  font-size: 16px;
+  padding: 12px 16px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.style-dropdown-item:hover, .style-dropdown-item.active {
+  color: var(--xiaomeng-text-red);
+  background: #FFF0F0;
+}
+
+/* 5. Ai 继续按钮 红色圆角 */
+.ai-continue-btn {
+  border: none;
+  border-radius: 28px;
+  background: var(--xiaomeng-primary);
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 10px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.ai-continue-btn:hover {
+  background: var(--xiaomeng-primary-hover);
+  transform: scale(1.02);
+}
+
+.ai-continue-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 定向续写提示输入框 */
+.custom-prompt-bar {
+  width: 100%;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--xiaomeng-border);
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--xiaomeng-border);
-  max-width: 50%;
 }
 
-.footer-prompt-input i {
-  color: var(--xiaomeng-primary);
-  font-size: 15px;
+.custom-prompt-bar i {
+  color: var(--xiaomeng-star-gradient);
+  font-size: 18px;
 }
 
-.footer-prompt-input input {
+.custom-prompt-bar input {
   flex: 1;
   border: none;
   outline: none;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--xiaomeng-text-black);
   padding: 4px 0;
   background: transparent;
   font-family: inherit;
 }
 
-.footer-prompt-input input::placeholder {
+.custom-prompt-bar input::placeholder {
   color: var(--xiaomeng-text-gray);
 }
 
-/* 选择框通用样式 */
-.footer-style-select, .footer-length-select {
-  position: absolute;
-  top: 10px;
-}
-
-.footer-style-select {
-  right: 130px;
-}
-
-.footer-length-select {
-  right: 16px;
-}
-
-.style-select, .length-select {
-  border: 1px solid var(--xiaomeng-border);
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-size: 13px;
-  color: var(--xiaomeng-text-gray);
-  background: transparent;
-  outline: none;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.style-select:focus, .length-select:focus {
-  border-color: var(--xiaomeng-primary);
-}
-
-/* AI结果展示区 1:1还原截图 */
+/* AI结果展示区 */
 .footer-results-area {
   flex: 1;
   padding: 10px 16px;
@@ -442,7 +621,7 @@
   cursor: not-allowed;
 }
 
-/* 结果卡片容器 1:1还原截图横向滚动 */
+/* 结果卡片容器 */
 .results-cards-wrapper {
   display: flex;
   gap: 12px;
@@ -464,7 +643,7 @@
   font-size: 14px;
 }
 
-/* 结果卡片 1:1还原截图样式 */
+/* 结果卡片 */
 .result-card {
   min-width: 260px;
   max-width: 260px;
@@ -487,7 +666,6 @@
   border-color: var(--xiaomeng-primary);
 }
 
-/* New标签 1:1还原截图 */
 .new-tag {
   position: absolute;
   top: 8px;
@@ -512,7 +690,6 @@
   margin-top: 8px;
 }
 
-/* 使用按钮 1:1还原截图 */
 .card-use-btn {
   align-self: flex-end;
   border: none;
@@ -530,47 +707,6 @@
   background: var(--xiaomeng-primary-hover);
 }
 
-/* 悬浮AI继续按钮 1:1还原截图 */
-.float-ai-btn {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: var(--xiaomeng-primary);
-  color: white;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(255, 82, 82, 0.3);
-  transition: all 0.2s ease;
-  z-index: 101;
-}
-
-.float-ai-btn:hover {
-  background: var(--xiaomeng-primary-hover);
-  transform: scale(1.05);
-}
-
-.float-ai-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.float-ai-btn.loading {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
 /* 深色主题适配 */
 [data-theme="dark"] .xiaomeng-editor-container {
   --xiaomeng-bg: #121212;
@@ -578,7 +714,7 @@
   --xiaomeng-text-gray: #9E9E9E;
   --xiaomeng-border: #2D2D2D;
   --xiaomeng-card-bg: #1E1E1E;
-  --xiaomeng-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --xiaomeng-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* 移动端适配 */
@@ -595,15 +731,16 @@
   .editor-title-input {
     font-size: 28px;
   }
-  .footer-prompt-input {
-    max-width: 100%;
-    padding: 10px 12px;
-  }
-  .footer-style-select, .footer-length-select {
-    position: relative;
-    top: auto;
-    right: auto;
+  .footer-bottom-bar {
     padding: 0 12px;
+    gap: 8px;
+  }
+  .style-select-wrapper {
+    max-width: 150px;
+  }
+  .ai-continue-btn {
+    padding: 10px 16px;
+    font-size: 16px;
   }
   .result-card {
     min-width: 220px;
