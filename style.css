@@ -1,4 +1,4 @@
-/* 1:1还原彩云小梦原生UI，修复界面显示问题 */
+/* 1:1还原彩云小梦原生UI，无空白优化+底栏切换动画 */
 :root {
   --xiaomeng-primary: #FF5252;
   --xiaomeng-primary-hover: #FF3838;
@@ -14,7 +14,6 @@
   --xiaomeng-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
   --xiaomeng-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --xiaomeng-header-height: 60px;
-  --xiaomeng-footer-height: 220px;
   --xiaomeng-bottom-bar-height: 56px;
   /* 动画时长 */
   --ani-fast: 150ms;
@@ -174,9 +173,9 @@
 .xiaomeng-editor-main {
   flex: 1;
   margin-top: var(--xiaomeng-header-height);
-  margin-bottom: var(--xiaomeng-footer-height);
+  margin-bottom: 0;
   overflow-y: auto;
-  padding: 20px 16px;
+  padding: 20px 16px 80px 16px;
   box-sizing: border-box;
   scroll-behavior: smooth;
 }
@@ -266,77 +265,65 @@
   color: var(--xiaomeng-text-red);
 }
 
-/* 续写操作栏 */
-.editor-action-bar {
-  display: none;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  margin-top: 8px;
-  animation: slideUp var(--ani-normal) ease forwards;
-}
-
-.action-bar-divider {
-  width: 100%;
-  height: 2px;
-  background: var(--xiaomeng-primary);
-  border-radius: 1px;
-}
-
-.action-bar-buttons {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  background: var(--xiaomeng-primary);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: var(--xiaomeng-shadow-sm);
-}
-
-.action-bar-btn {
-  border: none;
-  background: transparent;
-  color: white;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 10px 18px;
-  cursor: pointer;
-  transition: all var(--ani-fast) ease;
-  white-space: nowrap;
-}
-
-.action-bar-btn:hover {
-  background: var(--xiaomeng-primary-hover);
-}
-
-.action-bar-btn.primary {
-  font-weight: 700;
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.action-bar-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 /* ==============================================
-   底部底栏（1:1对齐截图，尺寸缩小，横向紧凑排列）
+   底部区域（重构：动态高度，无空白优化）
    ============================================== */
 .xiaomeng-footer {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: var(--xiaomeng-footer-height);
+  min-height: var(--xiaomeng-bottom-bar-height);
   background: var(--xiaomeng-bg);
   border-top: 1px solid var(--xiaomeng-border);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   z-index: 100;
+  /* 动态高度，无多余空白 */
+  height: auto;
+  max-height: 220px;
 }
 
-/* 底栏主容器（横向一排排列，和截图完全一致） */
+/* 加载动画悬浮层 */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn var(--ani-fast) ease forwards;
+  border-radius: 12px 12px 0 0;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--xiaomeng-primary);
+  animation: slideUp var(--ani-normal) ease forwards;
+}
+
+.loading-spinner i {
+  font-size: 32px;
+  animation: spin 1s linear infinite;
+}
+
+.loading-spinner span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ==============================================
+   1. 底栏操作区（1:1对齐截图，横向紧凑排列）
+   ============================================== */
 .footer-bottom-bar {
   width: 100%;
   height: var(--xiaomeng-bottom-bar-height);
@@ -347,9 +334,10 @@
   box-sizing: border-box;
   gap: 8px;
   border-bottom: 1px solid var(--xiaomeng-border);
+  flex-shrink: 0;
 }
 
-/* 1. 粉色星星按钮 */
+/* 粉色星星按钮 */
 .function-menu-wrapper {
   position: relative;
   flex-shrink: 0;
@@ -442,7 +430,7 @@
   color: var(--xiaomeng-text-red);
 }
 
-/* 2. 撤回/重做箭头按钮 */
+/* 撤回/重做箭头按钮 */
 .arrow-btn {
   width: 32px;
   height: 32px;
@@ -468,7 +456,7 @@
   transform: scale(1.05);
 }
 
-/* 3. V1版本按钮（粉橙渐变，尺寸缩小） */
+/* V1版本按钮 */
 .version-btn-wrapper {
   position: relative;
   flex-shrink: 0;
@@ -500,7 +488,7 @@
   font-size: 12px;
 }
 
-/* 4. 风格选择按钮（带小梦图标，文字缩小，和截图一致） */
+/* 风格选择按钮 */
 .style-select-wrapper {
   position: relative;
   flex: 1;
@@ -602,7 +590,7 @@
   background: #FFF0F0;
 }
 
-/* 5. Ai 继续按钮（尺寸缩小，和截图一致） */
+/* Ai 继续按钮 */
 .ai-continue-btn {
   border: none;
   border-radius: 24px;
@@ -651,6 +639,7 @@
   align-items: center;
   gap: 8px;
   animation: slideDown var(--ani-normal) ease forwards;
+  flex-shrink: 0;
 }
 
 .custom-prompt-bar i {
@@ -674,22 +663,26 @@
 }
 
 /* ==============================================
-   AI结果展示区（修复显示问题）
+   2. 结果选择区（无空白优化，生成后显示）
    ============================================== */
 .footer-results-area {
-  flex: 1;
-  padding: 10px 12px;
-  overflow: hidden;
+  width: 100%;
+  padding: 12px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  animation: slideUp var(--ani-slow) ease forwards;
+  gap: 10px;
+  flex-shrink: 0;
+  /* 无多余空白 */
+  height: auto;
+  min-height: 160px;
 }
 
 .results-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
 }
 
 .results-title {
@@ -704,6 +697,31 @@
 .results-title i {
   color: var(--xiaomeng-primary);
   font-size: 16px;
+}
+
+.results-header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cancel-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-text-gray);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all var(--ani-fast) ease;
+}
+
+.cancel-btn:hover {
+  background: #E0E0E0;
+  color: var(--xiaomeng-text-black);
 }
 
 .refresh-btn {
@@ -730,17 +748,16 @@
   cursor: not-allowed;
 }
 
-/* 结果卡片容器（修复横向滚动） */
+/* 结果卡片容器（横向排列，无空白） */
 .results-cards-wrapper {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   overflow-x: auto;
   overflow-y: hidden;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
   scrollbar-width: none;
-  /* 强制显示，避免隐藏 */
   width: 100%;
-  min-height: 120px;
+  min-height: 100px;
 }
 
 .results-cards-wrapper::-webkit-scrollbar {
@@ -756,14 +773,14 @@
   margin: auto;
 }
 
-/* 结果卡片（确保正常显示） */
+/* 结果卡片（3个横向排列，适配高度） */
 .result-card {
-  min-width: 240px;
-  max-width: 240px;
+  min-width: 280px;
+  max-width: 280px;
   border: 1px solid var(--xiaomeng-border);
   border-radius: 12px;
   background: var(--xiaomeng-card-bg);
-  padding: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -773,9 +790,9 @@
   cursor: pointer;
   position: relative;
   box-shadow: var(--xiaomeng-shadow-sm);
-  /* 强制显示 */
   opacity: 1;
   visibility: visible;
+  height: 100%;
 }
 
 .result-card:hover {
@@ -784,17 +801,17 @@
   transform: translateY(-2px);
 }
 
-/* New标签 */
-.new-tag {
+/* 分支标签 */
+.branch-tag {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 8px;
+  right: 8px;
   background: var(--xiaomeng-primary);
   color: white;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 2px 4px;
-  border-radius: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .card-preview-text {
@@ -816,7 +833,7 @@
   color: white;
   font-size: 12px;
   font-weight: 500;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: 4px;
   cursor: pointer;
   transition: all var(--ani-fast) ease;
@@ -825,43 +842,6 @@
 .card-use-btn:hover {
   background: var(--xiaomeng-primary-hover);
   transform: scale(1.05);
-}
-
-/* ==============================================
-   加载动画悬浮层
-   ============================================== */
-.loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-  animation: fadeIn var(--ani-fast) ease forwards;
-}
-
-.loading-spinner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  color: var(--xiaomeng-primary);
-  animation: slideUp var(--ani-normal) ease forwards;
-}
-
-.loading-spinner i {
-  font-size: 32px;
-  animation: spin 1s linear infinite;
-}
-
-.loading-spinner span {
-  font-size: 14px;
-  font-weight: 500;
 }
 
 /* ==============================================
@@ -918,7 +898,10 @@
     font-size: 13px;
   }
   .result-card {
-    min-width: 220px;
-    max-width: 220px;
+    min-width: 240px;
+    max-width: 240px;
+  }
+  .footer-results-area {
+    padding: 10px 8px;
   }
 }
