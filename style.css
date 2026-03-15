@@ -1,0 +1,168 @@
+/* 彩云小梦风格小说续写插件样式 */
+.cy-novel-continuation-settings .inline-drawer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 模式切换组 复刻原版顶部的V/O模式 */
+.cy-novel-continuation-settings .cy-mode-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cy-novel-continuation-settings .cy-mode-group input {
+    display: none;
+}
+
+.cy-novel-continuation-settings .cy-mode-btn {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--input-border);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.cy-novel-continuation-settings .cy-mode-group input:checked + .cy-mode-btn {
+    background: var(--button-primary-bg);
+    color: var(--button-primary-color);
+    border-color: var(--button-primary-bg);
+}
+
+.cy-novel-continuation-settings .cy-mode-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-left: 8px;
+}
+
+/* 功能块通用样式 */
+.cy-novel-continuation-settings .cy-function-block,
+.cy-novel-continuation-settings .cy-custom-prompt-block,
+.cy-novel-continuation-settings .cy-length-block,
+.cy-novel-continuation-settings .cy-style-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+/* 字数选择组 */
+.cy-novel-continuation-settings .cy-length-select-group {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.cy-novel-continuation-settings .cy-length-select-group input {
+    margin-right: 4px;
+}
+
+.cy-novel-continuation-settings .cy-length-select-group label {
+    cursor: pointer;
+    user-select: none;
+}
+
+/* 按钮组 */
+.cy-novel-continuation-settings .cy-button-group {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.cy-novel-continuation-settings .cy-button-group .menu_button {
+    flex: 1;
+}
+
+.cy-novel-continuation-settings .cy-button-group .menu_button.primary {
+    background: var(--button-primary-bg);
+    color: var(--button-primary-color);
+    font-weight: 600;
+}
+
+/* 结果区域 */
+.cy-novel-continuation-settings .cy-results-area {
+    margin-top: 8px;
+    width: 100%;
+}
+
+.cy-novel-continuation-settings .cy-results-header {
+    margin-bottom: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cy-novel-continuation-settings .cy-results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.cy-novel-continuation-settings .cy-empty-tip,
+.cy-novel-continuation-settings .cy-loading {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 24px 0;
+    width: 100%;
+    border-radius: 6px;
+    border: 1px dashed var(--input-border);
+}
+
+/* 结果卡片 完全复刻彩云小梦的卡片样式 */
+.cy-novel-continuation-settings .cy-result-card {
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 12px;
+    background: var(--input-bg);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.2s ease;
+}
+
+.cy-novel-continuation-settings .cy-result-card:hover {
+    border-color: var(--button-primary-bg);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.cy-novel-continuation-settings .cy-result-preview {
+    color: var(--input-color);
+    line-height: 1.5;
+    font-size: 14px;
+    word-break: break-all;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cy-novel-continuation-settings .cy-use-btn {
+    width: fit-content;
+    align-self: flex-end;
+    margin: 0;
+    padding: 4px 12px;
+    font-size: 13px;
+}
+
+/* 禁用按钮样式 */
+.cy-novel-continuation-settings .menu_button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+    .cy-novel-continuation-settings .cy-button-group {
+        flex-direction: column;
+    }
+    .cy-novel-continuation-settings .cy-length-select-group {
+        gap: 12px;
+    }
+}
