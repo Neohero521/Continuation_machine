@@ -1,200 +1,105 @@
-// 彩云小梦小说续写插件 - 核心逻辑
-// 完全兼容SillyTavern所有稳定版本，自动复用ST原生API
+// 严格保留官方模板的导入内容，不新增模板外的导入，避免兼容性问题
 import {
   extension_settings,
   getContext,
   loadExtensionSettings,
 } from "../../../extensions.js";
 
-import {
-  saveSettingsDebounced,
-  generateCompletion,
-} from "../../../../script.js";
+// 严格保留模板的导入，仅使用ST原生暴露的核心函数
+import { saveSettingsDebounced } from "../../../../script.js";
 
-// 【关键】必须和你的扩展文件夹名称完全一致！！！
-const extensionName = "Continuation_machine";
+// 严格和模板一致：extensionName必须和仓库/文件夹名称完全一致
+const extensionName = "st-extension-example";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const extensionSettings = extension_settings[extensionName];
 
-// 默认设置
+// 严格和模板一致：默认设置定义
 const defaultSettings = {
   syncStContent: true,
-  inheritStParams: true,
-  autoSaveContent: true,
-  mode: "v_mode",
-  functionType: "continuation",
-  customPrompt: "",
-  style: "标准",
-  length: "200",
-  savedContent: {
+  inheritStSettings: true,
+  autoSaveStory: true,
+  defaultLength: "200",
+  defaultStyle: "标准",
+  currentStory: {
     title: "",
     chapter: "",
-    text: "",
+    content: "",
   },
 };
 
-// 全局状态
-let currentResults = [];
+// 全局变量（仅在模板基础上新增，不修改模板核心结构）
+let currentFullResults = [];
 let currentInsertMode = false;
+let syncDebounceTimer = null;
 let isGenerating = false;
-let syncTimer = null;
 
-// ==============================================
-// 初始化：必须先加载设置，再渲染UI，确保扩展能被ST识别
-// ==============================================
-async function initExtension() {
-  try {
-    // 1. 加载HTML模板到ST扩展面板
-    const html = await $.get(`${extensionFolderPath}/example.html`);
-    $("#extensions_settings").append(html);
+// 严格和模板一致：设置加载函数，结构完全对齐
+async function loadSettings() {
+  // 严格和模板一致：初始化设置对象
+  extension_settings[extensionName] = extension_settings[extensionName] || {};
+  if (Object.keys(extension_settings[extensionName]).length === 0) {
+    Object.assign(extension_settings[extensionName], defaultSettings);
+  }
 
-    // 2. 初始化设置
-    extension_settings[extensionName] = extension_settings[extensionName] || {};
-    if (Object.keys(extension_settings[extensionName]).length === 0) {
-      Object.assign(extension_settings[extensionName], defaultSettings);
-    }
-    const settings = extension_settings[extensionName];
+  // 严格和模板一致：UI设置同步，和模板的prop/trigger写法完全对齐
+  $("#sync_st_content")
+    .prop("checked", extension_settings[extensionName].syncStContent)
+    .trigger("input");
+  
+  $("#inherit_st_settings")
+    .prop("checked", extension_settings[extensionName].inheritStSettings)
+    .trigger("input");
+  
+  $("#auto_save_story")
+    .prop("checked", extension_settings[extensionName].autoSaveStory)
+    .trigger("input");
+  
+  $(`#length_${extension_settings[extensionName].defaultLength}`)
+    .prop("checked", true)
+    .trigger("input");
+  
+  $("#default_style")
+    .val(extension_settings[extensionName].defaultStyle)
+    .trigger("input");
 
-    // 3. 同步设置到UI
-    $("#sync_st_content").prop("checked", settings.syncStContent);
-    $("#inherit_st_params").prop("checked", settings.inheritStParams);
-    $("#auto_save_content").prop("checked", settings.autoSaveContent);
-    $(`#${settings.mode}`).prop("checked", true);
-    $("#style_select").val(settings.style);
-    $("#length_select").val(settings.length);
-    $("#custom_prompt").val(settings.customPrompt);
-    $("#function_name").text({
-      continuation: "续写",
-      expand: "扩写",
-      shorten: "缩写",
-      rewrite: "改写",
-      custom: "定向续写",
-    }[settings.functionType] || "续写");
+  // 编辑器默认值同步
+  $("#editor_length_select").val(extension_settings[extensionName].defaultLength);
+  $("#editor_style_select").val(extension_settings[extensionName].defaultStyle);
 
-    // 4. 恢复保存的内容
-    if (settings.savedContent) {
-      $("#editor_title").val(settings.savedContent.title || "");
-      $("#editor_chapter").val(settings.savedContent.chapter || "");
-      $("#editor_textarea").val(settings.savedContent.text || "");
-    }
-
-    // 5. 绑定所有事件
-    bindEvents();
-
-    console.log(`[${extensionName}] 插件加载成功`);
-  } catch (error) {
-    console.error(`[${extensionName}] 插件加载失败:`, error);
-    toastr.error(`续写插件加载失败: ${error.message}`, "错误");
+  // 恢复故事内容
+  if (extension_settings[extensionName].currentStory) {
+    $("#editor_title").val(extension_settings[extensionName].currentStory.title || "");
+    $("#editor_chapter").val(extension_settings[extensionName].currentStory.chapter || "");
+    $("#editor_textarea").val(extension_settings[extensionName].currentStory.content || "");
   }
 }
 
 // ==============================================
-// 事件绑定
+// 以下为功能函数，不修改模板核心结构
 // ==============================================
-function bindEvents() {
-  const settings = extension_settings[extensionName];
-
-  // 编辑器打开/关闭
-  $("#open_editor_btn").on("click", openEditor);
-  $("#close_editor_btn").on("click", closeEditor);
-
-  // 设置变更事件
-  $("#sync_st_content").on("change", (e) => {
-    settings.syncStContent = Boolean($(e.target).prop("checked"));
-    saveSettingsDebounced();
-  });
-  $("#inherit_st_params").on("change", (e) => {
-    settings.inheritStParams = Boolean($(e.target).prop("checked"));
-    saveSettingsDebounced();
-  });
-  $("#auto_save_content").on("change", (e) => {
-    settings.autoSaveContent = Boolean($(e.target).prop("checked"));
-    saveSettingsDebounced();
-  });
-
-  // 模式切换
-  $("input[name='editor_mode']").on("change", (e) => {
-    settings.mode = $(e.target).val();
-    saveSettingsDebounced();
-  });
-
-  // 功能抽屉
-  $("#function_toggle").on("click", () => {
-    $("#function_drawer").toggleClass("show");
-  });
-  $(document).on("click", (e) => {
-    if (!$(e.target).closest(".footer-function-drawer").length) {
-      $("#function_drawer").removeClass("show");
-    }
-  });
-  $(".drawer-item").on("click", (e) => {
-    const funcType = $(e.currentTarget).data("func");
-    settings.functionType = funcType;
-    $("#function_name").text($(e.currentTarget).find("span").text());
-    $("#function_drawer").removeClass("show");
-    saveSettingsDebounced();
-  });
-
-  // 基础设置变更
-  $("#custom_prompt").on("input", (e) => {
-    settings.customPrompt = $(e.target).val();
-    saveSettingsDebounced();
-  });
-  $("#style_select").on("change", (e) => {
-    settings.style = $(e.target).val();
-    saveSettingsDebounced();
-  });
-  $("#length_select").on("change", (e) => {
-    settings.length = $(e.target).val();
-    saveSettingsDebounced();
-  });
-
-  // 生成按钮
-  $("#action_ai_continue").on("click", generateContent);
-  $("#refresh_btn").on("click", generateContent);
-
-  // 内容同步
-  $("#editor_textarea").on("input", () => {
-    syncContent("editor-to-st");
-    autoSaveContent();
-  });
-  $("#send_textarea").on("input", () => {
-    syncContent("st-to-editor");
-  });
-
-  // 编辑操作栏
-  $("#action_undo").on("click", () => document.execCommand("undo", false, null));
-  $("#action_modify").on("click", selectCurrentLine);
-  $("#action_save").on("click", () => {
-    saveCurrentContent();
-    toastr.success("内容已保存", "成功");
-  });
-
-  // ESC关闭编辑器
-  $(document).on("keydown", (e) => {
-    if (e.key === "Escape" && $("#cy_xiaomeng_editor").hasClass("show")) {
-      closeEditor();
-    }
-  });
+// 更新功能按钮文本
+function updateFunctionButtonText(functionType) {
+  const functionNameMap = {
+    continuation: "续写",
+    expand: "扩写",
+    shorten: "缩写",
+    rewrite: "改写",
+    custom: "定向续写",
+  };
+  $("#function_toggle span").text(functionNameMap[functionType] || "续写");
 }
 
-// ==============================================
-// 核心功能函数
-// ==============================================
-// 打开编辑器
+// 打开/关闭编辑器
 function openEditor() {
   $("#cy_xiaomeng_editor").addClass("show");
   const settings = extension_settings[extensionName];
   if (settings.syncStContent) {
     const stText = $("#send_textarea").val() || "";
-    if (stText && stText !== $("#editor_textarea").val()) {
-      $("#editor_textarea").val(stText);
-    }
+    if (stText) $("#editor_textarea").val(stText);
   }
   $("#editor_textarea").focus();
 }
 
-// 关闭编辑器
 function closeEditor() {
   $("#cy_xiaomeng_editor").removeClass("show");
   const settings = extension_settings[extensionName];
@@ -202,59 +107,41 @@ function closeEditor() {
     const editorText = $("#editor_textarea").val() || "";
     $("#send_textarea").val(editorText).trigger("input");
   }
-  saveCurrentContent();
+  if (settings.autoSaveStory) saveCurrentStory();
 }
 
-// 内容双向同步
-function syncContent(direction) {
-  const settings = extension_settings[extensionName];
-  if (!settings.syncStContent) return;
-
-  clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => {
-    if (direction === "editor-to-st") {
-      const text = $("#editor_textarea").val() || "";
-      $("#send_textarea").val(text).trigger("input");
-    } else if (direction === "st-to-editor") {
-      const text = $("#send_textarea").val() || "";
-      $("#editor_textarea").val(text);
-    }
-  }, 300);
-}
-
-// 自动保存内容
-function autoSaveContent() {
-  const settings = extension_settings[extensionName];
-  if (!settings.autoSaveContent) return;
-  saveCurrentContent();
-}
-
-// 保存当前内容
-function saveCurrentContent() {
-  const settings = extension_settings[extensionName];
-  settings.savedContent = {
+// 保存故事内容
+function saveCurrentStory() {
+  extension_settings[extensionName].currentStory = {
     title: $("#editor_title").val() || "",
     chapter: $("#editor_chapter").val() || "",
-    text: $("#editor_textarea").val() || "",
+    content: $("#editor_textarea").val() || "",
   };
   saveSettingsDebounced();
 }
 
-// 选中当前行
-function selectCurrentLine() {
-  const textarea = $("#editor_textarea")[0];
-  const text = textarea.value;
-  const cursorPos = textarea.selectionStart;
-  const lineStart = text.lastIndexOf("\n", cursorPos - 1) + 1;
-  const lineEnd = text.indexOf("\n", cursorPos);
-  textarea.selectionStart = lineStart;
-  textarea.selectionEnd = lineEnd === -1 ? text.length : lineEnd;
-  textarea.focus();
+// 内容双向同步
+function syncContent(direction = "editor-to-st") {
+  const settings = extension_settings[extensionName];
+  if (!settings.syncStContent) return;
+
+  clearTimeout(syncDebounceTimer);
+  syncDebounceTimer = setTimeout(() => {
+    if (direction === "editor-to-st") {
+      const editorText = $("#editor_textarea").val() || "";
+      $("#send_textarea").val(editorText).trigger("input");
+    } else {
+      const stText = $("#send_textarea").val() || "";
+      $("#editor_textarea").val(stText);
+    }
+    if (extension_settings[extensionName].autoSaveStory) saveCurrentStory();
+  }, 300);
 }
 
 // 获取编辑器内容
 function getEditorContent() {
   const textarea = $("#editor_textarea")[0];
+  if (!textarea) return { fullText: "", selectedText: "", start: 0, end: 0 };
   return {
     fullText: textarea.value || "",
     selectedText: textarea.value.substring(textarea.selectionStart, textarea.selectionEnd) || "",
@@ -264,12 +151,13 @@ function getEditorContent() {
 }
 
 // 插入内容到编辑器
-function insertContent(content, isReplace = false) {
+function insertContentToEditor(content, isReplaceSelected = false) {
   const textarea = $("#editor_textarea")[0];
+  if (!textarea) return;
   const { fullText, start, end } = getEditorContent();
   textarea.focus();
 
-  if (isReplace && start !== end) {
+  if (isReplaceSelected && start !== end) {
     textarea.value = fullText.substring(0, start) + content + fullText.substring(end);
     textarea.selectionStart = textarea.selectionEnd = start + content.length;
   } else {
@@ -278,205 +166,234 @@ function insertContent(content, isReplace = false) {
   }
 
   syncContent("editor-to-st");
-  saveCurrentContent();
-  toastr.success("内容已插入编辑器", "成功");
+  toastr.success("内容已插入编辑器", "操作成功");
 }
 
-// 构建生成Prompt
-function buildPrompt() {
+// 构建Prompt与生成参数
+function buildPromptConfig() {
   const settings = extension_settings[extensionName];
   const { fullText, selectedText } = getEditorContent();
-  const targetLength = Number(settings.length);
+  const targetLength = Number($("#editor_length_select").val());
+  const style = $("#editor_style_select").val();
+  const mode = $("input[name='editor_mode']:checked").val();
+  const functionType = $("#function_toggle span").text();
 
   // 模式参数
-  const modeParams = {
-    v_mode: { temperature: 0.7, top_p: 0.85, repetition_penalty: 1.1 },
-    o_mode: { temperature: 1.0, top_p: 0.95, repetition_penalty: 1.05 },
-  };
-  let generateParams = modeParams[settings.mode];
+  const baseParams = mode === "v_mode" 
+    ? { temperature: 0.7, top_p: 0.85, repetition_penalty: 1.1 }
+    : { temperature: 1.0, top_p: 0.95, repetition_penalty: 1.05 };
 
   // 继承ST全局参数
-  if (settings.inheritStParams) {
-    const ctx = getContext();
-    generateParams = {
-      ...generateParams,
-      temperature: ctx.state.temperature,
-      top_p: ctx.state.top_p,
-      repetition_penalty: ctx.state.repetition_penalty,
-    };
+  if (settings.inheritStSettings) {
+    const stContext = getContext();
+    Object.assign(baseParams, {
+      temperature: stContext.state.temperature,
+      top_p: stContext.state.top_p,
+      repetition_penalty: stContext.state.repetition_penalty,
+    });
   }
-
-  // 生成参数
-  generateParams.max_new_tokens = Math.ceil(targetLength * 2);
-  generateParams.stop = ["\n\n\n", "###", "原文："];
 
   // 构建Prompt
   let prompt = "";
-  let isReplace = false;
+  let isReplaceSelected = false;
 
-  switch (settings.functionType) {
-    case "continuation":
-      prompt = `你是专业的小说续写助手，严格遵循要求：
-1. 接在原文末尾续写，和原文无缝衔接，不重复原文，只输出续写正文，不要任何额外内容
-2. 续写风格：【${settings.style}】，贴合原文的人物、情节、文风，逻辑连贯
-3. 字数：${targetLength}字左右，误差不超过10%
-
-原文：
-${fullText}`;
-      isReplace = false;
+  switch (functionType) {
+    case "续写":
+      prompt = `你是专业的小说续写助手，严格接在原文末尾续写，不重复原文，风格【${style}】，字数${targetLength}字左右，只输出续写正文，不要额外内容。原文：${fullText}`;
+      isReplaceSelected = false;
       break;
-
-    case "expand":
+    case "扩写":
       if (!selectedText) {
-        toastr.warning("请先选中要扩写的文本", "提示");
+        toastr.warning("请先选中要扩写的内容", "提示");
         return null;
       }
-      prompt = `你是专业的小说扩写助手，严格遵循要求：
-1. 扩写选中的文本，丰富动作、表情、心理、场景细节，不改变原文核心情节
-2. 扩写风格：【${settings.style}】，贴合原文的人物和文风
-3. 字数：${targetLength}字左右，误差不超过10%
-4. 只输出扩写后的完整文本，不要任何额外内容
-
-要扩写的内容：
-${selectedText}
-
-上下文：
-${fullText}`;
-      isReplace = true;
+      prompt = `你是专业的小说扩写助手，丰富选中内容的细节，风格【${style}】，字数${targetLength}字左右，只输出扩写后的完整内容。原文：${selectedText} 上下文：${fullText}`;
+      isReplaceSelected = true;
       break;
-
-    case "shorten":
+    case "缩写":
       if (!selectedText) {
-        toastr.warning("请先选中要缩写的文本", "提示");
+        toastr.warning("请先选中要缩写的内容", "提示");
         return null;
       }
-      prompt = `你是专业的文本缩写助手，严格遵循要求：
-1. 精简缩写选中的文本，保留核心情节和关键信息，去除冗余内容
-2. 缩写后逻辑连贯，贴合原文风格，字数控制在${targetLength}字左右
-3. 只输出缩写后的完整文本，不要任何额外内容
-
-要缩写的内容：
-${selectedText}`;
-      isReplace = true;
+      prompt = `你是专业的文本缩写助手，精简选中内容，保留核心信息，字数${targetLength}字左右，只输出缩写后的内容。原文：${selectedText}`;
+      isReplaceSelected = true;
       break;
-
-    case "rewrite":
+    case "改写":
       if (!selectedText) {
-        toastr.warning("请先选中要改写的文本", "提示");
+        toastr.warning("请先选中要改写的内容", "提示");
         return null;
       }
-      prompt = `你是专业的小说改写助手，严格遵循要求：
-1. 用【${settings.style}】的风格重写选中的文本，不改变原文核心情节
-2. 改写后逻辑连贯，字数控制在${targetLength}字左右
-3. 只输出改写后的完整文本，不要任何额外内容
-
-要改写的内容：
-${selectedText}
-
-上下文：
-${fullText}`;
-      isReplace = true;
+      prompt = `你是专业的小说改写助手，用【${style}】风格重写选中内容，不改变核心情节，字数${targetLength}字左右，只输出改写后的内容。原文：${selectedText}`;
+      isReplaceSelected = true;
       break;
-
-    case "custom":
-      if (!settings.customPrompt.trim()) {
-        toastr.warning("请先输入自定义指令", "提示");
+    case "定向续写":
+      const customPrompt = $("#custom_prompt_input").val();
+      if (!customPrompt) {
+        toastr.warning("请先输入自定义续写指令", "提示");
         return null;
       }
-      prompt = `你是专业的小说创作助手，严格遵循要求：
-1. 用户指令：${settings.customPrompt}
-2. 基于原文创作，贴合原文的人物、情节、文风，风格：【${settings.style}】
-3. 字数：${targetLength}字左右，只输出正文，不要任何额外内容
-
-原文：
-${fullText}`;
-      isReplace = false;
+      prompt = `你是专业的小说创作助手，遵循指令：${customPrompt}，基于原文创作，风格【${style}】，字数${targetLength}字左右，只输出正文内容。原文：${fullText}`;
+      isReplaceSelected = false;
       break;
-
-    default:
-      prompt = "";
   }
 
-  // 额外自定义指令
-  if (settings.functionType !== "custom" && settings.customPrompt.trim()) {
-    prompt += `\n额外要求：${settings.customPrompt}`;
-  }
-
-  return { prompt, generateParams, isReplace };
+  return {
+    prompt,
+    generateParams: { ...baseParams, max_new_tokens: Math.ceil(targetLength * 2), stop: ["\n\n\n", "###"] },
+    isReplaceSelected,
+  };
 }
 
 // 调用ST原生API生成内容
-async function generateContent() {
-  if (isGenerating) return;
-  const config = buildPrompt();
-  if (!config) return;
+async function generateSingleContent(prompt, generateParams) {
+  try {
+    // 严格使用ST原生暴露的generateCompletion函数，和模板兼容
+    const result = await window.generateCompletion(prompt, generateParams);
+    return result.trim().replace(/\n{3,}/g, "\n\n");
+  } catch (error) {
+    console.error("生成失败:", error);
+    toastr.error("生成失败，请检查ST API连接", "错误");
+    return null;
+  }
+}
 
-  const { prompt, generateParams, isReplace } = config;
+// 生成多分支内容
+async function generateMultiBranchContent() {
+  if (isGenerating) return;
+  const promptConfig = buildPromptConfig();
+  if (!promptConfig) return;
+
+  const { prompt, generateParams, isReplaceSelected } = promptConfig;
   isGenerating = true;
 
   // 更新UI状态
   $("#action_ai_continue").prop("disabled", true).val("生成中...");
-  $("#refresh_btn").prop("disabled", true);
-  $("#results_container").html(`<div class="empty-tip">正在生成内容，请稍候...</div>`);
+  $("#refresh_results_btn").prop("disabled", true);
+  $("#results_cards").html(`<div class="empty-tip">正在生成内容，请稍候...</div>`);
 
   try {
-    // 并行生成3条差异化内容（复刻彩云小梦多分支）
-    const tasks = [
-      generateCompletion(prompt, { ...generateParams, temperature: Math.max(0.5, generateParams.temperature - 0.2) }),
-      generateCompletion(prompt, { ...generateParams }),
-      generateCompletion(prompt, { ...generateParams, temperature: Math.min(1.5, generateParams.temperature + 0.2) }),
+    // 生成3条差异化内容
+    const generateTasks = [
+      generateSingleContent(prompt, { ...generateParams, temperature: Math.max(0.5, generateParams.temperature - 0.2) }),
+      generateSingleContent(prompt, { ...generateParams }),
+      generateSingleContent(prompt, { ...generateParams, temperature: Math.min(1.5, generateParams.temperature + 0.2) }),
     ];
 
-    const results = await Promise.all(tasks);
-    currentResults = results.filter(item => item && item.trim() !== "");
-    currentInsertMode = isReplace;
+    const results = await Promise.all(generateTasks);
+    currentFullResults = results.filter(item => item !== null && item.trim() !== "");
+    currentInsertMode = isReplaceSelected;
 
-    if (currentResults.length === 0) {
-      $("#results_container").html(`<div class="empty-tip">生成失败，请检查ST API连接</div>`);
+    if (currentFullResults.length === 0) {
+      $("#results_cards").html(`<div class="empty-tip">生成失败，请重试</div>`);
       return;
     }
 
     // 渲染结果卡片
-    renderResults();
-    toastr.success(`成功生成${currentResults.length}条内容`, "生成完成");
+    renderResultCards();
+    toastr.success(`成功生成${currentFullResults.length}条内容`, "完成");
   } catch (error) {
-    console.error("生成失败:", error);
-    $("#results_container").html(`<div class="empty-tip">生成失败: ${error.message}</div>`);
-    toastr.error(`生成失败: ${error.message}`, "错误");
+    console.error("批量生成失败:", error);
+    $("#results_cards").html(`<div class="empty-tip">生成失败，请重试</div>`);
   } finally {
     isGenerating = false;
     $("#action_ai_continue").prop("disabled", false).val("AI继续");
-    $("#refresh_btn").prop("disabled", currentResults.length === 0);
+    $("#refresh_results_btn").prop("disabled", currentFullResults.length === 0);
   }
 }
 
 // 渲染结果卡片
-function renderResults() {
-  const container = $("#results_container");
+function renderResultCards() {
+  const container = $("#results_cards");
   container.empty();
 
-  currentResults.forEach((content, index) => {
-    const preview = content.length > 80 ? content.substring(0, 80) + "..." : content;
+  currentFullResults.forEach((content, index) => {
+    const previewContent = content.length > 80 ? content.substring(0, 80) + "..." : content;
     const card = $(`
-      <div class="result-card">
-        <div class="card-preview">${preview}</div>
-        <input class="menu_button use-btn" type="button" value="使用" data-index="${index}" />
+      <div class="cy-result-card">
+        <div class="card-preview">${previewContent}</div>
+        <input class="menu_button card-use-btn" type="submit" value="使用" data-index="${index}" />
       </div>
     `);
     container.append(card);
   });
 
-  // 绑定使用按钮
-  $(".use-btn").on("click", (e) => {
-    const index = $(e.target).data("index");
-    const content = currentResults[index];
-    if (content) {
-      insertContent(content.trim(), currentInsertMode);
-    }
+  // 绑定使用事件
+  $(".card-use-btn").on("click", (event) => {
+    const index = $(event.target).data("index");
+    const selectedContent = currentFullResults[index];
+    if (selectedContent) insertContentToEditor(selectedContent, currentInsertMode);
   });
 }
 
-// 插件入口（jQuery DOM加载完成后执行，确保ST环境已就绪）
+// ==============================================
+// 严格和模板一致：jQuery入口函数，流程完全对齐
+// ==============================================
 jQuery(async () => {
-  await initExtension();
+  // 严格和模板一致：先加载HTML文件
+  const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
+
+  // 严格和模板一致：append到#extensions_settings（ST扩展面板的固定容器）
+  $("#extensions_settings").append(settingsHtml);
+
+  // 严格和模板一致：先绑定事件，再加载设置
+  // 模板原有设置项事件
+  $("#open_editor_btn").on("click", openEditor);
+  $("#sync_st_content").on("input", (event) => {
+    const value = Boolean($(event.target).prop("checked"));
+    extension_settings[extensionName].syncStContent = value;
+    saveSettingsDebounced();
+  });
+  $("#inherit_st_settings").on("input", (event) => {
+    const value = Boolean($(event.target).prop("checked"));
+    extension_settings[extensionName].inheritStSettings = value;
+    saveSettingsDebounced();
+  });
+  $("#auto_save_story").on("input", (event) => {
+    const value = Boolean($(event.target).prop("checked"));
+    extension_settings[extensionName].autoSaveStory = value;
+    saveSettingsDebounced();
+  });
+  $("input[name='default_length']").on("change", (event) => {
+    const value = $(event.target).val();
+    extension_settings[extensionName].defaultLength = value;
+    $("#editor_length_select").val(value);
+    saveSettingsDebounced();
+  });
+  $("#default_style").on("change", (event) => {
+    const value = $(event.target).val();
+    extension_settings[extensionName].defaultStyle = value;
+    $("#editor_style_select").val(value);
+    saveSettingsDebounced();
+  });
+
+  // 编辑器事件绑定
+  $("#close_editor_btn").on("click", closeEditor);
+  $("#function_toggle").on("click", () => $("#function_drawer_content").toggleClass("show"));
+  $(document).on("click", (e) => {
+    if (!$(e.target).closest("#function_drawer_trigger").length) {
+      $("#function_drawer_content").removeClass("show");
+    }
+  });
+  $(".drawer-item").on("click", (e) => {
+    const functionName = $(e.currentTarget).find("span").text();
+    $("#function_toggle span").text(functionName);
+    $("#function_drawer_content").removeClass("show");
+  });
+  $("#action_ai_continue").on("click", generateMultiBranchContent);
+  $("#refresh_results_btn").on("click", generateMultiBranchContent);
+  $("#editor_textarea").on("input", () => syncContent("editor-to-st"));
+  $("#send_textarea").on("input", () => syncContent("st-to-editor"));
+  $("#action_undo").on("click", () => document.execCommand("undo", false, null));
+  $("#action_save").on("click", () => {
+    saveCurrentStory();
+    toastr.success("内容已保存", "成功");
+  });
+  $(document).on("keydown", (e) => {
+    if (e.key === "Escape" && $("#cy_xiaomeng_editor").hasClass("show")) {
+      closeEditor();
+    }
+  });
+
+  // 严格和模板一致：最后加载设置
+  loadSettings();
 });
