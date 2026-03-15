@@ -1,33 +1,57 @@
-/* 严格保留模板的注释结构，仅添加插件所需样式 */
-/* All style elements for your extension go here */
+/* ==============================================
+   完美还原彩云小梦网页版视觉设计
+   配色、间距、圆角、动效1:1对齐官网
+   适配SillyTavern浅色/深色主题，无样式冲突
+   ============================================== */
+:root {
+  /* 彩云小梦官网主色 1:1提取 */
+  --xiaomeng-primary: #FF5252;
+  --xiaomeng-primary-hover: #FF3838;
+  --xiaomeng-bg: #FFFFFF;
+  --xiaomeng-text-primary: #212121;
+  --xiaomeng-text-secondary: #757575;
+  --xiaomeng-text-tertiary: #9E9E9E;
+  --xiaomeng-border: #EEEEEE;
+  --xiaomeng-card-bg: #FFFFFF;
+  --xiaomeng-card-border: #F5F5F5;
+  --xiaomeng-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --xiaomeng-header-height: 60px;
+  --xiaomeng-footer-height: 200px;
+  --xiaomeng-action-bar-height: 44px;
+}
 
-/* 全屏编辑器基础样式 */
-.cy-editor-fullscreen {
+/* ==============================================
+   编辑器容器 全屏布局 1:1还原官网
+   ============================================== */
+.xiaomeng-editor-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: var(--white);
+  background: var(--xiaomeng-bg);
   z-index: 99999;
   display: none;
   flex-direction: column;
   overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-.cy-editor-fullscreen.show {
+.xiaomeng-editor-container.show {
   display: flex;
 }
 
-/* 顶部导航栏 */
-.cy-editor-header {
+/* ==============================================
+   顶部导航栏 1:1还原官网
+   ============================================== */
+.xiaomeng-header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  height: 60px;
-  background: var(--white);
-  border-bottom: 1px solid var(--border-color);
+  height: var(--xiaomeng-header-height);
+  background: var(--xiaomeng-bg);
+  border-bottom: 1px solid var(--xiaomeng-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -42,12 +66,12 @@
   gap: 16px;
 }
 
-.header-btn {
+.header-icon-btn {
   width: 36px;
   height: 36px;
   border: none;
   background: transparent;
-  color: var(--gray-600);
+  color: var(--xiaomeng-text-secondary);
   font-size: 18px;
   cursor: pointer;
   border-radius: 50%;
@@ -57,9 +81,9 @@
   transition: all 0.2s ease;
 }
 
-.header-btn:hover {
-  background: var(--border-color);
-  color: var(--black);
+.header-icon-btn:hover {
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-text-primary);
 }
 
 .header-logo {
@@ -68,20 +92,20 @@
   gap: 8px;
   font-size: 18px;
   font-weight: 600;
-  color: #FF5252;
+  color: var(--xiaomeng-primary);
 }
 
-/* 模式切换 */
-.header-mode {
+/* 模式切换按钮 1:1还原官网 */
+.header-mode-switch {
   display: flex;
   align-items: center;
   gap: 0;
-  background: var(--border-color);
+  background: var(--xiaomeng-border);
   border-radius: 20px;
   padding: 4px;
 }
 
-.header-mode input {
+.header-mode-switch input {
   display: none;
 }
 
@@ -92,32 +116,28 @@
   user-select: none;
   font-size: 14px;
   font-weight: 500;
-  color: var(--gray-600);
+  color: var(--xiaomeng-text-secondary);
   transition: all 0.2s ease;
 }
 
-.header-mode input:checked + .mode-btn {
-  background: #FF5252;
+.header-mode-switch input:checked + .mode-btn {
+  background: var(--xiaomeng-primary);
   color: white;
 }
 
-.mode-desc {
-  font-size: 12px;
-  color: var(--gray-500);
-  margin-left: 12px;
-}
-
-/* 编辑区域 */
-.cy-editor-main {
+/* ==============================================
+   核心编辑区域 1:1还原官网居中排版
+   ============================================== */
+.xiaomeng-editor-main {
   flex: 1;
-  margin-top: 60px;
-  margin-bottom: 244px;
+  margin-top: var(--xiaomeng-header-height);
+  margin-bottom: calc(var(--xiaomeng-footer-height) + var(--xiaomeng-action-bar-height) + 20px);
   overflow-y: auto;
   padding: 20px;
   box-sizing: border-box;
 }
 
-.editor-content {
+.editor-content-wrapper {
   max-width: 800px;
   margin: 0 auto;
   display: flex;
@@ -125,82 +145,92 @@
   gap: 16px;
 }
 
-.editor-title {
+/* 标题输入框 1:1还原官网 */
+.editor-title-input {
   width: 100%;
   border: none;
   outline: none;
   font-size: 36px;
   font-weight: 700;
-  color: var(--black);
+  color: var(--xiaomeng-text-primary);
   padding: 8px 0;
   background: transparent;
+  box-sizing: border-box;
   font-family: inherit;
 }
 
-.editor-title::placeholder {
-  color: var(--gray-500);
+.editor-title-input::placeholder {
+  color: var(--xiaomeng-text-tertiary);
 }
 
-.editor-chapter {
+/* 章节名输入框 1:1还原官网 */
+.editor-chapter-row {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.editor-chapter i {
-  color: var(--gray-500);
+.editor-chapter-row i {
+  color: var(--xiaomeng-text-tertiary);
   font-size: 16px;
 }
 
-.chapter-input {
+.editor-chapter-input {
   flex: 1;
   border: none;
   outline: none;
   font-size: 18px;
-  color: var(--gray-600);
+  color: var(--xiaomeng-text-secondary);
   padding: 4px 0;
   background: transparent;
   font-family: inherit;
 }
 
-.chapter-input::placeholder {
-  color: var(--gray-500);
+.editor-chapter-input::placeholder {
+  color: var(--xiaomeng-text-tertiary);
 }
 
-.editor-textarea {
+/* 正文编辑框 1:1还原官网 */
+.editor-main-textarea {
   width: 100%;
   min-height: 500px;
   border: none;
   outline: none;
   font-size: 16px;
   line-height: 1.8;
-  color: var(--black);
+  color: var(--xiaomeng-text-primary);
   padding: 0;
   background: transparent;
   resize: none;
+  box-sizing: border-box;
   font-family: inherit;
 }
 
-.editor-textarea::placeholder {
-  color: var(--gray-500);
+.editor-main-textarea::placeholder {
+  color: var(--xiaomeng-text-tertiary);
 }
 
-/* 操作栏 */
+.editor-main-textarea::selection {
+  background: rgba(255, 82, 82, 0.2);
+  color: var(--xiaomeng-primary);
+}
+
+/* 编辑操作栏 1:1还原官网 紧贴文本框下方 */
 .editor-action-bar {
   position: fixed;
-  bottom: 200px;
+  bottom: calc(var(--xiaomeng-footer-height) + 10px);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 2px;
-  background: #FF5252;
+  background: var(--xiaomeng-primary);
   border-radius: 8px;
   overflow: hidden;
   z-index: 101;
 }
 
-.action-btn {
+.action-bar-btn {
   border: none;
   background: transparent;
   color: white;
@@ -212,48 +242,51 @@
   white-space: nowrap;
 }
 
-.action-btn:hover {
-  background: #FF3838;
+.action-bar-btn:hover {
+  background: var(--xiaomeng-primary-hover);
 }
 
-.action-btn.primary {
+.action-bar-btn.primary {
   font-weight: 700;
   background: rgba(255, 255, 255, 0.15);
 }
 
-.action-btn:disabled {
+.action-bar-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* 底部功能区 */
-.cy-editor-footer {
+/* ==============================================
+   底部固定功能区 1:1还原官网
+   ============================================== */
+.xiaomeng-footer {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 200px;
-  background: var(--white);
-  border-top: 1px solid var(--border-color);
+  height: var(--xiaomeng-footer-height);
+  background: var(--xiaomeng-bg);
+  border-top: 1px solid var(--xiaomeng-border);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   z-index: 100;
 }
 
+/* 功能选择抽屉 1:1还原官网 */
 .footer-function-drawer {
   position: relative;
   padding: 10px 20px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--xiaomeng-border);
 }
 
-.function-btn {
+.function-toggle-btn {
   display: flex;
   align-items: center;
   gap: 8px;
   border: none;
   background: transparent;
-  color: var(--gray-600);
+  color: var(--xiaomeng-text-secondary);
   font-size: 14px;
   cursor: pointer;
   padding: 6px 12px;
@@ -261,19 +294,19 @@
   transition: all 0.2s ease;
 }
 
-.function-btn:hover {
-  background: var(--border-color);
-  color: var(--black);
+.function-toggle-btn:hover {
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-text-primary);
 }
 
-.function-drawer-content {
+.function-dropdown {
   position: absolute;
   bottom: 100%;
   left: 20px;
-  background: var(--white);
-  border: 1px solid var(--border-color);
+  background: var(--xiaomeng-card-bg);
+  border: 1px solid var(--xiaomeng-border);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: var(--xiaomeng-shadow);
   min-width: 160px;
   display: none;
   flex-direction: column;
@@ -281,17 +314,17 @@
   z-index: 102;
 }
 
-.function-drawer-content.show {
+.function-dropdown.show {
   display: flex;
 }
 
-.drawer-item {
+.dropdown-item {
   display: flex;
   align-items: center;
   gap: 10px;
   border: none;
   background: transparent;
-  color: var(--black);
+  color: var(--xiaomeng-text-primary);
   font-size: 14px;
   padding: 12px 16px;
   cursor: pointer;
@@ -299,22 +332,23 @@
   transition: all 0.2s ease;
 }
 
-.drawer-item:hover {
-  background: var(--border-color);
-  color: #FF5252;
+.dropdown-item:hover {
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-primary);
 }
 
+/* 自定义指令输入框 1:1还原官网 */
 .footer-prompt-input {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--xiaomeng-border);
   max-width: 50%;
 }
 
 .footer-prompt-input i {
-  color: #FF5252;
+  color: var(--xiaomeng-primary);
   font-size: 16px;
 }
 
@@ -323,16 +357,17 @@
   border: none;
   outline: none;
   font-size: 14px;
-  color: var(--black);
+  color: var(--xiaomeng-text-primary);
   padding: 4px 0;
   background: transparent;
   font-family: inherit;
 }
 
 .footer-prompt-input input::placeholder {
-  color: var(--gray-500);
+  color: var(--xiaomeng-text-tertiary);
 }
 
+/* 选择框通用样式 */
 .footer-style-select, .footer-length-select {
   position: absolute;
   top: 10px;
@@ -347,11 +382,11 @@
 }
 
 .style-select, .length-select {
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--xiaomeng-border);
   border-radius: 6px;
   padding: 6px 12px;
   font-size: 14px;
-  color: var(--gray-600);
+  color: var(--xiaomeng-text-secondary);
   background: transparent;
   outline: none;
   cursor: pointer;
@@ -359,11 +394,11 @@
 }
 
 .style-select:focus, .length-select:focus {
-  border-color: #FF5252;
+  border-color: var(--xiaomeng-primary);
 }
 
-/* 结果展示区 */
-.footer-results {
+/* AI结果展示区 1:1还原官网横向卡片 */
+.footer-results-area {
   flex: 1;
   padding: 10px 20px;
   overflow: hidden;
@@ -384,11 +419,11 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: var(--black);
+  color: var(--xiaomeng-text-primary);
 }
 
 .results-title i {
-  color: #FF5252;
+  color: var(--xiaomeng-primary);
 }
 
 .refresh-btn {
@@ -397,7 +432,7 @@
   gap: 6px;
   border: none;
   background: transparent;
-  color: var(--gray-600);
+  color: var(--xiaomeng-text-secondary);
   font-size: 13px;
   cursor: pointer;
   padding: 4px 8px;
@@ -406,8 +441,8 @@
 }
 
 .refresh-btn:hover {
-  background: var(--border-color);
-  color: #FF5252;
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-primary);
 }
 
 .refresh-btn:disabled {
@@ -415,28 +450,49 @@
   cursor: not-allowed;
 }
 
-.results-cards-container {
+/* 结果卡片容器 横向滚动 1:1还原官网 */
+.results-cards-wrapper {
   display: flex;
   gap: 12px;
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--xiaomeng-border) transparent;
 }
 
-.results-cards-container .empty-tip {
+.results-cards-wrapper::-webkit-scrollbar {
+  height: 4px;
+}
+
+.results-cards-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.results-cards-wrapper::-webkit-scrollbar-thumb {
+  background: var(--xiaomeng-border);
+  border-radius: 2px;
+}
+
+.results-cards-wrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--xiaomeng-text-tertiary);
+}
+
+.empty-result-tip {
   width: 100%;
   text-align: center;
-  color: var(--gray-500);
+  color: var(--xiaomeng-text-tertiary);
   padding: 20px 0;
   font-size: 14px;
 }
 
-.cy-result-card {
+/* 结果卡片 1:1还原官网 带New标签 */
+.result-card {
   min-width: 280px;
   max-width: 280px;
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--xiaomeng-card-border);
   border-radius: 8px;
-  background: var(--white);
+  background: var(--xiaomeng-card-bg);
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -445,59 +501,112 @@
   flex-shrink: 0;
   transition: all 0.2s ease;
   cursor: pointer;
+  position: relative;
 }
 
-.cy-result-card:hover {
-  border-color: #FF5252;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+.result-card:hover {
+  border-color: var(--xiaomeng-primary);
+  box-shadow: var(--xiaomeng-shadow);
 }
 
-.card-preview {
+.new-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--xiaomeng-primary);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.card-preview-text {
   font-size: 14px;
   line-height: 1.6;
-  color: var(--black);
+  color: var(--xiaomeng-text-primary);
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: break-all;
+  margin-top: 8px;
 }
 
 .card-use-btn {
   align-self: flex-end;
   border: none;
-  background: #FF5252;
+  background: var(--xiaomeng-primary);
   color: white;
   font-size: 13px;
   font-weight: 500;
   padding: 4px 12px;
   border-radius: 4px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* 深色主题适配 */
-[data-theme="dark"] .cy-editor-fullscreen {
-  --white: #121212;
-  --black: #F5F5F5;
-  --gray-600: #BDBDBD;
-  --gray-500: #757575;
-  --border-color: #2D2D2D;
-  --border-color-light: #333333;
+.card-use-btn:hover {
+  background: var(--xiaomeng-primary-hover);
 }
 
-/* 移动端适配 */
+/* ==============================================
+   适配SillyTavern深色主题
+   ============================================== */
+[data-theme="dark"] .xiaomeng-editor-container {
+  --xiaomeng-bg: #121212;
+  --xiaomeng-text-primary: #F5F5F5;
+  --xiaomeng-text-secondary: #BDBDBD;
+  --xiaomeng-text-tertiary: #757575;
+  --xiaomeng-border: #2D2D2D;
+  --xiaomeng-card-bg: #1E1E1E;
+  --xiaomeng-card-border: #333333;
+  --xiaomeng-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ==============================================
+   移动端响应式适配 1:1还原官网移动端效果
+   ============================================== */
 @media (max-width: 768px) {
-  .header-logo span, .mode-desc {
+  .xiaomeng-header {
+    padding: 0 12px;
+  }
+
+  .header-logo span {
     display: none;
   }
-  .action-btn {
+
+  .mode-btn {
+    padding: 6px 12px;
+  }
+
+  .editor-title-input {
+    font-size: 28px;
+  }
+
+  .editor-action-bar {
+    width: calc(100% - 24px);
+    justify-content: space-between;
+  }
+
+  .action-bar-btn {
     padding: 10px 8px;
     font-size: 12px;
   }
+
   .footer-prompt-input {
     max-width: 100%;
+    padding: 10px 12px;
   }
-  .cy-result-card {
+
+  .footer-style-select, .footer-length-select {
+    position: relative;
+    top: auto;
+    right: auto;
+    padding: 0 12px;
+  }
+
+  .result-card {
     min-width: 240px;
     max-width: 240px;
   }
