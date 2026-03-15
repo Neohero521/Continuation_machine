@@ -1,4 +1,4 @@
-/* 1:1还原彩云小梦原生UI，全量动画优化，尺寸完全对齐截图 */
+/* 1:1还原彩云小梦原生UI，修复界面显示问题 */
 :root {
   --xiaomeng-primary: #FF5252;
   --xiaomeng-primary-hover: #FF3838;
@@ -16,7 +16,7 @@
   --xiaomeng-header-height: 60px;
   --xiaomeng-footer-height: 220px;
   --xiaomeng-bottom-bar-height: 56px;
-  /* 动画时长统一规范 */
+  /* 动画时长 */
   --ani-fast: 150ms;
   --ani-normal: 200ms;
   --ani-slow: 300ms;
@@ -674,7 +674,7 @@
 }
 
 /* ==============================================
-   AI结果展示区（初始隐藏，生成后显示）
+   AI结果展示区（修复显示问题）
    ============================================== */
 .footer-results-area {
   flex: 1;
@@ -730,7 +730,7 @@
   cursor: not-allowed;
 }
 
-/* 结果卡片容器 */
+/* 结果卡片容器（修复横向滚动） */
 .results-cards-wrapper {
   display: flex;
   gap: 10px;
@@ -738,6 +738,9 @@
   overflow-y: hidden;
   padding-bottom: 10px;
   scrollbar-width: none;
+  /* 强制显示，避免隐藏 */
+  width: 100%;
+  min-height: 120px;
 }
 
 .results-cards-wrapper::-webkit-scrollbar {
@@ -750,9 +753,10 @@
   color: var(--xiaomeng-text-gray);
   padding: 20px 0;
   font-size: 14px;
+  margin: auto;
 }
 
-/* 结果卡片 */
+/* 结果卡片（确保正常显示） */
 .result-card {
   min-width: 240px;
   max-width: 240px;
@@ -769,6 +773,9 @@
   cursor: pointer;
   position: relative;
   box-shadow: var(--xiaomeng-shadow-sm);
+  /* 强制显示 */
+  opacity: 1;
+  visibility: visible;
 }
 
 .result-card:hover {
