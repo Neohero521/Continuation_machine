@@ -1,11 +1,11 @@
 <!-- ==============================================
-     第一部分：SillyTavern扩展面板入口（必须保留，否则扩展列表找不到插件）
-     严格遵循官方模板的外层结构，无任何修改
+     第一部分：SillyTavern扩展面板入口（必须保留）
+     严格遵循官方模板结构，确保扩展列表正常显示
      ============================================== -->
 <div class="example-extension-settings">
     <div class="inline-drawer">
         <div class="inline-drawer-toggle inline-drawer-header">
-            <b>彩云小梦网页版复刻</b>
+            <b>彩云小梦完美复刻版</b>
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
@@ -26,11 +26,11 @@
 </div>
 
 <!-- ==============================================
-     第二部分：1:1完美还原彩云小梦网页版编辑器UI
-     完全对齐官网的DOM结构、排版、元素位置
+     第二部分：1:1完美还原彩云小梦APP截图UI
+     修复所有BUG，支持内容标红、动态操作栏、完全对齐截图
      ============================================== -->
 <div id="xiaomeng_full_editor" class="xiaomeng-editor-container">
-    <!-- 顶部导航栏 1:1还原官网 -->
+    <!-- 顶部导航栏 1:1还原截图 -->
     <header class="xiaomeng-header">
         <div class="header-left">
             <button class="header-icon-btn" id="close_editor_btn">
@@ -50,12 +50,6 @@
         </div>
 
         <div class="header-right">
-            <button class="header-icon-btn" title="我的故事">
-                <i class="fa-solid fa-book"></i>
-            </button>
-            <button class="header-icon-btn" title="世界设定">
-                <i class="fa-solid fa-globe"></i>
-            </button>
             <button class="header-icon-btn" title="菜单">
                 <i class="fa-solid fa-bars"></i>
             </button>
@@ -65,7 +59,7 @@
         </div>
     </header>
 
-    <!-- 核心编辑区域 1:1还原官网排版 -->
+    <!-- 核心编辑区域 1:1还原截图，支持内容标红 -->
     <main class="xiaomeng-editor-main">
         <div class="editor-content-wrapper">
             <!-- 标题输入框 -->
@@ -87,24 +81,28 @@
                 />
             </div>
 
-            <!-- 正文编辑框 -->
-            <textarea 
+            <!-- 正文可编辑区域（替换textarea，支持部分内容标红） -->
+            <div 
                 id="xiaomeng_editor_textarea" 
-                class="editor-main-textarea" 
+                class="editor-main-content" 
+                contenteditable="true" 
                 placeholder="该开始创建你自己的故事了"
-            ></textarea>
+            ></div>
 
-            <!-- 编辑操作栏 紧贴文本框下方 1:1还原官网 -->
-            <div class="editor-action-bar">
-                <button class="action-bar-btn" id="action_undo">撤回</button>
-                <button class="action-bar-btn" id="action_modify">修改</button>
-                <button class="action-bar-btn" id="action_save">保存</button>
-                <button class="action-bar-btn primary" id="action_ai_continue">Ai 继续</button>
+            <!-- 续写操作栏（动态生成，初始隐藏，仅生成续写内容后显示） -->
+            <div id="continuation_action_bar" class="editor-action-bar" style="display: none;">
+                <div class="action-bar-divider"></div>
+                <div class="action-bar-buttons">
+                    <button class="action-bar-btn" id="action_undo">撤回</button>
+                    <button class="action-bar-btn" id="action_modify">修改</button>
+                    <button class="action-bar-btn" id="action_save">保存</button>
+                    <button class="action-bar-btn primary" id="action_ai_continue_main">Ai 继续</button>
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- 底部固定功能区 1:1还原官网 -->
+    <!-- 底部固定功能区 1:1还原截图 -->
     <footer class="xiaomeng-footer">
         <!-- 功能选择抽屉 -->
         <div class="footer-function-drawer" id="function_drawer_wrapper">
@@ -114,30 +112,15 @@
                 <i class="fa-solid fa-chevron-up"></i>
             </button>
             <div class="function-dropdown" id="function_dropdown">
-                <button class="dropdown-item" data-function="continuation">
-                    <i class="fa-solid fa-arrow-right"></i>
-                    <span>续写</span>
-                </button>
-                <button class="dropdown-item" data-function="expand">
-                    <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
-                    <span>扩写</span>
-                </button>
-                <button class="dropdown-item" data-function="shorten">
-                    <i class="fa-solid fa-down-left-and-up-right-to-center"></i>
-                    <span>缩写</span>
-                </button>
-                <button class="dropdown-item" data-function="rewrite">
-                    <i class="fa-solid fa-rotate-right"></i>
-                    <span>改写</span>
-                </button>
-                <button class="dropdown-item" data-function="custom">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    <span>定向续写</span>
-                </button>
+                <button class="dropdown-item" data-function="continuation">续写</button>
+                <button class="dropdown-item" data-function="expand">扩写</button>
+                <button class="dropdown-item" data-function="shorten">缩写</button>
+                <button class="dropdown-item" data-function="rewrite">改写</button>
+                <button class="dropdown-item" data-function="custom">定向续写</button>
             </div>
         </div>
 
-        <!-- 自定义指令输入框 左下角 1:1还原官网 -->
+        <!-- 自定义指令输入框 -->
         <div class="footer-prompt-input">
             <i class="fa-solid fa-sparkles"></i>
             <input 
@@ -147,7 +130,7 @@
             />
         </div>
 
-        <!-- 风格选择下拉 底部右侧 -->
+        <!-- 风格选择下拉 -->
         <div class="footer-style-select">
             <select id="xiaomeng_style_select" class="style-select">
                 <option value="标准">标准</option>
@@ -157,10 +140,6 @@
                 <option value="言情">言情</option>
                 <option value="玄幻">玄幻</option>
                 <option value="悬疑">悬疑</option>
-                <option value="都市">都市</option>
-                <option value="仙侠">仙侠</option>
-                <option value="科幻">科幻</option>
-                <option value="历史">历史</option>
             </select>
         </div>
 
@@ -170,15 +149,14 @@
                 <option value="100">100字</option>
                 <option value="200" selected>200字</option>
                 <option value="400">400字</option>
-                <option value="800">800字</option>
             </select>
         </div>
 
-        <!-- AI生成结果区 1:1还原官网横向卡片布局 -->
+        <!-- AI结果展示区 1:1还原截图布局 -->
         <div class="footer-results-area">
             <div class="results-header">
                 <span class="results-title">
-                    <i class="fa-solid fa-robot"></i>
+                    <i class="fa-solid fa-face-smile"></i>
                     看看小梦AI写的
                 </span>
                 <button class="refresh-btn" id="refresh_results_btn" disabled>
@@ -187,10 +165,15 @@
                 </button>
             </div>
 
-            <!-- 横向滚动的结果卡片容器 -->
+            <!-- 横向滚动的结果卡片容器 1:1还原截图 -->
             <div class="results-cards-wrapper" id="results_cards_container">
                 <div class="empty-result-tip">点击「Ai 继续」生成多分支内容</div>
             </div>
         </div>
+
+        <!-- 悬浮AI继续按钮（初始显示，生成内容后隐藏，和截图一致） -->
+        <button id="float_ai_continue_btn" class="float-ai-btn">
+            <i class="fa-solid fa-arrow-up"></i>
+        </button>
     </footer>
 </div>
