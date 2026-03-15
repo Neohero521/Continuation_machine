@@ -1,34 +1,43 @@
-<!-- 扩展入口面板（显示在ST扩展设置页） -->
+<!-- 扩展设置面板入口（ST扩展页内显示） -->
 <div class="cy-xiaomeng-extension-entry">
     <div class="inline-drawer">
         <div class="inline-drawer-toggle inline-drawer-header">
-            <b>彩云小梦网页版复刻编辑器</b>
+            <b>彩云小梦风格续写</b>
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
-            <div class="entry-desc">1:1复刻彩云小梦网页版编辑器的UI与交互，点击下方按钮打开</div>
-            <input id="open_editor_btn" class="menu_button primary" type="submit" value="打开彩云小梦风格编辑器" />
+            <div class="entry-desc">1:1复刻彩云小梦交互，自动复用SillyTavern当前连接的API后端，无需额外配置</div>
+            <input id="open_editor_btn" class="menu_button primary" type="submit" value="打开续写编辑器" />
             <hr class="sysHR" />
             <div class="settings-block">
-                <label for="sync_editor_content"><b>自动同步ST输入框内容</b></label>
-                <input id="sync_editor_content" type="checkbox" checked />
-                <label for="sync_editor_content">开启后，编辑器内容与聊天输入框双向同步</label>
+                <div class="flex-container">
+                    <input id="sync_st_content" type="checkbox" checked />
+                    <label for="sync_st_content">自动同步ST聊天输入框内容</label>
+                </div>
+                <div class="flex-container">
+                    <input id="inherit_st_settings" type="checkbox" checked />
+                    <label for="inherit_st_settings">继承ST全局生成参数（温度/Top-P等）</label>
+                </div>
+                <div class="flex-container">
+                    <input id="auto_save_story" type="checkbox" checked />
+                    <label for="auto_save_story">自动保存内容到ST本地存储</label>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 全屏编辑器主体（完全复刻彩云小梦网页版UI） -->
+<!-- 全屏续写编辑器（1:1复刻彩云小梦网页版） -->
 <div id="cy_xiaomeng_editor" class="cy-editor-fullscreen">
     <!-- 顶部导航栏 -->
     <header class="cy-editor-header">
         <div class="header-left">
-            <button class="header-btn" id="close_editor_btn">
+            <button class="header-btn" id="close_editor_btn" title="返回">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
             <div class="header-logo">
                 <i class="fa-solid fa-cloud"></i>
-                <span>彩云小梦</span>
+                <span>彩云小梦风格续写</span>
             </div>
         </div>
 
@@ -37,17 +46,18 @@
             <label for="mode_v" class="mode-btn">V模式</label>
             <input type="radio" name="editor_mode" id="mode_o" value="o_mode" />
             <label for="mode_o" class="mode-btn">O模式</label>
+            <span class="mode-desc">V模式严谨贴合原文 | O模式开放脑洞创作</span>
         </div>
 
         <div class="header-right">
+            <button class="header-btn" id="story_list_btn" title="故事列表">
+                <i class="fa-solid fa-list"></i>
+            </button>
+            <button class="header-btn" id="world_info_btn" title="世界设定">
+                <i class="fa-solid fa-book"></i>
+            </button>
             <button class="header-btn" title="菜单">
                 <i class="fa-solid fa-bars"></i>
-            </button>
-            <button class="header-btn" title="分享">
-                <i class="fa-solid fa-share-nodes"></i>
-            </button>
-            <button class="header-btn member-btn" title="会员中心">
-                <i class="fa-solid fa-crown"></i>
             </button>
         </div>
     </header>
@@ -78,14 +88,15 @@
             <textarea 
                 id="editor_textarea" 
                 class="editor-textarea" 
-                placeholder="开始写下你的故事..."
+                placeholder="开始写下你的故事，AI将为你续写后续内容..."
             ></textarea>
         </div>
     </main>
 
-    <!-- 编辑操作栏（紧贴编辑框下方） -->
+    <!-- 编辑操作栏（紧贴编辑框下方，复刻原版） -->
     <div class="editor-action-bar">
         <button class="action-btn" id="action_undo">撤回</button>
+        <button class="action-btn" id="action_redo">重做</button>
         <button class="action-btn" id="action_modify">修改</button>
         <button class="action-btn" id="action_save">保存</button>
         <button class="action-btn primary" id="action_ai_continue">AI继续</button>
@@ -126,13 +137,13 @@
             </div>
         </div>
 
-        <!-- 自定义指令输入框 -->
+        <!-- 自定义指令输入框 复刻原版左下角 -->
         <div class="footer-prompt-input">
             <i class="fa-solid fa-sparkles"></i>
             <input 
                 id="custom_prompt_input" 
                 type="text" 
-                placeholder="例: 请帮我增加更多战斗场景的描写"
+                placeholder="例: 请帮我增加更多战斗场景的描写，丰富人物表情动作"
             />
         </div>
 
@@ -148,15 +159,28 @@
                 <option value="悬疑">悬疑</option>
                 <option value="都市">都市</option>
                 <option value="仙侠">仙侠</option>
+                <option value="科幻">科幻</option>
+                <option value="历史">历史</option>
             </select>
         </div>
 
-        <!-- AI结果展示区 -->
+        <!-- 字数选择 -->
+        <div class="footer-length-select">
+            <select id="length_select" class="length-select">
+                <option value="100">100字</option>
+                <option value="200" selected>200字</option>
+                <option value="400">400字</option>
+                <option value="800">800字</option>
+                <option value="1000">1000字</option>
+            </select>
+        </div>
+
+        <!-- AI结果展示区 横向滚动卡片 复刻原版 -->
         <div class="footer-results">
             <div class="results-header">
                 <span class="results-title">
                     <i class="fa-solid fa-robot"></i>
-                    看看小梦AI写的
+                    看看AI写的
                 </span>
                 <button class="refresh-btn" id="refresh_results_btn" disabled>
                     <i class="fa-solid fa-rotate-right"></i>
@@ -166,7 +190,7 @@
 
             <!-- 横向滚动的结果卡片容器 -->
             <div class="results-cards-container" id="results_cards">
-                <div class="empty-tip">点击「AI继续」生成多分支内容</div>
+                <div class="empty-tip">点击「AI继续」生成多分支续写内容</div>
             </div>
         </div>
     </footer>
