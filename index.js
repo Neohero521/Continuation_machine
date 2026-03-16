@@ -40,12 +40,11 @@ let originalEditorContent = "";
 let currentSelectedBranchIndex = 0;
 let isEditingPreview = false;
 let isEditorDestroyed = true;
-// 新增：历史记录管理（上一步/下一步功能）
+// 历史记录管理（新增：实现底栏箭头上一步/下一步功能）
 let historyStack = [];
 let historyIndex = -1;
-let isHistoryUpdating = false;
-const MAX_HISTORY_LENGTH = 50;
-// ====================== 工具函数（完全不变） ======================
+let isHistoryProcessing = false;
+// ====================== 工具函数（原有功能不变，新增历史记录相关） ======================
 function debounce(func, delay) {
   let timer = null;
   return function(...args) {
@@ -78,6 +77,71 @@ function cleanTextFormat(text) {
     .replace(/\r/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+// 新增：推入历史记录
+function pushHistory() {
+  if (isHistoryProcessing || !editorDom || isEditorDestroyed) return;
+  const currentState = {
+    title: editorDom.find("#xiaomeng_editor_title").val(),
+    chapter: editorDom.find("#xiaomeng_editor_chapter").val(),
+    content: editorDom.find("#xiaomeng_editor_textarea").html(),
+    plainText: getEditorPlainText()
+  };
+  if (historyIndex < historyStack.length - 1) {
+    historyStack = historyStack.slice(0, historyIndex + 1);
+  }
+  const lastState = historyStack[historyStack.length - 1];
+  if (lastState && 
+      lastState.title === currentState.title && 
+      lastState.chapter === currentState.chapter && 
+      lastState.content === currentState.content) {
+    return;
+  }
+  if (historyStack.length > 50) {
+    historyStack.shift();
+  } else {
+    historyIndex++;
+  }
+  historyStack.push(currentState);
+  updateHistoryButtons();
+}
+// 新增：更新历史按钮状态
+function updateHistoryButtons() {
+  if (!editorDom || isEditorDestroyed) return;
+  const undoBtn = editorDom.find("#undo_btn");
+  const redoBtn = editorDom.find("#redo_btn");
+  undoBtn.prop("disabled", historyIndex <= 0);
+  redoBtn.prop("disabled", historyIndex >= historyStack.length - 1);
+}
+// 新增：撤销操作（上一步）
+function undoAction() {
+  if (historyIndex <= 0 || !editorDom || isEditorDestroyed) return;
+  isHistoryProcessing = true;
+  historyIndex--;
+  const targetState = historyStack[historyIndex];
+  editorDom.find("#xiaomeng_editor_title").val(targetState.title);
+  editorDom.find("#xiaomeng_editor_chapter").val(targetState.chapter);
+  editorDom.find("#xiaomeng_editor_textarea").html(targetState.content);
+  updateWordCount();
+  saveEditorContentToLocal();
+  isHistoryProcessing = false;
+  updateHistoryButtons();
+  restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
+}
+// 新增：重做操作（下一步）
+function redoAction() {
+  if (historyIndex >= historyStack.length - 1 || !editorDom || isEditorDestroyed) return;
+  isHistoryProcessing = true;
+  historyIndex++;
+  const targetState = historyStack[historyIndex];
+  editorDom.find("#xiaomeng_editor_title").val(targetState.title);
+  editorDom.find("#xiaomeng_editor_chapter").val(targetState.chapter);
+  editorDom.find("#xiaomeng_editor_textarea").html(targetState.content);
+  updateWordCount();
+  saveEditorContentToLocal();
+  isHistoryProcessing = false;
+  updateHistoryButtons();
+  restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
 }
 function saveEditorContentToLocal() {
   if (!editorDom || isEditorDestroyed) return;
@@ -194,94 +258,16 @@ function closeAllDropdowns() {
   editorDom.find("#custom_prompt_bar").slideUp(200);
   editorDom.find("#bar_right_buttons").slideDown(200);
 }
-// ====================== 新增：历史记录管理（上一步/下一步） ======================
-function initHistory() {
-  historyStack = [];
-  historyIndex = -1;
-  isHistoryUpdating = false;
-  pushHistoryState();
-}
-
-function pushHistoryState() {
-  if (!editorDom || isEditorDestroyed || isHistoryUpdating) return;
-  
-  const currentState = {
-    title: editorDom.find("#xiaomeng_editor_title").val() || "",
-    chapter: editorDom.find("#xiaomeng_editor_chapter").val() || "",
-    content: editorDom.find("#xiaomeng_editor_textarea").html() || "",
-    plainText: getEditorPlainText()
-  };
-
-  if (historyIndex >= 0 && historyStack[historyIndex].plainText === currentState.plainText) {
-    return;
-  }
-
-  if (historyIndex < historyStack.length - 1) {
-    historyStack = historyStack.slice(0, historyIndex + 1);
-  }
-
-  historyStack.push(currentState);
-  if (historyStack.length > MAX_HISTORY_LENGTH) {
-    historyStack.shift();
-  } else {
-    historyIndex++;
-  }
-
-  updateHistoryButtonsState();
-}
-
-function updateHistoryButtonsState() {
-  if (!editorDom || isEditorDestroyed) return;
-  editorDom.find("#undo_btn").prop("disabled", historyIndex <= 0);
-  editorDom.find("#redo_btn").prop("disabled", historyIndex >= historyStack.length - 1);
-}
-
-function historyPrev() {
-  if (!editorDom || isEditorDestroyed || historyIndex <= 0) return;
-  
-  isHistoryUpdating = true;
-  historyIndex--;
-  const targetState = historyStack[historyIndex];
-  
-  editorDom.find("#xiaomeng_editor_title").val(targetState.title);
-  editorDom.find("#xiaomeng_editor_chapter").val(targetState.chapter);
-  editorDom.find("#xiaomeng_editor_textarea").html(targetState.content);
-  
-  updateWordCount();
-  saveEditorContentToLocal();
-  updateHistoryButtonsState();
-  
-  isHistoryUpdating = false;
-  toastr.info("已回退到上一步", "提示");
-}
-
-function historyNext() {
-  if (!editorDom || isEditorDestroyed || historyIndex >= historyStack.length - 1) return;
-  
-  isHistoryUpdating = true;
-  historyIndex++;
-  const targetState = historyStack[historyIndex];
-  
-  editorDom.find("#xiaomeng_editor_title").val(targetState.title);
-  editorDom.find("#xiaomeng_editor_chapter").val(targetState.chapter);
-  editorDom.find("#xiaomeng_editor_textarea").html(targetState.content);
-  
-  updateWordCount();
-  saveEditorContentToLocal();
-  updateHistoryButtonsState();
-  
-  isHistoryUpdating = false;
-  toastr.info("已前进到下一步", "提示");
-}
-// ====================== 续写预览核心逻辑（完全不变，仅优化内容紧贴逻辑） ======================
+// ====================== 续写预览核心逻辑（优化紧贴原文+历史记录） ======================
 function updateEditorPreviewContent(branchIndex) {
   if (!editorDom || isEditorDestroyed || !currentBranchResults || !originalEditorContent) return;
   const selectedContent = currentBranchResults[branchIndex];
   if (!selectedContent) return;
-  // 严格保证续写内容和原文完全紧贴，无多余间距、无换行
-  const editorContentHtml = `${originalEditorContent}<div id="preview_content_span" class="continuation-red-text fade-in" contenteditable="false">${escapeHtml(selectedContent)}</div>`;
+  // 核心优化：原文末尾去空白，续写内容开头去空白，确保完全紧贴无间距
+  const trimmedOriginal = originalEditorContent.trimEnd();
+  const trimmedContent = selectedContent.trimStart();
+  const editorContentHtml = `${trimmedOriginal}<div id="preview_content_span" class="continuation-red-text fade-in" contenteditable="false">${escapeHtml(trimmedContent)}</div>`;
   editorDom.find("#xiaomeng_editor_textarea").html(editorContentHtml);
-  // 预览操作区域
   const operationHtml = `
     <hr class="preview-split-line" />
     <div class="preview-operation-bar" id="preview_operation_bar">
@@ -299,7 +285,6 @@ function updateEditorPreviewContent(branchIndex) {
   isEditingPreview = false;
   unbindPreviewEvents();
   bindPreviewOperationEvents();
-  // 自动滚动到底部
   const editorMain = editorDom.find(".xiaomeng-editor-main")[0];
   editorMain.scrollTo({ top: editorMain.scrollHeight, behavior: "smooth" });
   updateWordCount();
@@ -334,12 +319,13 @@ function bindPreviewOperationEvents() {
       const modifiedContent = cleanTextFormat(previewSpan.text());
       if (modifiedContent) {
         currentBranchResults[currentSelectedBranchIndex] = modifiedContent;
-        previewSpan.html(escapeHtml(modifiedContent));
+        previewSpan.html(escapeHtml(modifiedContent.trimStart()));
       }
       previewSpan.attr("contenteditable", "false");
       btn.html("修改");
       btn.removeClass("active");
       saveEditorContentToLocal();
+      pushHistory(); // 新增：修改内容推入历史记录
     }
   });
   editorDom.find("#preview_save_btn").on("click", (e) => {
@@ -369,8 +355,8 @@ function savePreviewContent() {
       currentBranchResults[currentSelectedBranchIndex] = modifiedContent;
     }
   }
-  // 严格保证保存后的内容和原文完全紧贴，无多余字符
-  const finalContent = originalEditorContent + escapeHtml(currentBranchResults[currentSelectedBranchIndex]);
+  // 核心优化：保存时确保内容紧贴无多余空白
+  const finalContent = originalEditorContent.trimEnd() + escapeHtml(currentBranchResults[currentSelectedBranchIndex].trimStart());
   editorDom.find("#xiaomeng_editor_textarea").html(finalContent);
   
   editorDom.find("#preview_operation_container").hide().empty();
@@ -383,13 +369,13 @@ function savePreviewContent() {
   isEditingPreview = false;
   
   saveEditorContentToLocal();
-  pushHistoryState(); // 保存内容后同步更新历史记录
+  pushHistory(); // 新增：保存内容推入历史记录
   updateWordCount();
   toastr.success("已保存续写内容", "操作成功");
   restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
   return true;
 }
-// ====================== AI生成核心逻辑（完全不变） ======================
+// ====================== AI生成核心逻辑（完全满足需求修改） ======================
 async function generateThreeBranchesOnce(prompt, generateParams) {
   if (!prompt || prompt.trim() === '' || EMPTY_CONTENT_REGEX.test(prompt.trim())) {
     throw new Error('续写原文不能为空，请输入有效内容');
@@ -439,7 +425,8 @@ ${BRANCH_SEPARATOR}3
   
   let branches = [];
   for (const match of matches) {
-    const content = cleanTextFormat(match[2]);
+    // 核心优化：续写内容开头去空白，确保紧贴原文
+    const content = cleanTextFormat(match[2]).trimStart();
     if (!EMPTY_CONTENT_REGEX.test(content) && content.length > 20) {
       branches.push(content);
     }
@@ -453,7 +440,8 @@ ${BRANCH_SEPARATOR}3
 }
 function getEditorPlainText() {
   if (!editorDom || isEditorDestroyed) return "";
-  return cleanTextFormat(editorDom.find("#xiaomeng_editor_textarea").text());
+  // 核心优化：原文末尾去空白，确保生成内容紧贴
+  return cleanTextFormat(editorDom.find("#xiaomeng_editor_textarea").text()).trimEnd();
 }
 function getEditorSelectedText() {
   const selection = window.getSelection();
@@ -554,28 +542,28 @@ function renderBranchCards() {
     renderBranchCards();
   });
 }
-// ====================== 核心修改：AI继续逻辑（自动保存预览内容） ======================
+// 核心修改：AI继续按钮逻辑（自动保存预览内容+统一底部loading）
 async function runMainContinuation() {
   if (isGenerating || !editorDom || isEditorDestroyed) return;
-
-  // 自动保存当前预览的续写内容，再继续生成
-  if (originalEditorContent && currentBranchResults[currentSelectedBranchIndex]) {
+  // 需求1：自动保存当前选中的预览内容（如果有）
+  const hasPreview = editorDom.find("#preview_operation_container").is(":visible");
+  if (hasPreview) {
     const saveSuccess = savePreviewContent();
     if (!saveSuccess) return;
-    await new Promise(resolve => setTimeout(resolve, 100));
   }
-
   const config = buildGenerateConfig();
   if (!config) return;
   isGenerating = true;
-  editorDom.find("#loading_overlay").fadeIn(200);
-  editorDom.find("#ai_continue_btn").prop("disabled", true).addClass("loading");
+  // 需求3：统一底部按钮loading动画，去掉全屏遮罩
+  const aiContinueBtn = editorDom.find("#ai_continue_btn");
+  aiContinueBtn.prop("disabled", true).html(`<i class="fa-solid fa-spinner fa-spin"></i> <span>Ai 继续</span>`);
   editorDom.find("#refresh_results_btn").prop("disabled", true);
   closeAllDropdowns();
   try {
     const branchResults = await generateThreeBranchesOnce(config.prompt, config.generateParams);
     currentBranchResults = branchResults;
-    originalEditorContent = editorDom.find("#xiaomeng_editor_textarea").html();
+    // 核心优化：保存原文时去除末尾空白，确保续写紧贴
+    originalEditorContent = editorDom.find("#xiaomeng_editor_textarea").html().trimEnd();
     currentSelectedBranchIndex = 0;
     updateEditorPreviewContent(currentSelectedBranchIndex);
     editorDom.find(".footer-bottom-bar").slideUp(250, () => {
@@ -588,57 +576,52 @@ async function runMainContinuation() {
     toastr.error(`续写生成失败: ${error.message}`, "错误");
   } finally {
     if (editorDom && !isEditorDestroyed) {
-      editorDom.find("#loading_overlay").fadeOut(200);
-      editorDom.find("#ai_continue_btn").prop("disabled", false).removeClass("loading");
+      aiContinueBtn.prop("disabled", false).html(`<i class="fa-solid fa-sparkles"></i> <span>Ai 继续</span>`);
       editorDom.find("#refresh_results_btn").prop("disabled", false);
     }
     isGenerating = false;
   }
 }
-// ====================== 核心修改：换一批逻辑（清除内容+统一加载动画） ======================
+// 核心修改：换一批按钮逻辑（清除红字+分支+统一loading）
 async function refreshBranchResults() {
   if (isGenerating || !editorDom || isEditorDestroyed) return;
+  // 需求2：清除编辑器红字内容、现有分支，恢复原文
+  if (originalEditorContent) {
+    editorDom.find("#xiaomeng_editor_textarea").html(originalEditorContent);
+  }
+  editorDom.find("#preview_operation_container").hide().empty();
+  currentBranchResults = [];
+  currentSelectedBranchIndex = 0;
+  isEditingPreview = false;
   const config = buildGenerateConfig();
   if (!config) return;
-
-  // 清除现有预览内容和分支选项
-  if (originalEditorContent || currentBranchResults.length > 0) {
-    if (!confirm("换一批将清除当前所有分支内容和编辑器预览内容，确定要继续吗？")) {
-      return;
-    }
-    cancelResultSelect();
-    await new Promise(resolve => setTimeout(resolve, 100));
+  if (!confirm("换一批将清除当前所有分支内容，重新生成新的续写分支，确定要继续吗？")) {
+    return;
   }
-
   isGenerating = true;
-  // 和AI继续共用底部加载动画
-  editorDom.find("#loading_overlay").fadeIn(200);
-  editorDom.find("#ai_continue_btn").prop("disabled", true).addClass("loading");
-  editorDom.find("#refresh_results_btn").prop("disabled", true);
-  closeAllDropdowns();
-
+  // 需求3：统一底部按钮loading动画
+  const refreshBtn = editorDom.find("#refresh_results_btn");
+  refreshBtn.prop("disabled", true).html(`<i class="fa-solid fa-spinner fa-spin"></i> 换一批中...`);
+  editorDom.find("#results_cards_container").html(`<div class="empty-result-tip">正在重新生成内容，请稍候...</div>`);
+  editorDom.find("#ai_continue_btn").prop("disabled", true);
   try {
     const newBranchResults = await generateThreeBranchesOnce(config.prompt, config.generateParams);
     currentBranchResults = newBranchResults;
-    originalEditorContent = editorDom.find("#xiaomeng_editor_textarea").html();
+    // 核心优化：保存原文时去除末尾空白，确保续写紧贴
+    originalEditorContent = editorDom.find("#xiaomeng_editor_textarea").html().trimEnd();
     currentSelectedBranchIndex = 0;
     updateEditorPreviewContent(currentSelectedBranchIndex);
-    // 显示结果区域
-    editorDom.find(".footer-bottom-bar").slideUp(250, () => {
-      editorDom.find("#results_area").slideDown(250);
-      renderBranchCards();
-    });
+    renderBranchCards();
     toastr.success("分支内容已刷新", "完成");
   } catch (error) {
     console.error("换一批失败:", error);
+    editorDom.find("#results_cards_container").html(`<div class="empty-result-tip">生成失败，请重试</div>`);
     toastr.error(`换一批失败: ${error.message}`, "错误");
   } finally {
     isGenerating = false;
     if (editorDom && !isEditorDestroyed) {
-      // 恢复按钮和加载状态
-      editorDom.find("#loading_overlay").fadeOut(200);
-      editorDom.find("#ai_continue_btn").prop("disabled", false).removeClass("loading");
-      editorDom.find("#refresh_results_btn").prop("disabled", false);
+      refreshBtn.prop("disabled", false).html(`<i class="fa-solid fa-rotate-right"></i> 换一批`);
+      editorDom.find("#ai_continue_btn").prop("disabled", false);
     }
   }
 }
@@ -648,7 +631,6 @@ function cancelResultSelect() {
     if (!confirm("正在生成内容，取消会丢失生成结果，确定要取消吗？")) return;
     isGenerating = false;
   }
-  // 恢复编辑器原始内容，清除预览红字
   if (originalEditorContent) {
     editorDom.find("#xiaomeng_editor_textarea").html(originalEditorContent);
   }
@@ -656,13 +638,13 @@ function cancelResultSelect() {
   editorDom.find("#results_area").slideUp(250, () => {
     editorDom.find(".footer-bottom-bar").slideDown(250);
   });
-  // 清除分支数据
   currentBranchResults = [];
   originalEditorContent = "";
   currentSelectedBranchIndex = 0;
   isEditingPreview = false;
-  editorDom.find("#results_cards_container").html(`<div class="empty-result-tip">暂无生成内容</div>`);
+  editorDom.find("#results_cards_container").html(`<div class="empty-result-tip">正在生成内容，请稍候...</div>`);
   saveEditorContentToLocal();
+  pushHistory(); // 新增：取消操作推入历史记录
   updateWordCount();
   restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
 }
@@ -861,7 +843,7 @@ function buildEditorHtml() {
                   </div>
               </div>
               <div class="results-cards-wrapper" id="results_cards_container">
-                  <div class="empty-result-tip">暂无生成内容</div>
+                  <div class="empty-result-tip">正在生成内容，请稍候...</div>
               </div>
           </div>
       </footer>
@@ -869,7 +851,7 @@ function buildEditorHtml() {
   </div>
   `;
 }
-// ====================== 事件绑定（核心修改：替换撤销重做为历史记录） ======================
+// ====================== 事件绑定（修改历史按钮逻辑，原有功能不变） ======================
 function unbindAllEditorEvents() {
   if (!editorDom) return;
   editorDom.find("*").off();
@@ -879,14 +861,12 @@ function unbindAllEditorEvents() {
 function bindEditorEvents() {
   if (!editorDom || isEditorDestroyed) return;
   const settings = extension_settings[extensionName];
-  // 关闭编辑器按钮
   editorDom.find("#close_editor_btn").on("click", () => {
     if (isGenerating) {
       if (!confirm("正在生成内容，关闭会丢失生成结果，确定要关闭吗？")) return;
     }
     destroyEditor();
   });
-  // 点击遮罩关闭编辑器
   editorDom.on("click", (e) => {
     if ($(e.target).hasClass("xiaomeng-mask")) {
       if (isGenerating) {
@@ -895,11 +875,9 @@ function bindEditorEvents() {
       destroyEditor();
     }
   });
-  // 模式切换
   editorDom.find("input[name='editor_mode']").on("change", () => {
     saveSettingsDebounced();
   });
-  // 五角星功能菜单
   editorDom.find("#star_function_btn").on("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -918,11 +896,9 @@ function bindEditorEvents() {
       console.log("[彩云小梦] 功能菜单已关闭");
     }
   });
-  // 阻止菜单内部点击冒泡
   editorDom.find("#function_dropdown_menu, #custom_prompt_bar, #custom_prompt_input").on("click", (e) => {
     e.stopPropagation();
   });
-  // 功能菜单项点击
   editorDom.find(".function-dropdown-item").on("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -933,7 +909,6 @@ function bindEditorEvents() {
     editorDom.find("#custom_prompt_input").focus();
     toastr.info(`已切换到${$(e.currentTarget).find("span").text()}功能`, "提示");
   });
-  // 风格选择菜单
   editorDom.find("#style_select_btn").on("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -948,7 +923,6 @@ function bindEditorEvents() {
       console.log("[彩云小梦] 风格菜单已关闭");
     }
   });
-  // 风格菜单项点击
   editorDom.find(".style-dropdown-item").on("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -960,30 +934,25 @@ function bindEditorEvents() {
     editorDom.find("#style_dropdown_menu").removeClass("show");
     toastr.info(`已切换到${style}风格`, "提示");
   });
-  // 阻止风格菜单内部点击冒泡
   editorDom.find("#style_dropdown_menu").on("click", (e) => {
     e.stopPropagation();
   });
-  // 全局点击关闭菜单
   $(document).on("click.xiaomeng_ext", (e) => {
     const target = $(e.target);
     const isInFunctionMenu = target.closest("#function_dropdown_menu, #star_function_btn").length > 0;
     const isInStyleMenu = target.closest("#style_dropdown_menu, #style_select_btn").length > 0;
     const isInCustomPrompt = target.closest("#custom_prompt_bar").length > 0;
     const isInSettingsModal = target.closest("#settings_modal .settings-modal-content").length > 0;
-    
     if (!isInFunctionMenu && !isInStyleMenu && !isInCustomPrompt && !isInSettingsModal) {
       closeAllDropdowns();
     }
   });
-  // 核心修改：上一步/下一步按钮事件
-  editorDom.find("#undo_btn").on("click", historyPrev);
-  editorDom.find("#redo_btn").on("click", historyNext);
-  // 核心功能按钮
+  // 核心修改：底栏箭头改为上一步/下一步历史操作
+  editorDom.find("#undo_btn").on("click", undoAction);
+  editorDom.find("#redo_btn").on("click", redoAction);
   editorDom.find("#ai_continue_btn").on("click", runMainContinuation);
   editorDom.find("#refresh_results_btn").on("click", refreshBranchResults);
   editorDom.find("#cancel_results_btn").on("click", cancelResultSelect);
-  // 设置弹窗
   editorDom.find("#editor_settings_btn").on("click", (e) => {
     e.stopPropagation();
     closeAllDropdowns();
@@ -1024,22 +993,20 @@ function bindEditorEvents() {
     editorDom.find(".word-count-btn").removeClass("active");
     toastr.success(`已设置续写字数为${customCount}字`, "操作成功");
   });
-  // 自动保存+历史记录防抖
-  const autoSaveAndHistoryDebounce = debounce(() => {
+  // 自动保存+自动推入历史记录
+  const autoSaveDebounce = debounce(() => {
     saveEditorContentToLocal();
-    pushHistoryState();
-  }, 800);
-  editorDom.find("#xiaomeng_editor_title").on("input", autoSaveAndHistoryDebounce);
-  editorDom.find("#xiaomeng_editor_chapter").on("input", autoSaveAndHistoryDebounce);
-  editorDom.find("#xiaomeng_editor_textarea").on("input", autoSaveAndHistoryDebounce);
+    pushHistory();
+  }, 500);
+  editorDom.find("#xiaomeng_editor_title").on("input", autoSaveDebounce);
+  editorDom.find("#xiaomeng_editor_chapter").on("input", autoSaveDebounce);
+  editorDom.find("#xiaomeng_editor_textarea").on("input", autoSaveDebounce);
   editorDom.find("#custom_prompt_input").on("input", saveSettingsDebounced);
-  // 粘贴过滤纯文本
   editorDom.find("#xiaomeng_editor_textarea").on("paste", (e) => {
     e.preventDefault();
     const text = (e.originalEvent || e).clipboardData.getData("text/plain");
     document.execCommand("insertText", false, text);
   });
-  // 键盘快捷键
   $(document).on("keydown.xiaomeng_ext", (e) => {
     if (e.key === "Escape") {
       if (editorDom.find("#settings_modal").is(":visible")) {
@@ -1055,23 +1022,22 @@ function bindEditorEvents() {
       }
       destroyEditor();
     }
-    // Ctrl+Enter 触发续写
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
       e.preventDefault();
       if (!isGenerating) runMainContinuation();
     }
-    // Ctrl+Z 上一步，Ctrl+Y 下一步
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+    // 新增：Ctrl+Z/Ctrl+Y 快捷键支持历史操作
+    if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
       e.preventDefault();
-      historyPrev();
+      undoAction();
     }
-    if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey))) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) {
       e.preventDefault();
-      historyNext();
+      redoAction();
     }
   });
 }
-// ====================== 编辑器生命周期管理 ======================
+// ====================== 编辑器生命周期管理（新增历史记录初始化） ======================
 function destroyEditor() {
   unbindAllEditorEvents();
   isGenerating = false;
@@ -1083,6 +1049,7 @@ function destroyEditor() {
   // 清空历史记录
   historyStack = [];
   historyIndex = -1;
+  isHistoryProcessing = false;
   saveEditorContentToLocal();
   if (editorDom) {
     editorDom.remove();
@@ -1102,32 +1069,26 @@ function openXiaomengEditor() {
   $("body").append(editorDom);
   isEditorDestroyed = false;
   console.log("[彩云小梦] 编辑器DOM已创建");
-  // 加载本地保存的内容
   const savedContent = loadEditorContentFromLocal();
   editorDom.find("#xiaomeng_editor_title").val(savedContent.title);
   editorDom.find("#xiaomeng_editor_chapter").val(savedContent.chapter);
   editorDom.find("#xiaomeng_editor_textarea").html(savedContent.content);
-  // 加载用户设置
   const settings = extension_settings[extensionName];
   editorDom.find(`#${settings.currentMode}`).prop("checked", true);
   editorDom.find("#current_style_text").text(settings.currentStyle);
   editorDom.find(`.style-dropdown-item[data-style="${settings.currentStyle}"]`).addClass("active").siblings().removeClass("active");
-  // 初始化UI状态
   editorDom.find("#custom_prompt_bar").hide();
   editorDom.find("#bar_right_buttons").show();
-  // 绑定事件
   bindEditorEvents();
-  // 初始化历史记录
-  initHistory();
-  // 更新字数统计
   updateWordCount();
-  // 显示编辑器
+  // 新增：初始化历史记录
+  pushHistory();
+  updateHistoryButtons();
   editorDom.closest(".xiaomeng-mask").addClass("show");
-  // 光标聚焦到编辑器末尾
   restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
   console.log("[彩云小梦] 编辑器已打开");
 }
-// ====================== 扩展初始化 ======================
+// ====================== 扩展初始化（完全不变） ======================
 async function loadSettings() {
   extension_settings[extensionName] = extension_settings[extensionName] || {};
   if (Object.keys(extension_settings[extensionName]).length === 0) {
