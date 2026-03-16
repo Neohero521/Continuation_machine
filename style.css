@@ -323,7 +323,7 @@
   font-weight: 600;
 }
 /* ==============================================
-   核心编辑区域（完全不变）
+   核心编辑区域（修复续写内容紧贴原文bug）
    ============================================== */
 .xiaomeng-editor-container .xiaomeng-editor-main {
   width: 100%;
@@ -408,17 +408,15 @@
   content: attr(placeholder);
   color: #E0E0E0;
 }
-/* 【核心优化】续写预览红色文字，强制和原文完全紧贴，无任何间距 */
+/* 续写预览红色文字（核心修复：和原文完全紧贴，无间距） */
 .xiaomeng-editor-container .continuation-red-text {
   color: var(--xiaomeng-text-red);
   outline: none;
-  display: inline !important;
-  line-height: 1.8 !important;
-  font-size: 16px !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  vertical-align: baseline !important;
+  display: inline;
+  line-height: 1.8;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: break-word;
@@ -430,7 +428,7 @@
   border-radius: 2px;
 }
 /* ==============================================
-   续写预览：分割线+操作栏（完全不变）
+   续写预览：分割线+操作栏（1:1还原参考图）
    ============================================== */
 .xiaomeng-editor-container .preview-split-line {
   border: none;
@@ -486,8 +484,9 @@
   background: rgba(255, 255, 255, 0.2);
 }
 /* ==============================================
-   底部区域（完全不变）
+   底部区域（核心修复：菜单无法展开的overflow问题）
    ============================================== */
+/* 核心修复：footer取消overflow:hidden，避免下拉菜单被裁剪 */
 .xiaomeng-editor-container .xiaomeng-footer {
   width: 100%;
   min-height: var(--xiaomeng-bottom-bar-height);
@@ -532,6 +531,7 @@
   font-size: 14px;
   font-weight: 500;
 }
+/* 核心修复：底部栏取消overflow:hidden，避免下拉菜单被裁剪 */
 .xiaomeng-editor-container .footer-bottom-bar {
   width: 100%;
   height: var(--xiaomeng-bottom-bar-height);
@@ -553,6 +553,7 @@
   gap: 16px;
   overflow: visible !important;
 }
+/* 核心修复：右侧按钮区取消overflow:hidden，避免风格菜单被裁剪 */
 .xiaomeng-editor-container .bar-right-buttons {
   display: flex;
   align-items: center;
@@ -565,6 +566,7 @@
   overflow: visible !important;
   position: relative;
 }
+/* 自定义输入框（1:1还原参考图） */
 .xiaomeng-editor-container .custom-prompt-bar {
   display: flex;
   align-items: center;
@@ -606,13 +608,14 @@
   font-size: 16px;
 }
 /* ==============================================
-   五角星功能菜单（完全不变）
+   五角星功能菜单（核心修复：z-index+显示逻辑，1:1还原参考图）
    ============================================== */
 .xiaomeng-editor-container .function-menu-wrapper {
   position: relative;
   flex-shrink: 0;
   overflow: visible !important;
 }
+/* 五角星按钮（1:1还原参考图） */
 .xiaomeng-editor-container .star-function-btn {
   width: 40px;
   height: 40px;
@@ -648,6 +651,7 @@
 .xiaomeng-editor-container .star-function-btn:active {
   transform: scale(0.98);
 }
+/* 核心修复：功能下拉菜单增加超高z-index，确保不被遮挡，取消overflow裁剪 */
 .xiaomeng-editor-container .function-dropdown-menu {
   position: absolute;
   bottom: 100%;
@@ -680,11 +684,13 @@
   background: var(--xiaomeng-border);
   border-radius: 2px;
 }
+/* 核心修复：show状态强制显示，避免被样式覆盖 */
 .xiaomeng-editor-container .function-dropdown-menu.show {
   display: flex !important;
   opacity: 1;
   transform: translateY(0);
 }
+/* 菜单项（1:1还原参考图图标+布局） */
 .xiaomeng-editor-container .function-dropdown-item {
   display: flex;
   align-items: center;
@@ -729,7 +735,7 @@
 .xiaomeng-editor-container .function-dropdown-item:hover .item-arrow {
   color: var(--xiaomeng-text-red);
 }
-/* 撤销/重做按钮（完全不变） */
+/* 撤销/重做按钮（1:1还原参考图） */
 .xiaomeng-editor-container .arrow-btn {
   width: 36px;
   height: 36px;
@@ -759,7 +765,7 @@
   transform: none;
   background: transparent;
 }
-/* V1版本按钮（完全不变） */
+/* V1版本按钮（1:1还原参考图） */
 .xiaomeng-editor-container .version-btn-wrapper {
   position: relative;
   flex-shrink: 0;
@@ -786,7 +792,7 @@
   transform: scale(1.02);
   box-shadow: var(--xiaomeng-shadow-sm);
 }
-/* 风格选择按钮（完全不变） */
+/* 风格选择按钮（核心修复：菜单显示问题，1:1还原参考图） */
 .xiaomeng-editor-container .style-select-wrapper {
   position: relative;
   flex-shrink: 0;
@@ -820,7 +826,7 @@
   font-size: 12px;
   color: var(--xiaomeng-text-gray);
 }
-/* 小梦图标（完全不变） */
+/* 小梦图标（1:1还原参考图） */
 .xiaomeng-editor-container .xiaomeng-icon {
   width: 20px;
   height: 20px;
@@ -845,6 +851,7 @@
 .xiaomeng-editor-container .xiaomeng-icon::after {
   right: 5px;
 }
+/* 核心修复：风格下拉菜单增加超高z-index，确保不被遮挡 */
 .xiaomeng-editor-container .style-dropdown-menu {
   position: absolute;
   bottom: 100%;
@@ -865,6 +872,7 @@
   opacity: 0;
   transition: all var(--ani-normal) ease;
 }
+/* 核心修复：show状态强制显示，避免被样式覆盖 */
 .xiaomeng-editor-container .style-dropdown-menu.show {
   display: flex !important;
   opacity: 1;
@@ -887,7 +895,7 @@
   color: var(--xiaomeng-text-red);
   background: #FFF0F0;
 }
-/* Ai 继续按钮（完全不变） */
+/* Ai 继续按钮（1:1还原参考图） */
 .xiaomeng-editor-container .ai-continue-btn {
   border: none;
   border-radius: 28px;
@@ -924,7 +932,7 @@
 .xiaomeng-editor-container .ai-continue-btn i {
   font-size: 16px;
 }
-/* 字数统计样式（完全不变） */
+/* 字数统计样式 */
 .xiaomeng-editor-container .word-count-bar {
   width: 100%;
   text-align: right;
@@ -1090,7 +1098,7 @@
   margin-top: 8px;
 }
 /* ==============================================
-   深色主题完整适配（完全不变）
+   深色主题完整适配
    ============================================== */
 [data-theme="dark"] .xiaomeng-mask {
   --xiaomeng-mask-bg: rgba(0, 0, 0, 0.6);
@@ -1140,7 +1148,7 @@
   color: #424242;
 }
 /* ==============================================
-   移动端适配（完全不变）
+   移动端适配
    ============================================== */
 @media (max-width: 768px) {
   .xiaomeng-mask {
