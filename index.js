@@ -202,7 +202,7 @@ function closeAllDropdowns() {
   editorDom.find("#bar_right_buttons").slideDown(200);
 }
 
-// ====================== 续写预览核心逻辑（修复内容紧贴原文bug） ======================
+// ====================== 续写预览核心逻辑（完全不变） ======================
 function updateEditorPreviewContent(branchIndex) {
   if (!editorDom || isEditorDestroyed || !currentBranchResults || !originalEditorContent) return;
   const selectedContent = currentBranchResults[branchIndex];
@@ -692,7 +692,7 @@ function buildEditorHtml() {
           </div>
           <div class="footer-bottom-bar" id="footer_operation_bar">
               <div class="bar-left-group">
-                  <!-- 1:1还原参考图按钮顺序：五角星 → 撤销 → 重做 → V1 → 风格选择 → Ai继续 -->
+                  <!-- 1:1还原参考图按钮顺序：五角星 → 撤销 → 重做 → V1 -->
                   <div class="function-menu-wrapper">
                       <button class="star-function-btn" id="star_function_btn">
                           <i class="fa-solid fa-star"></i>
@@ -753,6 +753,7 @@ function buildEditorHtml() {
                   />
               </div>
               <div class="bar-right-buttons" id="bar_right_buttons">
+                  <!-- 1:1还原参考图按钮顺序：风格选择 → Ai继续 -->
                   <div class="style-select-wrapper">
                       <button class="style-select-btn" id="style_select_btn">
                           <i class="xiaomeng-icon"></i>
@@ -803,9 +804,10 @@ function buildEditorHtml() {
   `;
 }
 
-// ====================== 事件绑定 ======================
+// ====================== 事件绑定（核心修复：事件冒泡白名单，解决菜单刚打开就关闭的问题） ======================
 function unbindAllEditorEvents() {
   if (!editorDom) return;
+  // 彻底解绑所有事件，避免重复绑定
   editorDom.find("*").off();
   $(document).off("keydown.xiaomeng_ext");
   $(document).off("click.xiaomeng_ext");
@@ -815,6 +817,7 @@ function bindEditorEvents() {
   if (!editorDom || isEditorDestroyed) return;
   const settings = extension_settings[extensionName];
 
+  // 关闭编辑器按钮
   editorDom.find("#close_editor_btn").on("click", () => {
     if (isGenerating) {
       if (!confirm("正在生成内容，关闭会丢失生成结果，确定要关闭吗？")) return;
@@ -822,6 +825,7 @@ function bindEditorEvents() {
     destroyEditor();
   });
 
+  // 点击遮罩关闭编辑器
   editorDom.on("click", (e) => {
     if ($(e.target).hasClass("xiaomeng-mask")) {
       if (isGenerating) {
@@ -831,33 +835,43 @@ function bindEditorEvents() {
     }
   });
 
+  // 模式切换
   editorDom.find("input[name='editor_mode']").on("change", () => {
     saveSettingsDebounced();
   });
 
-  // 五角星菜单逻辑
+  // ====================== 核心修复：五角星菜单逻辑，彻底解决无法展开问题 ======================
   editorDom.find("#star_function_btn").on("click", (e) => {
-    e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation(); // 彻底阻止冒泡，避免触发document的关闭事件
     const menu = editorDom.find("#function_dropdown_menu");
     const isMenuOpen = menu.hasClass("show");
+    // 先关闭风格菜单
     editorDom.find("#style_dropdown_menu").removeClass("show");
 
     if (!isMenuOpen) {
+      // 打开菜单
       menu.addClass("show");
       editorDom.find("#bar_right_buttons").slideUp(200);
       editorDom.find("#custom_prompt_bar").slideDown(200);
+      console.log("[彩云小梦] 功能菜单已打开");
     } else {
+      // 关闭菜单
       menu.removeClass("show");
       editorDom.find("#custom_prompt_bar").slideUp(200);
       editorDom.find("#bar_right_buttons").slideDown(200);
+      console.log("[彩云小梦] 功能菜单已关闭");
     }
   });
 
+  // 阻止菜单内部点击冒泡
   editorDom.find("#function_dropdown_menu, #custom_prompt_bar, #custom_prompt_input").on("click", (e) => {
     e.stopPropagation();
   });
 
+  // 功能菜单项点击
   editorDom.find(".function-dropdown-item").on("click", (e) => {
+    e.preventDefault();
     e.stopPropagation();
     const functionType = $(e.currentTarget).data("function");
     extension_settings[extensionName].currentFunction = functionType;
@@ -867,14 +881,27 @@ function bindEditorEvents() {
     toastr.info(`已切换到${$(e.currentTarget).find("span").text()}功能`, "提示");
   });
 
-  // 风格选择菜单
+  // ====================== 核心修复：风格选择菜单逻辑，彻底解决无法展开问题 ======================
   editorDom.find("#style_select_btn").on("click", (e) => {
-    e.stopPropagation();
+    e.preventDefault();
+    e.stopPropagation(); // 彻底阻止冒泡
+    const menu = editorDom.find("#style_dropdown_menu");
+    const isMenuOpen = menu.hasClass("show");
+    // 先关闭功能菜单
     closeAllDropdowns();
-    editorDom.find("#style_dropdown_menu").toggleClass("show");
+
+    if (!isMenuOpen) {
+      menu.addClass("show");
+      console.log("[彩云小梦] 风格菜单已打开");
+    } else {
+      menu.removeClass("show");
+      console.log("[彩云小梦] 风格菜单已关闭");
+    }
   });
 
+  // 风格菜单项点击
   editorDom.find(".style-dropdown-item").on("click", (e) => {
+    e.preventDefault();
     e.stopPropagation();
     const style = $(e.currentTarget).data("style");
     extension_settings[extensionName].currentStyle = style;
@@ -882,18 +909,30 @@ function bindEditorEvents() {
     editorDom.find("#current_style_text").text(style);
     $(e.currentTarget).addClass("active").siblings().removeClass("active");
     editorDom.find("#style_dropdown_menu").removeClass("show");
+    toastr.info(`已切换到${style}风格`, "提示");
   });
 
+  // 阻止风格菜单内部点击冒泡
   editorDom.find("#style_dropdown_menu").on("click", (e) => {
     e.stopPropagation();
   });
 
-  // 全局点击关闭所有菜单
-  $(document).on("click.xiaomeng_ext", () => {
-    closeAllDropdowns();
+  // ====================== 核心修复：全局点击关闭菜单，增加白名单，避免误关闭 ======================
+  $(document).on("click.xiaomeng_ext", (e) => {
+    const target = $(e.target);
+    // 白名单：点击这些区域内的元素，不关闭菜单
+    const isInFunctionMenu = target.closest("#function_dropdown_menu, #star_function_btn").length > 0;
+    const isInStyleMenu = target.closest("#style_dropdown_menu, #style_select_btn").length > 0;
+    const isInCustomPrompt = target.closest("#custom_prompt_bar").length > 0;
+    const isInSettingsModal = target.closest("#settings_modal .settings-modal-content").length > 0;
+    
+    // 只有点击白名单外的区域，才关闭所有菜单
+    if (!isInFunctionMenu && !isInStyleMenu && !isInCustomPrompt && !isInSettingsModal) {
+      closeAllDropdowns();
+    }
   });
 
-  // 撤销重做
+  // 撤销重做按钮
   editorDom.find("#undo_btn").on("click", () => {
     document.execCommand("undo", false, null);
     saveEditorContentToLocal();
@@ -961,7 +1000,7 @@ function bindEditorEvents() {
   editorDom.find("#xiaomeng_editor_textarea").on("input", autoSaveDebounce);
   editorDom.find("#custom_prompt_input").on("input", saveSettingsDebounced);
 
-  // 粘贴过滤纯文本
+  // 粘贴过滤纯文本，避免格式错乱
   editorDom.find("#xiaomeng_editor_textarea").on("paste", (e) => {
     e.preventDefault();
     const text = (e.originalEvent || e).clipboardData.getData("text/plain");
@@ -971,19 +1010,23 @@ function bindEditorEvents() {
   // 键盘快捷键
   $(document).on("keydown.xiaomeng_ext", (e) => {
     if (e.key === "Escape") {
+      // 先关设置弹窗
       if (editorDom.find("#settings_modal").is(":visible")) {
         editorDom.find("#settings_modal").fadeOut(200);
         return;
       }
+      // 再关下拉菜单
       if (editorDom.find("#function_dropdown_menu").hasClass("show") || editorDom.find("#style_dropdown_menu").hasClass("show")) {
         closeAllDropdowns();
         return;
       }
+      // 最后关编辑器
       if (isGenerating) {
         if (!confirm("正在生成内容，关闭会丢失生成结果，确定要关闭吗？")) return;
       }
       destroyEditor();
     }
+    // Ctrl+Enter 触发续写
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
       e.preventDefault();
       if (!isGenerating) runMainContinuation();
@@ -993,47 +1036,65 @@ function bindEditorEvents() {
 
 // ====================== 编辑器生命周期管理 ======================
 function destroyEditor() {
+  // 先彻底解绑所有事件
   unbindAllEditorEvents();
+  // 重置所有状态
   isGenerating = false;
   currentBranchResults = [];
   originalEditorContent = "";
   currentSelectedBranchIndex = 0;
   isEditingPreview = false;
   isEditorDestroyed = true;
+  // 保存内容
   saveEditorContentToLocal();
+  // 移除DOM
   if (editorDom) {
     editorDom.remove();
     editorDom = null;
   }
+  console.log("[彩云小梦] 编辑器已销毁");
 }
 
 function openXiaomengEditor() {
+  // 如果已经打开，直接显示
   if (editorDom && !isEditorDestroyed) {
     editorDom.closest(".xiaomeng-mask").addClass("show");
+    console.log("[彩云小梦] 编辑器已显示");
     return;
   }
+  // 先销毁旧的编辑器，避免重复创建
   destroyEditor();
+  // 构建新编辑器DOM
   const editorHtml = buildEditorHtml();
   editorDom = $(editorHtml);
   $("body").append(editorDom);
   isEditorDestroyed = false;
+  console.log("[彩云小梦] 编辑器DOM已创建");
 
+  // 加载本地保存的内容
   const savedContent = loadEditorContentFromLocal();
   editorDom.find("#xiaomeng_editor_title").val(savedContent.title);
   editorDom.find("#xiaomeng_editor_chapter").val(savedContent.chapter);
   editorDom.find("#xiaomeng_editor_textarea").html(savedContent.content);
 
+  // 加载用户设置
   const settings = extension_settings[extensionName];
   editorDom.find(`#${settings.currentMode}`).prop("checked", true);
   editorDom.find("#current_style_text").text(settings.currentStyle);
   editorDom.find(`.style-dropdown-item[data-style="${settings.currentStyle}"]`).addClass("active").siblings().removeClass("active");
 
+  // 初始化UI状态
   editorDom.find("#custom_prompt_bar").hide();
   editorDom.find("#bar_right_buttons").show();
+  // 绑定事件
   bindEditorEvents();
+  // 更新字数统计
   updateWordCount();
+  // 显示编辑器
   editorDom.closest(".xiaomeng-mask").addClass("show");
+  // 光标聚焦到编辑器末尾
   restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
+  console.log("[彩云小梦] 编辑器已打开");
 }
 
 // ====================== 扩展初始化 ======================
@@ -1044,18 +1105,25 @@ async function loadSettings() {
   }
   const settings = extension_settings[extensionName];
   $("#inherit_st_params").prop("checked", settings.inheritStParams).trigger("input");
+  console.log("[彩云小梦] 设置已加载");
 }
 
 jQuery(async () => {
+  // 加载设置面板
   const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
   $("#extensions_settings").append(settingsHtml);
+  // 加载设置
   await loadSettings();
+  // 绑定打开编辑器按钮
   $("#open_xiaomeng_editor").on("click", openXiaomengEditor);
+  // 绑定全局设置
   $("#inherit_st_params").on("input", (event) => {
     extension_settings[extensionName].inheritStParams = Boolean($(event.target).prop("checked"));
     saveSettingsDebounced();
   });
+  // 页面卸载时销毁编辑器
   $(window).on("beforeunload", () => {
     destroyEditor();
   });
+  console.log("[彩云小梦] 扩展初始化完成");
 });
