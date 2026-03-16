@@ -408,7 +408,7 @@
   content: attr(placeholder);
   color: #E0E0E0;
 }
-/* 【极致优化】续写预览红色文字，确保与原文完全紧贴，零渲染间隙 */
+/* 【核心优化】续写预览红色文字，强制和原文完全紧贴，无任何间距 */
 .xiaomeng-editor-container .continuation-red-text {
   color: var(--xiaomeng-text-red);
   outline: none;
@@ -418,11 +418,11 @@
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
+  vertical-align: baseline !important;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: break-word;
-  font-family: inherit !important;
-  vertical-align: baseline !important;
+  font-family: inherit;
 }
 .xiaomeng-editor-container .continuation-red-text[contenteditable="true"] {
   outline: 2px dashed rgba(255, 82, 82, 0.3);
