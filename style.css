@@ -396,24 +396,28 @@
   content: attr(placeholder);
   color: #E0E0E0;
 }
-/* 续写预览红色文字 */
+/* 续写预览红色文字（深度还原参考图） */
 .xiaomeng-editor-container .continuation-red-text {
   color: var(--xiaomeng-text-red);
   outline: none;
   display: block;
+  line-height: 1.8;
+  font-size: 16px;
+  margin: 0;
 }
 /* ==============================================
-   重写：预览分割线+操作栏（1:1对齐图一）
+   续写预览：分割线+操作栏（1:1还原参考图）
    ============================================== */
-/* 续写内容底部分割线（图一红色横线） */
+/* 续写内容底部分割线（和按钮栏无缝衔接） */
 .xiaomeng-editor-container .preview-split-line {
   border: none;
   border-top: 2px solid var(--xiaomeng-primary);
   margin: 12px 0 0 0;
   opacity: 1;
   width: 100%;
+  flex-shrink: 0;
 }
-/* 预览操作按钮栏（图一红色底栏） */
+/* 预览操作按钮栏（1:1对齐参考图红色底栏） */
 .xiaomeng-editor-container .preview-operation-bar {
   width: 100%;
   background: var(--xiaomeng-primary);
@@ -423,22 +427,24 @@
   justify-content: flex-end;
   overflow: hidden;
   margin: 0 0 20px 0;
+  flex-shrink: 0;
 }
-/* 按钮分隔线 */
+/* 按钮分隔线（还原参考图白色细竖线） */
 .xiaomeng-editor-container .btn-divider {
   width: 1px;
-  height: 24px;
+  height: 28px;
   background: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
 }
-/* 预览按钮通用样式 */
+/* 预览按钮通用样式（还原参考图文字大小、间距） */
 .xiaomeng-editor-container .preview-btn {
   flex: 1;
-  min-width: 80px;
-  height: 48px;
+  min-width: 70px;
+  height: 52px;
   border: none;
   background: transparent;
   color: white;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--ani-fast) ease;
@@ -527,6 +533,7 @@
   height: 100%;
   min-width: 0;
 }
+/* 自定义输入框（还原参考图提示文字+样式） */
 .xiaomeng-editor-container .custom-prompt-bar {
   display: flex;
   align-items: center;
@@ -548,14 +555,14 @@
 }
 .xiaomeng-editor-container .custom-prompt-bar i {
   color: var(--xiaomeng-primary);
-  font-size: 16px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 .xiaomeng-editor-container .custom-prompt-bar input {
   flex: 1;
   border: none;
   outline: none;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--xiaomeng-text-black);
   padding: 4px 0;
   background: transparent;
@@ -565,10 +572,10 @@
 }
 .xiaomeng-editor-container .custom-prompt-bar input::placeholder {
   color: var(--xiaomeng-text-gray);
+  font-size: 16px;
 }
-
 /* ==============================================
-   五角星功能菜单（1:1对齐第二张参考图）
+   五角星功能菜单（1:1还原参考图）
    ============================================== */
 .xiaomeng-editor-container .function-menu-wrapper {
   position: relative;
@@ -605,7 +612,7 @@
   transform: scale(1.05);
   box-shadow: var(--xiaomeng-shadow-sm);
 }
-/* 功能下拉菜单（对齐参考图样式） */
+/* 功能下拉菜单（1:1对齐参考图样式） */
 .xiaomeng-editor-container .function-dropdown-menu {
   position: absolute;
   bottom: 100%;
@@ -614,7 +621,7 @@
   background: var(--xiaomeng-card-bg);
   border-radius: 12px;
   box-shadow: var(--xiaomeng-shadow-lg);
-  min-width: 180px;
+  min-width: 200px;
   display: none;
   flex-direction: column;
   overflow: hidden;
@@ -632,12 +639,13 @@
 .xiaomeng-editor-container .function-dropdown-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   border: none;
   background: transparent;
   color: var(--xiaomeng-text-black);
-  font-size: 16px;
-  padding: 14px 18px;
+  font-size: 18px;
+  padding: 16px 20px;
   cursor: pointer;
   text-align: left;
   transition: all var(--ani-fast) ease;
@@ -646,21 +654,30 @@
 .xiaomeng-editor-container .function-dropdown-item:last-child {
   border-bottom: none;
 }
+.xiaomeng-editor-container .function-dropdown-item .item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .xiaomeng-editor-container .function-dropdown-item i {
   color: var(--xiaomeng-text-gray);
-  font-size: 18px;
-  width: 22px;
+  font-size: 20px;
+  width: 24px;
   text-align: center;
   transition: all var(--ani-fast) ease;
+}
+.xiaomeng-editor-container .function-dropdown-item .item-arrow {
+  font-size: 14px;
+  color: var(--xiaomeng-text-gray);
 }
 .xiaomeng-editor-container .function-dropdown-item:hover {
   background: var(--xiaomeng-border);
   color: var(--xiaomeng-text-red);
 }
-.xiaomeng-editor-container .function-dropdown-item:hover i {
+.xiaomeng-editor-container .function-dropdown-item:hover i,
+.xiaomeng-editor-container .function-dropdown-item:hover .item-arrow {
   color: var(--xiaomeng-text-red);
 }
-
 /* 撤回/重做按钮 */
 .xiaomeng-editor-container .arrow-btn {
   width: 34px;
@@ -689,7 +706,6 @@
   cursor: not-allowed;
   transform: none;
 }
-
 /* V1版本按钮 */
 .xiaomeng-editor-container .version-btn-wrapper {
   position: relative;
@@ -718,7 +734,6 @@
 .xiaomeng-editor-container .version-btn i {
   font-size: 12px;
 }
-
 /* 风格选择按钮 */
 .xiaomeng-editor-container .style-select-wrapper {
   position: relative;
@@ -750,7 +765,6 @@
 .xiaomeng-editor-container .style-select-btn i:last-child {
   font-size: 12px;
 }
-
 /* 小梦图标 */
 .xiaomeng-editor-container .xiaomeng-icon {
   width: 18px;
@@ -776,7 +790,6 @@
 .xiaomeng-editor-container .xiaomeng-icon::after {
   right: 4px;
 }
-
 /* 风格下拉菜单 */
 .xiaomeng-editor-container .style-dropdown-menu {
   position: absolute;
@@ -817,7 +830,6 @@
   color: var(--xiaomeng-text-red);
   background: #FFF0F0;
 }
-
 /* Ai 继续按钮 */
 .xiaomeng-editor-container .ai-continue-btn {
   border: none;
@@ -853,7 +865,6 @@
 .xiaomeng-editor-container .ai-continue-btn i {
   font-size: 14px;
 }
-
 /* 字数统计样式 */
 .xiaomeng-editor-container .word-count-bar {
   width: 100%;
@@ -864,7 +875,6 @@
   border-top: 1px solid var(--xiaomeng-border);
   flex-shrink: 0;
 }
-
 /* ==============================================
    结果选择区（完全不变）
    ============================================== */
@@ -946,7 +956,6 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
-
 /* 结果卡片容器 */
 .xiaomeng-editor-container .results-cards-wrapper {
   display: flex;
@@ -970,7 +979,6 @@
   font-size: 14px;
   margin: auto;
 }
-
 /* 结果卡片 */
 .xiaomeng-editor-container .result-card {
   min-width: 280px;
@@ -1021,7 +1029,6 @@
   word-break: break-all;
   margin-top: 8px;
 }
-
 /* ==============================================
    深色主题完整适配
    ============================================== */
@@ -1061,7 +1068,6 @@
 [data-theme="dark"] .xiaomeng-editor-container .settings-modal-content {
   --xiaomeng-bg: #1E1E1E;
 }
-
 /* ==============================================
    移动端适配（保证不超出屏幕）
    ============================================== */
@@ -1134,7 +1140,6 @@
     font-size: 14px;
   }
 }
-
 /* 超小屏移动端适配 */
 @media (max-width: 480px) {
   .xiaomeng-editor-container .header-mode-switch {
