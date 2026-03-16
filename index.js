@@ -37,13 +37,16 @@ const defaultSettings = {
   currentStyle: "脑洞大开",
   customPrompt: "",
 };
-// 全局状态变量（完全不变）
+// 全局状态变量
 let currentBranchResults = [];
 let isGenerating = false;
 let syncDebounceTimer = null;
-let editorDom = null; // 悬浮窗DOM根节点，关闭时彻底销毁
+let editorDom = null;
+// 新增：续写预览专属状态
+let originalEditorContent = ""; // 生成分支前的原文内容（用于切换分支时重置）
+let currentSelectedBranchIndex = 0; // 当前选中的分支索引
 
-// ====================== 工具函数（修复核心逻辑，功能不变） ======================
+// ====================== 工具函数 ======================
 // 防抖工具函数（不变）
 function debounce(func, delay) {
   let timer = null;
@@ -71,12 +74,11 @@ async function rateLimitCheck() {
   console.log(`[彩云小梦] 本次API调用已记录，1分钟内累计调用：${apiCallTimestamps.length}次`);
 }
 
-// ========== 修复点1：修正ST官方参数获取逻辑，适配源码正确字段名 ==========
+// ST官方参数获取逻辑（修复版，不变）
 function getActivePresetParams() {
   const settings = extension_settings[extensionName];
   let presetParams = {};
   const context = getContext();
-  // 修复：ST官方context正确字段是generationSettings（驼峰），不是generation_settings
   if (context?.generationSettings && typeof context.generationSettings === 'object') {
     presetParams = { ...context.generationSettings };
   } else if (window.generation_params && typeof window.generation_params === 'object') {
@@ -87,7 +89,6 @@ function getActivePresetParams() {
       presetParams = { ...window.generation_params };
     }
   }
-  // 修复：ST官方标准有效参数，移除冲突字段
   const validParams = [
     'temperature', 'top_p', 'top_k', 'min_p', 'top_a',
     'max_new_tokens', 'min_new_tokens',
@@ -101,14 +102,13 @@ function getActivePresetParams() {
       filteredParams[key] = presetParams[key];
     }
   }
-  // ST官方默认兜底参数，避免无效值
   const defaultFallbackParams = {
     temperature: 0.7,
     top_p: 0.9,
     max_new_tokens: 1000,
     repetition_penalty: 1.1,
     do_sample: true,
-    stream: false // 强制关闭流式，适配单轮生成
+    stream: false
   };
   for (const [key, value] of Object.entries(defaultFallbackParams)) {
     if (filteredParams[key] === undefined || filteredParams[key] === null) {
@@ -118,9 +118,21 @@ function getActivePresetParams() {
   return filteredParams;
 }
 
-// ====================== 核心API调用函数（致命修复：适配ST官方generateRaw规范） ======================
+// 新增：核心预览更新函数（实现选哪个换哪个）
+function updateEditorPreviewContent(branchIndex) {
+  if (!editorDom || !currentBranchResults || !originalEditorContent) return;
+  const selectedContent = currentBranchResults[branchIndex];
+  if (!selectedContent) return;
+  // 编辑器内容 = 原文 + 红色预览的续写内容
+  const previewHtml = `${originalEditorContent}<span class="continuation-red-text fade-in">${selectedContent}</span>`;
+  editorDom.find("#xiaomeng_editor_textarea").html(previewHtml);
+  // 自动滚动到底部
+  const editorMain = editorDom.find(".xiaomeng-editor-main")[0];
+  editorMain.scrollTo({ top: editorMain.scrollHeight, behavior: "smooth" });
+}
+
+// ====================== 核心API调用函数（修复版，不变） ======================
 async function generateThreeBranchesOnce(prompt, generateParams) {
-  // 修复：前置prompt非空校验，彻底杜绝空输入
   if (!prompt || prompt.trim() === '' || EMPTY_CONTENT_REGEX.test(prompt.trim())) {
     throw new Error('续写原文不能为空，请输入有效内容');
   }
@@ -139,20 +151,16 @@ ${BRANCH_SEPARATOR}3
 第三条续写内容
 禁止输出任何其他内容，禁止修改格式，禁止添加序号以外的任何标记。`;
 
-  // ========== 致命修复：ST官方generateRaw仅接受1个options对象，正确构建参数 ==========
-  // 修复：之前的错误写法 generateRaw(finalParams, prompt) 第二个参数完全被ST忽略，导致prompt为空
   const finalOptions = {
     ...generateParams,
     systemPrompt: finalSystemPrompt,
-    prompt: prompt.trim(), // 正确传入prompt到ST官方API
-    // 强制关闭流式输出，确保完整获取结果
+    prompt: prompt.trim(),
     stream: false
   };
 
   await rateLimitCheck();
   console.log(`[彩云小梦] 开始单次API调用，生成${FIXED_BRANCH_COUNT}条分支`, finalOptions);
   
-  // 修复：全链路错误捕获，避免ST API抛出的异常未处理导致连接断开
   let rawResult;
   try {
     rawResult = await generateRaw(finalOptions);
@@ -188,11 +196,9 @@ ${BRANCH_SEPARATOR}3
   return branches.slice(0, FIXED_BRANCH_COUNT);
 }
 
-// ====================== 辅助工具函数（修复内容获取逻辑） ======================
-// ========== 修复点2：正确获取contenteditable编辑器内容，严格非空处理 ==========
+// ====================== 辅助工具函数 ======================
 function getEditorPlainText() {
   if (!editorDom) return "";
-  // 修复：contenteditable元素用text()获取完整文本，强制trim处理
   return editorDom.find("#xiaomeng_editor_textarea").text().trim() || "";
 }
 
@@ -213,7 +219,6 @@ const syncContent = debounce(function(direction = "editor-to-st") {
   }
 }, 300);
 
-// ========== 修复点3：新增全链路非空校验，提前拦截无效请求 ==========
 function buildGenerateConfig() {
   const settings = extension_settings[extensionName];
   const fullText = getEditorPlainText();
@@ -223,7 +228,6 @@ function buildGenerateConfig() {
   const functionType = settings.currentFunction;
   const customPrompt = editorDom.find("#custom_prompt_input").val().trim();
 
-  // 修复：全局原文非空校验，所有功能都必须有有效原文
   if (!fullText || EMPTY_CONTENT_REGEX.test(fullText)) {
     toastr.warning("编辑器正文不能为空，请输入有效内容", "提示");
     return null;
@@ -270,7 +274,6 @@ function buildGenerateConfig() {
       break;
   }
 
-  // 修复：最终prompt非空校验
   if (!prompt || prompt.trim() === '' || EMPTY_CONTENT_REGEX.test(prompt.trim())) {
     toastr.warning("生成内容无效，请检查输入", "提示");
     return null;
@@ -286,7 +289,7 @@ function buildGenerateConfig() {
   };
 }
 
-// ====================== 渲染逻辑（完全不变） ======================
+// ====================== 渲染逻辑（重写，实现选中切换） ======================
 function renderBranchCards() {
   if (!editorDom) return;
   const container = editorDom.find("#results_cards_container");
@@ -295,36 +298,60 @@ function renderBranchCards() {
     container.html(`<div class="empty-result-tip">暂无生成内容</div>`);
     return;
   }
+
+  // 渲染分支卡片，新增选中状态
   currentBranchResults.forEach((content, index) => {
     const previewContent = content.length > 80 ? content.substring(0, 80) + "..." : content;
+    const isSelected = index === currentSelectedBranchIndex;
     const card = $(`
-      <div class="result-card slide-in" style="animation-delay: ${index * 0.1}s">
+      <div class="result-card slide-in ${isSelected ? 'selected' : ''}" style="animation-delay: ${index * 0.1}s" data-index="${index}">
         <span class="branch-tag">分支 ${index + 1}</span>
         <div class="card-preview-text">${previewContent}</div>
-        <button class="card-use-btn" data-index="${index}">使用本条</button>
+        <button class="card-use-btn" data-index="${index}">确认使用</button>
       </div>
     `);
     container.append(card);
   });
+
+  // 点击卡片切换分支（实时预览，选哪个换哪个）
+  container.find(".result-card").off("click").on("click", (event) => {
+    if ($(event.target).hasClass("card-use-btn")) return;
+    const index = parseInt($(event.currentTarget).data("index"));
+    if (isNaN(index) || index === currentSelectedBranchIndex) return;
+    // 更新选中状态，刷新预览
+    currentSelectedBranchIndex = index;
+    updateEditorPreviewContent(currentSelectedBranchIndex);
+    renderBranchCards();
+  });
+
+  // 确认使用按钮：固化内容，取消红色样式，和原文颜色一致
   container.find(".card-use-btn").off("click").on("click", (event) => {
-    const index = $(event.target).data("index");
-    const selectedContent = currentBranchResults[index];
-    if (!selectedContent || !editorDom) return;
-    const editor = editorDom.find("#xiaomeng_editor_textarea");
-    editor.html(editor.html() + `<span class="continuation-red-text fade-in">${selectedContent}</span>`);
+    event.stopPropagation();
+    const index = parseInt($(event.target).data("index"));
+    if (isNaN(index) || !currentBranchResults[index]) return;
+    const finalContent = currentBranchResults[index];
+    if (!editorDom) return;
+
+    // 核心：去掉红色预览样式，纯文本追加到原文，和原文颜色完全一致
+    const finalHtml = `${originalEditorContent}${finalContent}`;
+    editorDom.find("#xiaomeng_editor_textarea").html(finalHtml);
     
+    // 恢复UI
     editorDom.find("#results_area").slideUp(200);
     editorDom.find("#footer_operation_bar, #custom_prompt_bar").slideDown(200);
     
-    const editorMain = editorDom.find(".xiaomeng-editor-main")[0];
-    editorMain.scrollTo({ top: editorMain.scrollHeight, behavior: "smooth" });
+    // 重置所有状态
     currentBranchResults = [];
+    originalEditorContent = "";
+    currentSelectedBranchIndex = 0;
+    
+    // 同步到ST输入框
     syncContent("editor-to-st");
-    toastr.success("已将选中内容插入到正文", "操作成功");
+    toastr.success("已确认使用该续写内容", "操作成功");
   });
 }
 
-// ====================== 核心交互逻辑（完全不变，保证功能一致） ======================
+// ====================== 核心交互逻辑（修改，实现自动插入第一个分支） ======================
 async function runMainContinuation() {
   if (isGenerating || !editorDom) return;
   const config = buildGenerateConfig();
@@ -335,6 +362,11 @@ async function runMainContinuation() {
   try {
     const branchResults = await generateThreeBranchesOnce(config.prompt, config.generateParams);
     currentBranchResults = branchResults;
+    // 核心：生成后自动保存原文，默认选中第一个分支，自动插入预览
+    originalEditorContent = getEditorPlainText();
+    currentSelectedBranchIndex = 0;
+    updateEditorPreviewContent(currentSelectedBranchIndex);
+    // 切换UI
     editorDom.find("#footer_operation_bar, #custom_prompt_bar").slideUp(200, () => {
       editorDom.find("#results_area").slideDown(200);
       renderBranchCards();
@@ -350,6 +382,7 @@ async function runMainContinuation() {
   }
 }
 
+// 换一批逻辑（修改，适配预览逻辑）
 async function refreshBranchResults() {
   if (isGenerating || !editorDom) return;
   const config = buildGenerateConfig();
@@ -361,6 +394,10 @@ async function refreshBranchResults() {
   try {
     const newBranchResults = await generateThreeBranchesOnce(config.prompt, config.generateParams);
     currentBranchResults = newBranchResults;
+    // 换一批后重新保存当前原文，默认选中第一个
+    originalEditorContent = getEditorPlainText();
+    currentSelectedBranchIndex = 0;
+    updateEditorPreviewContent(currentSelectedBranchIndex);
     renderBranchCards();
     toastr.success("分支内容已刷新", "完成");
   } catch (error) {
@@ -375,21 +412,29 @@ async function refreshBranchResults() {
   }
 }
 
+// 取消逻辑（修改，取消时恢复原文）
 function cancelResultSelect() {
   if (!editorDom) return;
   if (isGenerating) isGenerating = false;
+  // 取消时恢复生成前的原文，清空预览内容
+  if (originalEditorContent) {
+    editorDom.find("#xiaomeng_editor_textarea").html(originalEditorContent);
+  }
+  // 恢复UI
   editorDom.find("#results_area").slideUp(200);
   editorDom.find("#footer_operation_bar, #custom_prompt_bar").slideDown(200);
+  // 重置所有状态
   currentBranchResults = [];
+  originalEditorContent = "";
+  currentSelectedBranchIndex = 0;
   editorDom.find("#results_cards_container").html(`<div class="empty-result-tip">正在生成内容，请稍候...</div>`);
 }
 
-// ====================== 悬浮窗核心函数（修复事件污染问题） ======================
+// ====================== 悬浮窗核心函数 ======================
 function buildEditorHtml() {
   return `
   <div class="xiaomeng-mask">
     <div class="xiaomeng-editor-container">
-      <!-- 顶部导航栏（完全不变，保证功能） -->
       <header class="xiaomeng-header">
           <div class="header-left">
               <button class="header-icon-btn" id="close_editor_btn">
@@ -415,7 +460,6 @@ function buildEditorHtml() {
               </button>
           </div>
       </header>
-      <!-- 核心编辑区域（完全不变） -->
       <main class="xiaomeng-editor-main">
           <div class="editor-content-wrapper">
               <input 
@@ -441,16 +485,13 @@ function buildEditorHtml() {
               ></div>
           </div>
       </main>
-      <!-- 底部区域（完全不变，底栏完整保留） -->
       <footer class="xiaomeng-footer">
-          <!-- 加载动画 -->
           <div class="loading-overlay" id="loading_overlay" style="display: none;">
               <div class="loading-spinner">
                   <i class="fa-solid fa-spinner fa-spin"></i>
                   <span>小梦正在创作中...</span>
               </div>
           </div>
-          <!-- 底栏操作区（完整保留，默认显示） -->
           <div class="footer-bottom-bar" id="footer_operation_bar">
               <div class="function-menu-wrapper">
                   <button class="star-function-btn" id="star_function_btn">
@@ -513,7 +554,6 @@ function buildEditorHtml() {
                   <span>Ai 继续</span>
               </button>
           </div>
-          <!-- 定向续写输入框（完全不变） -->
           <div class="custom-prompt-bar" id="custom_prompt_bar" style="display: none;">
               <i class="fa-solid fa-star"></i>
               <input 
@@ -522,7 +562,6 @@ function buildEditorHtml() {
                   placeholder="例: 请帮我增加更多战斗场景的描写"
               />
           </div>
-          <!-- 结果选择区（完全不变） -->
           <div class="footer-results-area" id="results_area" style="display: none;">
               <div class="results-header">
                   <span class="results-title">
@@ -550,29 +589,24 @@ function buildEditorHtml() {
   `;
 }
 
-// ========== 修复点4：修复事件绑定与销毁，彻底解决DOM污染 ==========
 function bindEditorEvents() {
   if (!editorDom) return;
   const settings = extension_settings[extensionName];
 
-  // 关闭编辑器按钮（彻底销毁DOM+解绑全局事件）
   editorDom.find("#close_editor_btn").on("click", () => {
     destroyEditor();
   });
 
-  // 点击遮罩层空白处关闭编辑器
   editorDom.on("click", (e) => {
     if ($(e.target).hasClass("xiaomeng-mask")) {
       destroyEditor();
     }
   });
 
-  // 模式切换
   editorDom.find("input[name='editor_mode']").on("change", (event) => {
     saveSettingsDebounced();
   });
 
-  // 功能下拉菜单
   editorDom.find("#star_function_btn").on("click", (e) => {
     e.stopPropagation();
     editorDom.find("#function_dropdown_menu").toggleClass("show");
@@ -590,7 +624,6 @@ function bindEditorEvents() {
     editorDom.find("#function_dropdown_menu").removeClass("show");
   });
 
-  // 风格下拉菜单
   editorDom.find("#style_select_btn").on("click", (e) => {
     e.stopPropagation();
     editorDom.find("#style_dropdown_menu").toggleClass("show");
@@ -605,26 +638,21 @@ function bindEditorEvents() {
     editorDom.find("#style_dropdown_menu").removeClass("show");
   });
 
-  // 点击空白关闭下拉菜单（绑定到编辑器内，不污染全局document）
   editorDom.on("click", () => {
     editorDom.find("#function_dropdown_menu").removeClass("show");
     editorDom.find("#style_dropdown_menu").removeClass("show");
   });
 
-  // 撤回/重做
   editorDom.find("#undo_btn").on("click", () => document.execCommand("undo", false, null));
   editorDom.find("#redo_btn").on("click", () => document.execCommand("redo", false, null));
 
-  // 核心AI续写事件
   editorDom.find("#ai_continue_btn").on("click", runMainContinuation);
   editorDom.find("#refresh_results_btn").on("click", refreshBranchResults);
   editorDom.find("#cancel_results_btn").on("click", cancelResultSelect);
 
-  // 内容同步事件
   editorDom.find("#xiaomeng_editor_textarea").on("input", () => syncContent("editor-to-st"));
   $("#send_textarea").on("input", () => syncContent("st-to-editor"));
 
-  // ESC键关闭编辑器（命名空间绑定，方便解绑）
   $(document).on("keydown.xiaomeng_ext", (e) => {
     if (e.key === "Escape" && editorDom) {
       destroyEditor();
@@ -632,14 +660,16 @@ function bindEditorEvents() {
   });
 }
 
-// 新增：编辑器销毁函数，彻底清理DOM和事件，零污染
 function destroyEditor() {
   isGenerating = false;
   currentBranchResults = [];
-  // 解绑全局事件
+  // 重置预览状态
+  originalEditorContent = "";
+  currentSelectedBranchIndex = 0;
+  // 解绑事件
   $(document).off("keydown.xiaomeng_ext");
   $("#send_textarea").off("input", syncContent);
-  // 彻底移除DOM
+  // 销毁DOM
   if (editorDom) {
     editorDom.remove();
     editorDom = null;
@@ -647,7 +677,6 @@ function destroyEditor() {
   syncContent("editor-to-st");
 }
 
-// 打开编辑器（动态创建悬浮窗，逻辑不变）
 function openXiaomengEditor() {
   if (editorDom) {
     editorDom.addClass("show");
@@ -670,7 +699,7 @@ function openXiaomengEditor() {
   editorDom.find("#xiaomeng_editor_textarea").focus();
 }
 
-// ====================== 扩展入口函数（完全不变） ======================
+// ====================== 扩展入口函数 ======================
 async function loadSettings() {
   extension_settings[extensionName] = extension_settings[extensionName] || {};
   if (Object.keys(extension_settings[extensionName]).length === 0) {
@@ -694,7 +723,6 @@ jQuery(async () => {
     extension_settings[extensionName].inheritStParams = Boolean($(event.target).prop("checked"));
     saveSettingsDebounced();
   });
-  // 页面卸载时彻底清理，避免内存泄漏
   $(window).on("beforeunload", () => {
     destroyEditor();
   });
