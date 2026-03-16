@@ -939,3 +939,15 @@
     display: none;
   }
 }
+/* 新增：分支卡片选中高亮样式 */
+.xiaomeng-editor-container .result-card.selected {
+  border-color: var(--xiaomeng-primary);
+  background: #FFF0F0;
+  box-shadow: var(--xiaomeng-shadow-md);
+  transform: translateY(-2px);
+}
+
+/* 深色主题适配 */
+[data-theme="dark"] .xiaomeng-editor-container .result-card.selected {
+  background: #2D1A1A;
+}
