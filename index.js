@@ -5,7 +5,6 @@ import {
   loadExtensionSettings,
 } from "../../../extensions.js";
 import { saveSettingsDebounced } from "../../../../script.js";
-
 // ====================== 核心配置（完全不变） ======================
 const extensionName = "Continuation_machine";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
@@ -39,7 +38,6 @@ let editorDom = null;
 let originalEditorContent = "";
 let currentSelectedBranchIndex = 0;
 let isEditingPreview = false;
-
 // ====================== 工具函数（完全不变） ======================
 function debounce(func, delay) {
   let timer = null;
@@ -48,7 +46,6 @@ function debounce(func, delay) {
     timer = setTimeout(() => func.apply(this, args), delay);
   };
 }
-
 function saveEditorContentToLocal() {
   if (!editorDom) return;
   const contentData = {
@@ -60,7 +57,6 @@ function saveEditorContentToLocal() {
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(contentData));
   updateWordCount();
 }
-
 function loadEditorContentFromLocal() {
   const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
   if (!savedData) return { title: "", chapter: "", content: "", plainText: "" };
@@ -71,14 +67,12 @@ function loadEditorContentFromLocal() {
     return { title: "", chapter: "", content: "", plainText: "" };
   }
 }
-
 function updateWordCount() {
   if (!editorDom) return;
   const plainText = editorDom.find("#xiaomeng_editor_textarea").text().trim();
   const wordCount = plainText.length;
   editorDom.find("#word_count_text").text(`字数：${wordCount}`);
 }
-
 async function rateLimitCheck() {
   const now = Date.now();
   apiCallTimestamps = apiCallTimestamps.filter(timestamp => now - timestamp < API_RATE_LIMIT_WINDOW_MS);
@@ -95,7 +89,6 @@ async function rateLimitCheck() {
   apiCallTimestamps.push(now);
   console.log(`[彩云小梦] 本次API调用已记录，1分钟内累计调用：${apiCallTimestamps.length}次`);
 }
-
 function getActivePresetParams() {
   const settings = extension_settings[extensionName];
   let presetParams = {};
@@ -138,17 +131,22 @@ function getActivePresetParams() {
   }
   return filteredParams;
 }
-
-// ====================== 重写：预览内容更新（对齐图一样式，分割线+底部按钮栏） ======================
+// ====================== 重写：预览内容更新（修复按钮点击失效，移出可编辑区域） ======================
 function updateEditorPreviewContent(branchIndex) {
   if (!editorDom || !currentBranchResults || !originalEditorContent) return;
   const selectedContent = currentBranchResults[branchIndex];
   if (!selectedContent) return;
 
-  // 核心结构对齐图一：原文 + 红色续写内容 + 分割线 + 底部红色操作按钮栏
-  const previewHtml = `
+  // 修复：可编辑区域仅保留原文+续写内容，分割线+按钮栏移出可编辑区域，解决点击失效问题
+  // 1. 可编辑区域内容：原文 + 红色续写内容
+  const editorContentHtml = `
     ${originalEditorContent}
     <span id="preview_content_span" class="continuation-red-text fade-in" contenteditable="false">${selectedContent}</span>
+  `;
+  editorDom.find("#xiaomeng_editor_textarea").html(editorContentHtml);
+
+  // 2. 预览操作区域：分割线 + 底部红色操作按钮栏
+  const operationHtml = `
     <hr class="preview-split-line" />
     <div class="preview-operation-bar" id="preview_operation_bar">
       <button class="preview-btn preview-cancel-btn" id="preview_cancel_btn">撤回</button>
@@ -160,27 +158,30 @@ function updateEditorPreviewContent(branchIndex) {
       <button class="preview-btn preview-continue-btn" id="preview_continue_btn">Ai 继续</button>
     </div>
   `;
+  const operationContainer = editorDom.find("#preview_operation_container");
+  operationContainer.html(operationHtml).show();
 
-  editorDom.find("#xiaomeng_editor_textarea").html(previewHtml);
   isEditingPreview = false;
   bindPreviewOperationEvents();
+
   // 自动滚动到底部
   const editorMain = editorDom.find(".xiaomeng-editor-main")[0];
   editorMain.scrollTo({ top: editorMain.scrollHeight, behavior: "smooth" });
   updateWordCount();
 }
-
-// ====================== 预览按钮事件绑定（功能完全对齐需求） ======================
+// ====================== 预览按钮事件绑定（修复功能，阻止事件冒泡） ======================
 function bindPreviewOperationEvents() {
   if (!editorDom) return;
-
   // 撤回：撤掉红字+关闭分支选择区
-  editorDom.find("#preview_cancel_btn").off("click").on("click", () => {
+  editorDom.find("#preview_cancel_btn").off("click").on("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     cancelResultSelect();
   });
-
   // 修改：切换红字可编辑状态
   editorDom.find("#preview_edit_btn").off("click").on("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const btn = $(e.currentTarget);
     const previewSpan = editorDom.find("#preview_content_span");
     if (!isEditingPreview) {
@@ -199,14 +200,16 @@ function bindPreviewOperationEvents() {
       btn.removeClass("active");
     }
   });
-
   // 保存：固化红字为正文，恢复底栏
-  editorDom.find("#preview_save_btn").off("click").on("click", () => {
+  editorDom.find("#preview_save_btn").off("click").on("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     savePreviewContent();
   });
-
   // 继续：保存内容后自动触发下一轮续写
-  editorDom.find("#preview_continue_btn").off("click").on("click", async () => {
+  editorDom.find("#preview_continue_btn").off("click").on("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     const saveSuccess = savePreviewContent();
     if (!saveSuccess) return;
     setTimeout(() => {
@@ -214,7 +217,7 @@ function bindPreviewOperationEvents() {
     }, 200);
   });
 }
-
+// ====================== 修复：保存预览内容时隐藏操作容器 ======================
 function savePreviewContent() {
   if (!editorDom || !currentBranchResults[currentSelectedBranchIndex]) {
     toastr.error("无有效内容可保存", "错误");
@@ -223,6 +226,9 @@ function savePreviewContent() {
   const finalContent = originalEditorContent + currentBranchResults[currentSelectedBranchIndex];
   editorDom.find("#xiaomeng_editor_textarea").html(finalContent);
   
+  // 隐藏并清空预览操作容器
+  editorDom.find("#preview_operation_container").hide().empty();
+
   editorDom.find("#results_area").slideUp(250);
   editorDom.find(".footer-bottom-bar").slideDown(250);
   
@@ -236,17 +242,14 @@ function savePreviewContent() {
   toastr.success("已保存续写内容", "操作成功");
   return true;
 }
-
 async function generateThreeBranchesOnce(prompt, generateParams) {
   if (!prompt || prompt.trim() === '' || EMPTY_CONTENT_REGEX.test(prompt.trim())) {
     throw new Error('续写原文不能为空，请输入有效内容');
   }
-
   const context = getContext();
   const { generateRaw } = context;
   const settings = extension_settings[extensionName];
   const targetWordCount = settings.continuationWordCount || 200;
-
   let finalSystemPrompt = generateParams.systemPrompt || '';
   finalSystemPrompt += BREAK_LIMIT_PROMPT;
   finalSystemPrompt += `\n\n【输出格式强制要求】
@@ -258,7 +261,6 @@ ${BRANCH_SEPARATOR}2
 ${BRANCH_SEPARATOR}3
 第三条续写内容
 禁止输出任何其他内容，禁止修改格式，禁止添加序号以外的任何标记。`;
-
   const finalOptions = {
     ...generateParams,
     systemPrompt: finalSystemPrompt,
@@ -266,7 +268,6 @@ ${BRANCH_SEPARATOR}3
     stream: false,
     max_new_tokens: Math.ceil(targetWordCount * 1.5)
   };
-
   await rateLimitCheck();
   console.log(`[彩云小梦] 开始单次API调用，生成${FIXED_BRANCH_COUNT}条分支，目标字数：${targetWordCount}`, finalOptions);
   
@@ -277,7 +278,6 @@ ${BRANCH_SEPARATOR}3
     console.error("ST API调用失败:", apiError);
     throw new Error(`API请求失败: ${apiError.message || '后端连接异常，请检查ST API配置'}`);
   }
-
   const trimmedResult = rawResult?.trim?.() || '';
   if (EMPTY_CONTENT_REGEX.test(trimmedResult)) {
     throw new Error('API返回内容为空，请检查模型配置');
@@ -286,7 +286,6 @@ ${BRANCH_SEPARATOR}3
   if (hasRejectContent) {
     throw new Error('API返回拒绝生成的提示内容');
   }
-
   const branchRegex = new RegExp(`${BRANCH_SEPARATOR}(\\d+)\\n([\\s\\S]*?)(?=${BRANCH_SEPARATOR}\\d+|$)`, 'g');
   const matches = [...trimmedResult.matchAll(branchRegex)];
   
@@ -304,17 +303,14 @@ ${BRANCH_SEPARATOR}3
   console.log(`[彩云小梦] 单次API调用成功，生成${branches.length}条有效分支`);
   return branches.slice(0, FIXED_BRANCH_COUNT);
 }
-
 function getEditorPlainText() {
   if (!editorDom) return "";
   return editorDom.find("#xiaomeng_editor_textarea").text().trim() || "";
 }
-
 function getEditorSelectedText() {
   const selection = window.getSelection();
   return selection.toString().trim() || "";
 }
-
 // ====================== 重写：生成配置（通用输入框指令，所有功能都生效） ======================
 function buildGenerateConfig() {
   const settings = extension_settings[extensionName];
@@ -326,18 +322,15 @@ function buildGenerateConfig() {
   // 读取输入框指令，所有功能都生效
   const userInstruction = editorDom.find("#custom_prompt_input").val().trim();
   const targetWordCount = settings.continuationWordCount || 200;
-
   if (!fullText || EMPTY_CONTENT_REGEX.test(fullText)) {
     toastr.warning("编辑器正文不能为空，请输入有效内容", "提示");
     return null;
   }
-
   const baseParams = mode === "v_mode" 
     ? { temperature: 0.7, top_p: 0.85, repetition_penalty: 1.1 }
     : { temperature: 1.0, top_p: 0.95, repetition_penalty: 1.05 };
   const parentParams = getActivePresetParams();
   Object.assign(baseParams, parentParams);
-
   // 基础prompt，所有功能都拼接用户输入的指令
   let basePrompt = userInstruction ? `用户额外要求：${userInstruction}。` : "";
   let prompt = "";
@@ -370,12 +363,10 @@ function buildGenerateConfig() {
       prompt = `${basePrompt}你是专业的小说创作助手，先补全原文末尾未完成的句子、标点符号，再完成创作，风格【${style}】，每条内容${targetWordCount}字左右，误差不超过10%。原文：${fullText}`;
       break;
   }
-
   if (!prompt || prompt.trim() === '' || EMPTY_CONTENT_REGEX.test(prompt.trim())) {
     toastr.warning("生成内容无效，请检查输入", "提示");
     return null;
   }
-
   return {
     prompt,
     generateParams: {
@@ -384,7 +375,6 @@ function buildGenerateConfig() {
     },
   };
 }
-
 function renderBranchCards() {
   if (!editorDom) return;
   const container = editorDom.find("#results_cards_container");
@@ -393,7 +383,6 @@ function renderBranchCards() {
     container.html(`<div class="empty-result-tip">暂无生成内容</div>`);
     return;
   }
-
   currentBranchResults.forEach((content, index) => {
     const previewContent = content.length > 80 ? content.substring(0, 80) + "..." : content;
     const isSelected = index === currentSelectedBranchIndex;
@@ -405,7 +394,6 @@ function renderBranchCards() {
     `);
     container.append(card);
   });
-
   container.find(".result-card").off("click").on("click", (event) => {
     const index = parseInt($(event.currentTarget).data("index"));
     if (isNaN(index) || index === currentSelectedBranchIndex) return;
@@ -414,7 +402,6 @@ function renderBranchCards() {
     renderBranchCards();
   });
 }
-
 async function runMainContinuation() {
   if (isGenerating || !editorDom) return;
   const config = buildGenerateConfig();
@@ -442,7 +429,6 @@ async function runMainContinuation() {
     if (editorDom) editorDom.find("#ai_continue_btn").prop("disabled", false).removeClass("loading");
   }
 }
-
 async function refreshBranchResults() {
   if (isGenerating || !editorDom) return;
   const config = buildGenerateConfig();
@@ -470,13 +456,17 @@ async function refreshBranchResults() {
     }
   }
 }
-
+// ====================== 修复：取消选择时隐藏预览操作容器 ======================
 function cancelResultSelect() {
   if (!editorDom) return;
   if (isGenerating) isGenerating = false;
   if (originalEditorContent) {
     editorDom.find("#xiaomeng_editor_textarea").html(originalEditorContent);
   }
+
+  // 隐藏并清空预览操作容器
+  editorDom.find("#preview_operation_container").hide().empty();
+
   editorDom.find("#results_area").slideUp(250, () => {
     editorDom.find(".footer-bottom-bar").slideDown(250);
   });
@@ -488,7 +478,7 @@ function cancelResultSelect() {
   saveEditorContentToLocal();
   updateWordCount();
 }
-
+// ====================== 重写：编辑器HTML结构（新增预览操作容器） ======================
 function buildEditorHtml() {
   return `
   <div class="xiaomeng-mask">
@@ -518,7 +508,6 @@ function buildEditorHtml() {
               </button>
           </div>
       </header>
-
       <div class="settings-modal" id="settings_modal" style="display: none;">
         <div class="settings-modal-mask"></div>
         <div class="settings-modal-content">
@@ -547,7 +536,6 @@ function buildEditorHtml() {
           </div>
         </div>
       </div>
-
       <main class="xiaomeng-editor-main">
           <div class="editor-content-wrapper">
               <input 
@@ -571,10 +559,11 @@ function buildEditorHtml() {
                   contenteditable="true" 
                   placeholder="该开始创建你自己的故事了"
               ></div>
+              <!-- 预览操作容器：分割线+按钮栏，移出可编辑区域，修复按钮点击失效 -->
+              <div id="preview_operation_container" style="display: none;"></div>
               <div class="word-count-bar" id="word_count_text">字数：0</div>
           </div>
       </main>
-
       <footer class="xiaomeng-footer">
           <div class="loading-overlay" id="loading_overlay" style="display: none;">
               <div class="loading-spinner">
@@ -582,7 +571,6 @@ function buildEditorHtml() {
                   <span>小梦正在创作中...</span>
               </div>
           </div>
-
           <div class="footer-bottom-bar" id="footer_operation_bar">
               <div class="bar-left-group">
                   <div class="function-menu-wrapper">
@@ -613,7 +601,6 @@ function buildEditorHtml() {
                       </div>
                   </div>
               </div>
-
               <div class="custom-prompt-bar" id="custom_prompt_bar">
                   <i class="fa-solid fa-star"></i>
                   <input 
@@ -622,7 +609,6 @@ function buildEditorHtml() {
                       placeholder="例: 请帮我增加更多战斗场景的描写"
                   />
               </div>
-
               <div class="bar-right-buttons" id="bar_right_buttons">
                   <button class="arrow-btn" id="undo_btn">
                       <i class="fa-solid fa-rotate-left"></i>
@@ -659,7 +645,6 @@ function buildEditorHtml() {
                   </button>
               </div>
           </div>
-
           <div class="footer-results-area" id="results_area" style="display: none;">
               <div class="results-header">
                   <span class="results-title">
@@ -686,19 +671,16 @@ function buildEditorHtml() {
   </div>
   `;
 }
-
-// ====================== 重写：事件绑定（修复五角星bug，阻止冒泡） ======================
+// ====================== 重写：事件绑定（修复五角星bug，阻止输入框冒泡） ======================
 function bindEditorEvents() {
   if (!editorDom) return;
   const settings = extension_settings[extensionName];
-
   editorDom.find("#close_editor_btn").on("click", () => {
     if (isGenerating) {
       if (!confirm("正在生成内容，关闭会丢失生成结果，确定要关闭吗？")) return;
     }
     destroyEditor();
   });
-
   editorDom.on("click", (e) => {
     if ($(e.target).hasClass("xiaomeng-mask")) {
       if (isGenerating) {
@@ -707,17 +689,14 @@ function bindEditorEvents() {
       destroyEditor();
     }
   });
-
   editorDom.find("input[name='editor_mode']").on("change", (event) => {
     saveSettingsDebounced();
   });
-
-  // 修复：五角星点击逻辑，点击即隐藏按钮+显示输入框+展开菜单
+  // 修复：五角星点击逻辑，打开菜单隐藏右侧按钮，显示输入框
   editorDom.find("#star_function_btn").on("click", (e) => {
     e.stopPropagation();
     const menu = editorDom.find("#function_dropdown_menu");
     const isMenuOpen = menu.hasClass("show");
-
     if (!isMenuOpen) {
       // 打开菜单：隐藏右侧按钮，显示输入框
       menu.addClass("show");
@@ -731,10 +710,13 @@ function bindEditorEvents() {
     }
     editorDom.find("#style_dropdown_menu").removeClass("show");
   });
-
+  // 修复：点击自定义输入框时阻止冒泡，避免触发空白处关闭逻辑，导致输入框消失
+  editorDom.find("#custom_prompt_bar").on("click", (e) => {
+    e.stopPropagation();
+  });
   // 修复：菜单选项点击，阻止冒泡，不触发空白处的恢复逻辑
   editorDom.find(".function-dropdown-item").on("click", (e) => {
-    e.stopPropagation(); // 核心修复：阻止事件冒泡
+    e.stopPropagation();
     const functionType = $(e.currentTarget).data("function");
     extension_settings[extensionName].currentFunction = functionType;
     saveSettingsDebounced();
@@ -743,7 +725,6 @@ function bindEditorEvents() {
     // 自动聚焦输入框
     editorDom.find("#custom_prompt_input").focus();
   });
-
   editorDom.find("#style_select_btn").on("click", (e) => {
     e.stopPropagation();
     editorDom.find("#style_dropdown_menu").toggleClass("show");
@@ -758,7 +739,6 @@ function bindEditorEvents() {
     $(e.currentTarget).addClass("active").siblings().removeClass("active");
     editorDom.find("#style_dropdown_menu").removeClass("show");
   });
-
   // 点击空白处：关闭所有菜单，恢复按钮，隐藏输入框
   editorDom.on("click", () => {
     const functionMenu = editorDom.find("#function_dropdown_menu");
@@ -768,7 +748,6 @@ function bindEditorEvents() {
     editorDom.find("#custom_prompt_bar").slideUp(200);
     editorDom.find("#bar_right_buttons").slideDown(200);
   });
-
   editorDom.find("#undo_btn").on("click", () => {
     document.execCommand("undo", false, null);
     saveEditorContentToLocal();
@@ -777,11 +756,9 @@ function bindEditorEvents() {
     document.execCommand("redo", false, null);
     saveEditorContentToLocal();
   });
-
   editorDom.find("#ai_continue_btn").on("click", runMainContinuation);
   editorDom.find("#refresh_results_btn").on("click", refreshBranchResults);
   editorDom.find("#cancel_results_btn").on("click", cancelResultSelect);
-
   editorDom.find("#editor_settings_btn").on("click", (e) => {
     e.stopPropagation();
     const currentCount = extension_settings[extensionName].continuationWordCount || 200;
@@ -791,11 +768,9 @@ function bindEditorEvents() {
     editorDom.find(`.word-count-btn[data-count="${currentCount}"]`).addClass("active");
     editorDom.find("#settings_modal").fadeIn(200);
   });
-
   editorDom.find("#settings_close_btn, .settings-modal-mask").on("click", () => {
     editorDom.find("#settings_modal").fadeOut(200);
   });
-
   editorDom.find(".word-count-btn").on("click", (e) => {
     e.stopPropagation();
     const count = parseInt($(e.currentTarget).data("count"));
@@ -807,7 +782,6 @@ function bindEditorEvents() {
     editorDom.find(".word-count-btn").removeClass("active");
     $(e.currentTarget).addClass("active");
   });
-
   editorDom.find("#custom_word_count_btn").on("click", (e) => {
     e.stopPropagation();
     const customCount = parseInt(editorDom.find("#custom_word_count_input").val());
@@ -821,13 +795,11 @@ function bindEditorEvents() {
     editorDom.find(".word-count-btn").removeClass("active");
     toastr.success(`已设置续写字数为${customCount}字`, "操作成功");
   });
-
   const autoSaveDebounce = debounce(saveEditorContentToLocal, 500);
   editorDom.find("#xiaomeng_editor_title").on("input", autoSaveDebounce);
   editorDom.find("#xiaomeng_editor_chapter").on("input", autoSaveDebounce);
   editorDom.find("#xiaomeng_editor_textarea").on("input", autoSaveDebounce);
   editorDom.find("#custom_prompt_input").on("input", saveSettingsDebounced);
-
   $(document).on("keydown.xiaomeng_ext", (e) => {
     if (e.key === "Escape" && editorDom) {
       if (editorDom.find("#settings_modal").is(":visible")) {
@@ -841,7 +813,6 @@ function bindEditorEvents() {
     }
   });
 }
-
 function destroyEditor() {
   isGenerating = false;
   currentBranchResults = [];
@@ -855,7 +826,6 @@ function destroyEditor() {
     editorDom = null;
   }
 }
-
 function openXiaomengEditor() {
   if (editorDom) {
     editorDom.addClass("show");
@@ -864,12 +834,10 @@ function openXiaomengEditor() {
   const editorHtml = buildEditorHtml();
   editorDom = $(editorHtml);
   $("body").append(editorDom);
-
   const savedContent = loadEditorContentFromLocal();
   editorDom.find("#xiaomeng_editor_title").val(savedContent.title);
   editorDom.find("#xiaomeng_editor_chapter").val(savedContent.chapter);
   editorDom.find("#xiaomeng_editor_textarea").html(savedContent.content);
-
   const settings = extension_settings[extensionName];
   editorDom.find(`#${settings.currentMode}`).prop("checked", true);
   editorDom.find("#current_style_text").text(settings.currentStyle);
@@ -877,7 +845,6 @@ function openXiaomengEditor() {
   
   editorDom.find("#custom_prompt_bar").hide();
   editorDom.find("#bar_right_buttons").show();
-
   bindEditorEvents();
   updateWordCount();
   editorDom.addClass("show");
@@ -890,7 +857,6 @@ function openXiaomengEditor() {
   sel.addRange(range);
   textarea.focus();
 }
-
 async function loadSettings() {
   extension_settings[extensionName] = extension_settings[extensionName] || {};
   if (Object.keys(extension_settings[extensionName]).length === 0) {
@@ -899,7 +865,6 @@ async function loadSettings() {
   const settings = extension_settings[extensionName];
   $("#inherit_st_params").prop("checked", settings.inheritStParams).trigger("input");
 }
-
 jQuery(async () => {
   const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
   $("#extensions_settings").append(settingsHtml);
