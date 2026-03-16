@@ -443,7 +443,7 @@
 /* ==============================================
    底部区域（核心修复：菜单无法展开的overflow问题）
    ============================================== */
-/* 核心修复：footer取消overflow:hidden，避免下拉菜单被裁剪，新增relative定位修复loading遮罩 */
+/* 核心修复：footer取消overflow:hidden，避免下拉菜单被裁剪 */
 .xiaomeng-editor-container .xiaomeng-footer {
   width: 100%;
   min-height: var(--xiaomeng-bottom-bar-height);
@@ -456,7 +456,6 @@
   flex-shrink: 0;
   max-height: 220px;
   overflow: visible !important;
-  position: relative;
 }
 .xiaomeng-editor-container .loading-overlay {
   position: absolute;
