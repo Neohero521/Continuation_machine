@@ -155,7 +155,7 @@ function getExactTextLength(text) {
   if (!text) return 0;
   return text.replace(/[\s\u3000\u2000-\u200F\u2028-\u202F]/g, "").length;
 }
-// 获取编辑器光标位置，返回光标前后文本
+// 获取编辑器光标位置，返回光标前后文本（修复：避免获取外部UI内容）
 function getEditorCursorPosition() {
   const editorElement = editorDom?.find("#xiaomeng_editor_textarea")[0];
   if (!editorElement) return { beforeText: "", afterText: "", fullText: "", cursorAtEnd: true };
@@ -166,52 +166,68 @@ function getEditorCursorPosition() {
   let cursorAtEnd = true;
   if (selection.rangeCount > 0) {
     const range = selection.getRangeAt(0);
-    const preRange = document.createRange();
-    preRange.selectNodeContents(editorElement);
-    preRange.setEnd(range.startContainer, range.startOffset);
-    beforeText = preRange.toString();
-    afterText = fullText.slice(beforeText.length);
-    cursorAtEnd = beforeText.length === fullText.length;
+    // 修复：判断选区是否在编辑器内部，避免拿到外部UI内容
+    const isRangeInEditor = editorElement.contains(range.commonAncestorContainer);
+    if (isRangeInEditor) {
+      const preRange = document.createRange();
+      preRange.selectNodeContents(editorElement);
+      preRange.setEnd(range.startContainer, range.startOffset);
+      beforeText = preRange.toString();
+      afterText = fullText.slice(beforeText.length);
+      cursorAtEnd = beforeText.length === fullText.length;
+    } else {
+      // 选区不在编辑器内，默认光标在文本末尾
+      beforeText = fullText;
+      afterText = "";
+      cursorAtEnd = true;
+    }
   } else {
     beforeText = fullText;
     afterText = "";
     cursorAtEnd = true;
   }
   beforeText = beforeText.replace(/[\s\u3000\u2000-\u200F\u2028-\u202F]+$/g, "");
-  return { beforeText, afterText, fullText: beforeText + afterText, cursorAtEnd };
+  return { beforeText, afterText, fullText: beforeText + afterText, cursorAtEnd: cursorAtEnd };
 }
-// 严格处理续写内容，确保零开头空白+精准字数（保留内部换行分段）
+// 严格处理续写内容（优化：保留中间分段，仅移除开头空白，确保光标位置精准）
 function processStrictContinuationContent(originalBeforeText, continuationText, targetWordCount) {
   if (!originalBeforeText || !continuationText) return "";
-  // 仅清除开头空白，保留内容内部的换行分段
+  // 优化：仅移除开头的所有空白字符（确保开头在光标位置），保留中间的换行和分段
   let processedContent = continuationText.replace(/^[\s\n\r\u3000\u2000-\u200F\u2028-\u202F]+/g, "");
+  // 移除与原文末尾重复的内容
   const originalTail = originalBeforeText.slice(-50);
   if (originalTail) {
     for (let matchLength = originalTail.length; matchLength >= 1; matchLength--) {
       const matchStr = originalTail.slice(-matchLength);
       if (processedContent.startsWith(matchStr)) {
-        processedContent = processedContent.slice(matchLength).replace(/^[\s\n\r]+/g, "");
+        // 移除重复内容后，仅移除开头的空白，保留中间换行
+        processedContent = processedContent.slice(matchLength).replace(/^[\s\n\r\u3000\u2000-\u200F\u2028-\u202F]+/g, "");
         break;
       }
     }
   }
+  // 字数截断优化：保留完整的句子和分段，避免截断在段落中间
   if (processedContent.length > targetWordCount) {
     const truncated = processedContent.slice(0, targetWordCount);
+    // 优先找完整的句子结束符
     const lastPunctuation = Math.max(
       truncated.lastIndexOf("。"),
       truncated.lastIndexOf("！"),
       truncated.lastIndexOf("？"),
       truncated.lastIndexOf("."),
       truncated.lastIndexOf("!"),
-      truncated.lastIndexOf("?"),
-      truncated.lastIndexOf("，"),
-      truncated.lastIndexOf(",")
+      truncated.lastIndexOf("?")
     );
-    processedContent = lastPunctuation > targetWordCount * 0.8 ? truncated.slice(0, lastPunctuation + 1) : truncated;
+    // 其次找换行符（分段）
+    const lastLineBreak = truncated.lastIndexOf("\n");
+    // 取最靠后的有效结束位置
+    const validEndPos = Math.max(lastPunctuation, lastLineBreak);
+    processedContent = validEndPos > targetWordCount * 0.7 ? truncated.slice(0, validEndPos + 1) : truncated;
+    // 最终确保不超过目标字数
     if (processedContent.length > targetWordCount) processedContent = processedContent.slice(0, targetWordCount);
   }
-  // 仅清除开头空白，保留内部换行
-  return processedContent.replace(/^[\s\n\r]+/g, "");
+  // 最终确保开头无空白，保留中间分段
+  return processedContent.replace(/^[\s\n\r\u3000\u2000-\u200F\u2028-\u202F]+/g, "");
 }
 // 历史记录相关函数（移除标题/章节相关逻辑，仅保留内容）
 function pushHistory() {
@@ -496,28 +512,28 @@ function savePreviewContent() {
   restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
   return true;
 }
-// ====================== AI生成核心逻辑（修复换一批bug，优化自动分段） ======================
+// ====================== AI生成核心逻辑（修复换一批bug，改用封装API，优化分段规则） ======================
 async function generateThreeBranchesOnce(prompt, generateParams, originalBeforeText, targetWordCount) {
   if (!prompt || prompt.trim() === '' || EMPTY_CONTENT_REGEX.test(prompt.trim())) {
     throw new Error('续写原文不能为空，请输入有效内容');
   }
   const context = getContext();
-  // 续写核心强制规则（优化分段规则，保留开头零间距要求）
+  // 续写核心规则（优化分段规则，保留原有核心约束）
   let finalSystemPrompt = generateParams.systemPrompt || '';
   finalSystemPrompt += `\n\n【续写核心强制规则（必须100%遵守）】
-1. 【光标续写零间距】续写内容必须严格从用户指定的光标位置开始，直接接在光标前的最后一个字符之后，开头绝对禁止添加任何换行符、空格、制表符、空白行、全角空格等所有空白字符，必须与前文完全无缝衔接；内容内部可根据剧情逻辑自然分段换行，保证阅读流畅。
-2. 【严格字数精准控制】必须严格按照用户指定的字数生成内容，包括标点符号在内，总字数必须与要求完全一致，不多一个字、不少一个字，误差为0，禁止超出或不足。
-3. 【核心强制规则：固定三分支格式】必须严格按照指定格式输出${FIXED_BRANCH_COUNT}条不同的续写内容，每条内容风格、剧情走向要有明显差异，禁止重复、禁止内容雷同。
-4. 若原文光标前的内容末尾存在未完成的句子、缺失的标点符号、半截词语，必须先将其补全为完整通顺的内容，再进行续写，补全内容与续写内容需无缝衔接，不得重复光标前已有的完整内容。
-5. 输出内容必须是纯小说正文，禁止输出任何与续写正文无关的解释、说明、备注、标题、序号、分隔符等内容。
+1. 【光标续写零间距】续写内容必须严格从用户指定的光标位置开始，直接接在光标前的最后一个字符之后，开头绝对禁止添加任何换行符、空格、制表符、空白行、全角空格等所有空白字符，必须与前文完全无缝衔接、同一行展示，确保续写开头精准落在光标所在位置。
+2. 【严格字数控制】必须严格按照用户指定的字数生成内容，包括标点符号、换行符在内，总字数误差不超过10%，禁止大幅超出或不足。
+3. 【核心强制规则：固定三分支格式】必须严格按照指定格式输出${FIXED_BRANCH_COUNT}条不同的续写内容，每条内容的剧情走向、叙事节奏、风格细节要有明显差异，禁止内容重复、剧情雷同。
+4. 【内容补全规则】若原文光标前的内容末尾存在未完成的句子、缺失的标点符号、半截词语，必须先将其补全为完整通顺的内容，再进行续写，补全内容与续写内容需无缝衔接，不得重复光标前已有的完整内容。
+5. 【格式与分段规则】输出内容必须是纯小说正文，禁止输出任何与续写正文无关的解释、说明、备注、标题、序号、分隔符等内容；续写内容开头必须与前文无缝衔接，不得在开头添加任何换行、空格；续写内容中间可根据小说剧情发展和叙事节奏，自动合理分段换行，分段符合网络小说创作规范，提升阅读体验。
 【输出格式终极强制要求，违反则输出无效】
 必须严格、完全按照以下格式输出${FIXED_BRANCH_COUNT}条续写内容，不得有任何偏差：
 ${BRANCH_SEPARATOR}1
-第一条续写内容（严格${targetWordCount}字，零开头空白，内部可自然分段）
+第一条续写内容（零开头空白，严格控制字数，可合理分段）
 ${BRANCH_SEPARATOR}2
-第二条续写内容（严格${targetWordCount}字，零开头空白，内部可自然分段）
+第二条续写内容（零开头空白，严格控制字数，可合理分段）
 ${BRANCH_SEPARATOR}3
-第三条续写内容（严格${targetWordCount}字，零开头空白，内部可自然分段）
+第三条续写内容（零开头空白，严格控制字数，可合理分段）
 禁止输出任何其他内容，禁止修改分隔符、禁止调换顺序、禁止遗漏分支、禁止添加任何说明、标题、序号以外的标记。`;
   const finalOptions = {
     ...generateParams,
@@ -571,17 +587,11 @@ function getEditorPlainText() {
   const fullText = editorDom.find("#xiaomeng_editor_textarea").text();
   return fullText.replace(/[\s\u3000\u2000-\u200F\u2028-\u202F]+$/g, "");
 }
-// 【修复bug】仅获取编辑器内部的选中文本，避免UI内容污染
 function getEditorSelectedText() {
   const selection = window.getSelection();
-  const editorElement = editorDom?.find("#xiaomeng_editor_textarea")[0];
-  // 仅当选中范围完全在编辑器内部时，才返回选中文本
-  if (!editorElement || selection.rangeCount === 0) return "";
-  const range = selection.getRangeAt(0);
-  if (!editorElement.contains(range.commonAncestorContainer)) return "";
   return cleanTextFormat(selection.toString());
 }
-// prompt构建（优化续写分段规则，其余功能完全不变）
+// prompt构建（仅优化续写功能的分段规则，其余功能完全不变）
 function buildGenerateConfig() {
   const settings = extension_settings[extensionName];
   const cursorInfo = getEditorCursorPosition();
@@ -606,15 +616,15 @@ function buildGenerateConfig() {
   switch (functionType) {
     case "continuation":
       prompt = `${basePrompt}你是专业的网络小说续写助手，必须严格遵守以下所有规则：
-1. 续写起点：严格从【光标前文本】的最后一个字符之后开始续写，续写内容直接接在光标前文本的末尾，开头绝对不能加任何换行符、空格、空白字符，必须和前文无缝衔接。
-2. 字数要求：续写内容严格${targetWordCount}字，包括标点符号在内，不多一个字、不少一个字，误差为0。
-3. 内容要求：若光标前文本末尾有未完成的句子，先补全再续写，不重复已有内容，剧情连贯、文风【${style}】，仅输出续写的新内容，不得输出原文、说明、标题等无关内容。
-4. 格式要求：续写内容开头必须直接接在光标前文本的末尾，不得添加任何换行、空格等空白字符；内容内部可根据剧情逻辑自然分段换行，保证阅读流畅。
+1. 续写起点：严格从【光标前文本】的最后一个字符之后开始续写，续写内容开头绝对不能加任何换行符、空格、空白字符，必须和前文在同一行无缝衔接，确保续写开头精准落在光标所在位置。
+2. 字数要求：续写内容严格${targetWordCount}字，包括标点符号、换行符在内，总字符数误差不超过10%。
+3. 内容要求：若光标前文本末尾有未完成的句子，先补全再续写，不重复已有内容，剧情连贯、逻辑自洽、人物人设统一，文风严格匹配【${style}】，仅输出续写的新内容，不得输出原文、说明、标题、序号等无关内容。
+4. 格式要求：续写内容开头必须与前文无缝衔接，不得在开头添加任何换行、空格；续写内容中间可根据小说剧情发展和叙事节奏，自动合理分段换行，分段符合网络小说创作规范，提升阅读体验。
 \n\n【光标前文本】：
 ${cursorInfo.beforeText}
 \n\n【光标后文本】：
 ${cursorInfo.afterText}
-\n\n【续写要求】：严格从光标前文本的最后一个字符之后开始续写，仅输出续写的新内容，严格${targetWordCount}字，开头无任何换行、空格。`;
+\n\n【续写要求】：严格从光标前文本的最后一个字符之后开始续写，仅输出续写的新内容，严格控制字数，开头无任何换行、空格，中间可合理分段。`;
       break;
     case "expand":
       if (!selectedText) {
@@ -738,26 +748,28 @@ async function runMainContinuation() {
     isGenerating = false;
   }
 }
-// 【修复bug】修复换一批出现多余UI内容的问题
+// 修复换一批bug，优化状态重置与异常处理，避免UI内容混入API请求
 async function refreshBranchResults() {
   if (isGenerating || !editorDom || isEditorDestroyed) return;
   stopGenerateFlag = false;
-  // 新增：先关闭所有下拉菜单，避免UI内容干扰
+  // 修复：关闭所有下拉菜单，清理UI状态，避免UI内容混入生成prompt
   closeAllDropdowns();
-  // 调整：确认弹窗前置，避免无效配置生成
-  if (!confirm("换一批将清除当前所有分支内容，重新生成新的续写分支，确定要继续吗？")) {
-    return;
-  }
   // 强制重置编辑器内容与状态
   if (originalEditorContent) {
     editorDom.find("#xiaomeng_editor_textarea").html(originalEditorContent);
   }
+  // 隐藏所有预览和结果相关UI，确保编辑器内容纯净
   editorDom.find("#preview_operation_container").hide().empty();
+  editorDom.find("#results_area").hide();
+  editorDom.find(".footer-bottom-bar").show();
   currentBranchResults = [];
   currentSelectedBranchIndex = 0;
   isEditingPreview = false;
   const config = buildGenerateConfig();
   if (!config) return;
+  if (!confirm("换一批将清除当前所有分支内容，重新生成新的续写分支，确定要继续吗？")) {
+    return;
+  }
   isGenerating = true;
   const refreshBtn = editorDom.find("#refresh_results_btn");
   refreshBtn.prop("disabled", true).html(`<i class="fa-solid fa-spinner fa-spin"></i> 换一批中...`);
@@ -771,13 +783,18 @@ async function refreshBranchResults() {
       config.targetWordCount
     );
     currentBranchResults = newBranchResults;
+    // 重置原始内容为当前编辑器的纯净内容
     originalEditorContent = editorDom.find("#xiaomeng_editor_textarea").html();
     originalEditorPlainText = config.fullText;
     cursorBeforeText = config.cursorBeforeText;
     cursorAfterText = config.cursorAfterText;
     currentSelectedBranchIndex = 0;
-    updateEditorPreviewContent(currentSelectedBranchIndex);
-    renderBranchCards();
+    // 重新显示结果区域
+    editorDom.find(".footer-bottom-bar").slideUp(250, () => {
+      editorDom.find("#results_area").slideDown(250);
+      updateEditorPreviewContent(currentSelectedBranchIndex);
+      renderBranchCards();
+    });
     toastr.success("分支内容已刷新", "完成");
   } catch (error) {
     console.error("换一批失败:", error);
