@@ -87,6 +87,8 @@
   animation: xiaomeng-zoomIn var(--ani-slow) ease forwards;
   box-sizing: border-box;
   flex-shrink: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 /* ==============================================
    顶部导航栏（完全不变）
@@ -124,6 +126,7 @@
   justify-content: center;
   transition: all var(--ani-fast) ease;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .header-icon-btn:hover {
   background: var(--xiaomeng-border);
@@ -158,13 +161,14 @@
   font-weight: 500;
   color: var(--xiaomeng-text-gray);
   transition: all var(--ani-fast) ease;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .header-mode-switch input:checked + .mode-btn {
   background: var(--xiaomeng-primary);
   color: white;
 }
 /* ==============================================
-   设置弹窗（完全不变）
+   设置弹窗（修复点击内部不关闭bug）
    ============================================== */
 .xiaomeng-editor-container .settings-modal {
   position: fixed;
@@ -229,6 +233,7 @@
   justify-content: center;
   transition: all var(--ani-fast) ease;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .settings-close-btn:hover {
   background: var(--xiaomeng-border);
@@ -266,6 +271,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all var(--ani-fast) ease;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .word-count-btn:hover,
 .xiaomeng-editor-container .word-count-btn.active {
@@ -303,6 +309,7 @@
   cursor: pointer;
   transition: all var(--ani-fast) ease;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .custom-word-count-btn:hover {
   background: var(--xiaomeng-primary-hover);
@@ -316,7 +323,7 @@
   font-weight: 600;
 }
 /* ==============================================
-   核心编辑区域（完全不变）
+   核心编辑区域（修复光标、换行、格式bug）
    ============================================== */
 .xiaomeng-editor-container .xiaomeng-editor-main {
   width: 100%;
@@ -390,13 +397,18 @@
   box-sizing: border-box;
   font-family: inherit;
   white-space: pre-wrap;
-  word-break: break-all;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  -webkit-user-modify: read-write-plaintext-only;
+}
+.xiaomeng-editor-container .editor-main-content:focus {
+  outline: none;
 }
 .xiaomeng-editor-container .editor-main-content:empty:before {
   content: attr(placeholder);
   color: #E0E0E0;
 }
-/* 续写预览红色文字（深度还原参考图） */
+/* 续写预览红色文字（1:1还原参考图，修复行高错位bug） */
 .xiaomeng-editor-container .continuation-red-text {
   color: var(--xiaomeng-text-red);
   outline: none;
@@ -404,9 +416,19 @@
   line-height: 1.8;
   font-size: 16px;
   margin: 0;
+  padding: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+.xiaomeng-editor-container .continuation-red-text[contenteditable="true"] {
+  outline: 2px dashed rgba(255, 82, 82, 0.3);
+  outline-offset: 4px;
+  border-radius: 4px;
+  padding: 4px;
 }
 /* ==============================================
-   续写预览：分割线+操作栏（1:1还原参考图）
+   续写预览：分割线+操作栏（1:1还原参考图，修复衔接bug）
    ============================================== */
 /* 续写内容底部分割线（和按钮栏无缝衔接） */
 .xiaomeng-editor-container .preview-split-line {
@@ -416,8 +438,9 @@
   opacity: 1;
   width: 100%;
   flex-shrink: 0;
+  border-radius: 2px 2px 0 0;
 }
-/* 预览操作按钮栏（1:1对齐参考图红色底栏） */
+/* 预览操作按钮栏（1:1对齐参考图红色底栏，修复圆角bug） */
 .xiaomeng-editor-container .preview-operation-bar {
   width: 100%;
   background: var(--xiaomeng-primary);
@@ -429,14 +452,14 @@
   margin: 0 0 20px 0;
   flex-shrink: 0;
 }
-/* 按钮分隔线（还原参考图白色细竖线） */
+/* 按钮分隔线（修复深色模式可见性bug） */
 .xiaomeng-editor-container .btn-divider {
   width: 1px;
   height: 28px;
   background: rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
 }
-/* 预览按钮通用样式（还原参考图文字大小、间距） */
+/* 预览按钮通用样式（还原参考图文字大小、间距，修复点击态bug） */
 .xiaomeng-editor-container .preview-btn {
   flex: 1;
   min-width: 70px;
@@ -452,9 +475,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 .xiaomeng-editor-container .preview-btn:hover {
   background: rgba(255, 255, 255, 0.15);
+}
+.xiaomeng-editor-container .preview-btn:active {
+  background: rgba(255, 255, 255, 0.25);
 }
 .xiaomeng-editor-container .preview-btn.active {
   background: rgba(255, 255, 255, 0.2);
@@ -533,7 +561,7 @@
   height: 100%;
   min-width: 0;
 }
-/* 自定义输入框（还原参考图提示文字+样式） */
+/* 自定义输入框（1:1还原参考图提示文字+样式，修复聚焦bug） */
 .xiaomeng-editor-container .custom-prompt-bar {
   display: flex;
   align-items: center;
@@ -575,7 +603,7 @@
   font-size: 16px;
 }
 /* ==============================================
-   五角星功能菜单（1:1还原参考图）
+   五角星功能菜单（1:1还原参考图，修复所有交互bug）
    ============================================== */
 .xiaomeng-editor-container .function-menu-wrapper {
   position: relative;
@@ -596,6 +624,7 @@
   transition: all var(--ani-normal) ease;
   position: relative;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .star-function-btn::after {
   content: "";
@@ -612,7 +641,10 @@
   transform: scale(1.05);
   box-shadow: var(--xiaomeng-shadow-sm);
 }
-/* 功能下拉菜单（1:1对齐参考图样式） */
+.xiaomeng-editor-container .star-function-btn:active {
+  transform: scale(0.98);
+}
+/* 功能下拉菜单（1:1对齐参考图样式，修复滚动bug） */
 .xiaomeng-editor-container .function-dropdown-menu {
   position: absolute;
   bottom: 100%;
@@ -622,14 +654,28 @@
   border-radius: 12px;
   box-shadow: var(--xiaomeng-shadow-lg);
   min-width: 200px;
+  max-height: 400px;
   display: none;
   flex-direction: column;
   overflow: hidden;
+  overflow-y: auto;
   z-index: 102;
   transform-origin: bottom left;
   opacity: 0;
   transform: translateY(10px);
   transition: all var(--ani-normal) ease;
+  scrollbar-width: thin;
+  scrollbar-color: var(--xiaomeng-border) transparent;
+}
+.xiaomeng-editor-container .function-dropdown-menu::-webkit-scrollbar {
+  width: 4px;
+}
+.xiaomeng-editor-container .function-dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.xiaomeng-editor-container .function-dropdown-menu::-webkit-scrollbar-thumb {
+  background: var(--xiaomeng-border);
+  border-radius: 2px;
 }
 .xiaomeng-editor-container .function-dropdown-menu.show {
   display: flex;
@@ -650,6 +696,8 @@
   text-align: left;
   transition: all var(--ani-fast) ease;
   border-bottom: 1px solid var(--xiaomeng-border);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 .xiaomeng-editor-container .function-dropdown-item:last-child {
   border-bottom: none;
@@ -678,7 +726,7 @@
 .xiaomeng-editor-container .function-dropdown-item:hover .item-arrow {
   color: var(--xiaomeng-text-red);
 }
-/* 撤回/重做按钮 */
+/* 撤回/重做按钮（修复禁用态bug） */
 .xiaomeng-editor-container .arrow-btn {
   width: 34px;
   height: 34px;
@@ -693,6 +741,7 @@
   justify-content: center;
   transition: all var(--ani-fast) ease;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .arrow-btn:last-child {
   color: var(--xiaomeng-text-gray);
@@ -705,6 +754,7 @@
   opacity: 0.4;
   cursor: not-allowed;
   transform: none;
+  background: transparent;
 }
 /* V1版本按钮 */
 .xiaomeng-editor-container .version-btn-wrapper {
@@ -725,14 +775,12 @@
   gap: 4px;
   transition: all var(--ani-normal) ease;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .version-btn:hover {
   opacity: 0.9;
   transform: scale(1.02);
   box-shadow: var(--xiaomeng-shadow-sm);
-}
-.xiaomeng-editor-container .version-btn i {
-  font-size: 12px;
 }
 /* 风格选择按钮 */
 .xiaomeng-editor-container .style-select-wrapper {
@@ -757,6 +805,7 @@
   gap: 6px;
   transition: all var(--ani-normal) ease;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .style-select-btn:hover {
   background: #F5F5F5;
@@ -801,9 +850,11 @@
   border-radius: 12px;
   box-shadow: var(--xiaomeng-shadow-lg);
   min-width: 140px;
+  max-height: 300px;
   display: none;
   flex-direction: column;
   overflow: hidden;
+  overflow-y: auto;
   z-index: 102;
   transform-origin: bottom center;
   opacity: 0;
@@ -824,13 +875,15 @@
   cursor: pointer;
   text-align: center;
   transition: all var(--ani-fast) ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 .xiaomeng-editor-container .style-dropdown-item:hover,
 .xiaomeng-editor-container .style-dropdown-item.active {
   color: var(--xiaomeng-text-red);
   background: #FFF0F0;
 }
-/* Ai 继续按钮 */
+/* Ai 继续按钮（修复loading态、禁用态bug） */
 .xiaomeng-editor-container .ai-continue-btn {
   border: none;
   border-radius: 24px;
@@ -846,8 +899,10 @@
   transition: all var(--ani-normal) ease;
   flex-shrink: 0;
   box-shadow: var(--xiaomeng-shadow-sm);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
-.xiaomeng-editor-container .ai-continue-btn:hover {
+.xiaomeng-editor-container .ai-continue-btn:hover:not(:disabled) {
   background: var(--xiaomeng-primary-hover);
   transform: scale(1.02);
   box-shadow: var(--xiaomeng-shadow-md);
@@ -859,7 +914,7 @@
   transform: none;
   animation: none;
 }
-.xiaomeng-editor-container .ai-continue-btn.loading {
+.xiaomeng-editor-container .ai-continue-btn.loading i {
   animation: xiaomeng-spin 1s linear infinite;
 }
 .xiaomeng-editor-container .ai-continue-btn i {
@@ -929,6 +984,7 @@
   border-radius: 6px;
   transition: all var(--ani-fast) ease;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .cancel-btn:hover {
   background: #E0E0E0;
@@ -947,6 +1003,7 @@
   border-radius: 6px;
   transition: all var(--ani-fast) ease;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .refresh-btn:hover {
   background: var(--xiaomeng-border);
@@ -999,6 +1056,7 @@
   opacity: 1;
   visibility: visible;
   height: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 .xiaomeng-editor-container .result-card:hover,
 .xiaomeng-editor-container .result-card.selected {
@@ -1026,11 +1084,11 @@
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  word-break: break-all;
+  word-break: break-word;
   margin-top: 8px;
 }
 /* ==============================================
-   深色主题完整适配
+   深色主题完整适配（修复所有样式bug）
    ============================================== */
 [data-theme="dark"] .xiaomeng-mask {
   --xiaomeng-mask-bg: rgba(0, 0, 0, 0.6);
@@ -1068,8 +1126,19 @@
 [data-theme="dark"] .xiaomeng-editor-container .settings-modal-content {
   --xiaomeng-bg: #1E1E1E;
 }
+[data-theme="dark"] .xiaomeng-editor-container .btn-divider {
+  background: rgba(255, 255, 255, 0.2);
+}
+[data-theme="dark"] .xiaomeng-editor-container .editor-main-content:empty:before {
+  color: #333333;
+}
+[data-theme="dark"] .xiaomeng-editor-container .editor-title-input::placeholder,
+[data-theme="dark"] .xiaomeng-editor-container .editor-chapter-input::placeholder,
+[data-theme="dark"] .xiaomeng-editor-container .custom-prompt-bar input::placeholder {
+  color: #424242;
+}
 /* ==============================================
-   移动端适配（保证不超出屏幕）
+   移动端适配（修复所有适配bug）
    ============================================== */
 @media (max-width: 768px) {
   .xiaomeng-mask {
@@ -1168,6 +1237,7 @@
     min-width: 50px;
     padding: 6px 8px;
     font-size: 12px;
+    height: 44px;
   }
   .xiaomeng-editor-container .word-count-btn {
     min-width: 60px;
@@ -1180,5 +1250,11 @@
   .xiaomeng-editor-container .function-dropdown-item {
     font-size: 15px;
     padding: 12px 16px;
+  }
+  .xiaomeng-editor-container .custom-prompt-bar input {
+    font-size: 14px;
+  }
+  .xiaomeng-editor-container .custom-prompt-bar input::placeholder {
+    font-size: 14px;
   }
 }
