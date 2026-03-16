@@ -39,8 +39,8 @@
   100% { transform: scale(1); }
 }
 @keyframes xiaomeng-zoomIn {
-  from { transform: translate(-50%, -50%) scale(0.95); opacity: 0; }
-  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 /* 动画通用类 */
 .xiaomeng-editor-container .fade-in {
@@ -50,7 +50,7 @@
   animation: xiaomeng-slideUp var(--ani-normal) ease forwards;
 }
 /* ==============================================
-   遮罩层（不变）
+   核心修复：遮罩层+悬浮窗容器（永远不超出屏幕）
    ============================================== */
 .xiaomeng-mask {
   position: fixed;
@@ -66,23 +66,21 @@
   justify-content: center;
   animation: xiaomeng-fadeIn var(--ani-normal) ease forwards;
   box-sizing: border-box;
+  /* 固定边距，保证悬浮窗不贴边 */
   padding: 20px;
+  overflow: hidden;
 }
 .xiaomeng-mask.show {
   display: flex;
 }
-/* ==============================================
-   编辑器悬浮窗容器（不变）
-   ============================================== */
+/* 悬浮窗容器：核心适配，永远不超出屏幕 */
 .xiaomeng-editor-container {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  /* 核心：自动适配屏幕，最大宽高不超过屏幕减边距 */
   width: 100%;
-  max-width: 1200px;
   height: 100%;
-  max-height: 850px;
+  max-width: min(1200px, calc(100vw - 40px));
+  max-height: min(850px, calc(100vh - 40px));
+  /* 固定圆角悬浮效果 */
   background: var(--xiaomeng-bg);
   border-radius: 16px;
   box-shadow: var(--xiaomeng-shadow-lg);
@@ -92,14 +90,13 @@
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   animation: xiaomeng-zoomIn var(--ani-slow) ease forwards;
   box-sizing: border-box;
+  /* 禁止容器本身滚动，内部区域单独滚动 */
+  flex-shrink: 0;
 }
 /* ==============================================
-   顶部导航栏（不变）
+   顶部导航栏（完全不变，适配容器）
    ============================================== */
 .xiaomeng-editor-container .xiaomeng-header {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: var(--xiaomeng-header-height);
   background: var(--xiaomeng-bg);
@@ -110,6 +107,7 @@
   box-sizing: border-box;
   z-index: 100;
   border-bottom: 1px solid var(--xiaomeng-border);
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .header-left,
 .xiaomeng-editor-container .header-right {
@@ -130,6 +128,7 @@
   align-items: center;
   justify-content: center;
   transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .header-icon-btn:hover {
   background: var(--xiaomeng-border);
@@ -150,6 +149,7 @@
   background: #FFF0F0;
   border-radius: 20px;
   padding: 3px;
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .header-mode-switch input {
   display: none;
@@ -169,7 +169,7 @@
   color: white;
 }
 /* ==============================================
-   新增：设置弹窗完整样式
+   设置弹窗（修复不超出屏幕）
    ============================================== */
 .xiaomeng-editor-container .settings-modal {
   position: fixed;
@@ -181,6 +181,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
+  padding: 20px;
 }
 .xiaomeng-editor-container .settings-modal-mask {
   position: absolute;
@@ -193,13 +195,16 @@
 }
 .xiaomeng-editor-container .settings-modal-content {
   position: relative;
-  width: 90%;
-  max-width: 500px;
+  width: 100%;
+  max-width: min(500px, calc(100vw - 40px));
+  max-height: min(600px, calc(100vh - 40px));
   background: var(--xiaomeng-bg);
   border-radius: 16px;
   box-shadow: var(--xiaomeng-shadow-lg);
   overflow: hidden;
   animation: xiaomeng-zoomIn var(--ani-normal) ease forwards;
+  display: flex;
+  flex-direction: column;
 }
 .xiaomeng-editor-container .settings-modal-header {
   display: flex;
@@ -207,6 +212,7 @@
   justify-content: space-between;
   padding: 20px;
   border-bottom: 1px solid var(--xiaomeng-border);
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .settings-modal-header h3 {
   margin: 0;
@@ -227,6 +233,7 @@
   align-items: center;
   justify-content: center;
   transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .settings-close-btn:hover {
   background: var(--xiaomeng-border);
@@ -234,6 +241,9 @@
 }
 .xiaomeng-editor-container .settings-modal-body {
   padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  box-sizing: border-box;
 }
 .xiaomeng-editor-container .settings-item {
   display: flex;
@@ -283,6 +293,7 @@
   background: transparent;
   outline: none;
   transition: all var(--ani-fast) ease;
+  box-sizing: border-box;
 }
 .xiaomeng-editor-container .custom-word-count input:focus {
   border-color: var(--xiaomeng-primary);
@@ -296,6 +307,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .custom-word-count-btn:hover {
   background: var(--xiaomeng-primary-hover);
@@ -309,17 +321,17 @@
   font-weight: 600;
 }
 /* ==============================================
-   核心编辑区域（新增分割线+预览操作栏完整样式）
+   核心编辑区域（适配容器，内部滚动）
    ============================================== */
 .xiaomeng-editor-container .xiaomeng-editor-main {
   width: 100%;
   flex: 1;
-  margin-top: var(--xiaomeng-header-height);
-  margin-bottom: 0;
   overflow-y: auto;
   padding: 24px 20px 20px 20px;
   box-sizing: border-box;
   scroll-behavior: smooth;
+  /* 禁止超出容器 */
+  min-height: 0;
 }
 .xiaomeng-editor-container .editor-content-wrapper {
   max-width: 800px;
@@ -355,6 +367,7 @@
 .xiaomeng-editor-container .editor-chapter-row i {
   color: var(--xiaomeng-text-gray);
   font-size: 15px;
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .editor-chapter-input {
   flex: 1;
@@ -365,13 +378,14 @@
   padding: 4px 0;
   background: transparent;
   font-family: inherit;
+  box-sizing: border-box;
 }
 .xiaomeng-editor-container .editor-chapter-input::placeholder {
   color: #E0E0E0;
 }
 .xiaomeng-editor-container .editor-main-content {
   width: 100%;
-  min-height: 400px;
+  min-height: 300px;
   border: none;
   outline: none;
   font-size: 16px;
@@ -393,14 +407,14 @@
   color: var(--xiaomeng-text-red);
   outline: none;
 }
-/* 新增：续写预览分割线 */
+/* 续写预览分割线 */
 .xiaomeng-editor-container .preview-split-line {
   border: none;
   border-top: 2px dashed var(--xiaomeng-primary);
   margin: 16px 0;
   opacity: 0.6;
 }
-/* 新增：续写预览操作栏完整样式 */
+/* 续写预览操作栏 */
 .xiaomeng-editor-container .preview-operation-bar {
   display: flex;
   align-items: center;
@@ -409,6 +423,7 @@
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--xiaomeng-border);
+  flex-wrap: wrap;
 }
 .xiaomeng-editor-container .preview-btn {
   padding: 6px 16px;
@@ -419,6 +434,7 @@
   cursor: pointer;
   transition: all var(--ani-fast) ease;
   font-family: inherit;
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .preview-cancel-btn {
   background: var(--xiaomeng-border);
@@ -461,14 +477,12 @@
   color: var(--xiaomeng-text-gray);
   padding-top: 8px;
   border-top: 1px solid var(--xiaomeng-border);
+  flex-shrink: 0;
 }
 /* ==============================================
-   底部区域（重构底栏完整样式，修复五角星bug）
+   底部区域（适配容器，不超出）
    ============================================== */
 .xiaomeng-editor-container .xiaomeng-footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
   width: 100%;
   min-height: var(--xiaomeng-bottom-bar-height);
   background: var(--xiaomeng-bg);
@@ -477,10 +491,10 @@
   flex-direction: column;
   box-sizing: border-box;
   z-index: 100;
-  height: auto;
+  flex-shrink: 0;
   max-height: 220px;
 }
-/* 加载动画（不变） */
+/* 加载动画 */
 .xiaomeng-editor-container .loading-overlay {
   position: absolute;
   top: 0;
@@ -512,9 +526,7 @@
   font-size: 14px;
   font-weight: 500;
 }
-/* ==============================================
-   重构底栏核心样式（同一行布局，无额外高度）
-   ============================================== */
+/* 底栏核心样式（同一行布局，适配容器） */
 .xiaomeng-editor-container .footer-bottom-bar {
   width: 100%;
   height: var(--xiaomeng-bottom-bar-height);
@@ -542,8 +554,9 @@
   transition: all var(--ani-normal) ease;
   overflow: hidden;
   height: 100%;
+  min-width: 0;
 }
-/* 定向续写输入框：默认隐藏，带过渡动画，替换右侧按钮组 */
+/* 定向续写输入框：默认隐藏，带过渡动画 */
 .xiaomeng-editor-container .custom-prompt-bar {
   display: flex;
   align-items: center;
@@ -555,6 +568,7 @@
   transition: all var(--ani-normal) ease;
   opacity: 0;
   width: 0;
+  min-width: 0;
 }
 .xiaomeng-editor-container .custom-prompt-bar[style*="display: block"],
 .xiaomeng-editor-container .custom-prompt-bar[style*="display: flex"] {
@@ -577,11 +591,12 @@
   background: transparent;
   font-family: inherit;
   width: 100%;
+  min-width: 0;
 }
 .xiaomeng-editor-container .custom-prompt-bar input::placeholder {
   color: var(--xiaomeng-text-gray);
 }
-/* 粉色星星按钮（不变） */
+/* 粉色星星按钮 */
 .xiaomeng-editor-container .function-menu-wrapper {
   position: relative;
   flex-shrink: 0;
@@ -617,7 +632,7 @@
   transform: scale(1.05);
   box-shadow: var(--xiaomeng-shadow-sm);
 }
-/* 功能下拉菜单（新增动画） */
+/* 功能下拉菜单 */
 .xiaomeng-editor-container .function-dropdown-menu {
   position: absolute;
   bottom: 100%;
@@ -668,7 +683,7 @@
 .xiaomeng-editor-container .function-dropdown-item:hover i {
   color: var(--xiaomeng-text-red);
 }
-/* 撤回/重做按钮（优化禁用状态） */
+/* 撤回/重做按钮 */
 .xiaomeng-editor-container .arrow-btn {
   width: 34px;
   height: 34px;
@@ -696,7 +711,7 @@
   cursor: not-allowed;
   transform: none;
 }
-/* V1版本按钮（不变） */
+/* V1版本按钮 */
 .xiaomeng-editor-container .version-btn-wrapper {
   position: relative;
   flex-shrink: 0;
@@ -724,7 +739,7 @@
 .xiaomeng-editor-container .version-btn i {
   font-size: 12px;
 }
-/* 风格选择按钮（不变） */
+/* 风格选择按钮 */
 .xiaomeng-editor-container .style-select-wrapper {
   position: relative;
   flex-shrink: 0;
@@ -755,7 +770,7 @@
 .xiaomeng-editor-container .style-select-btn i:last-child {
   font-size: 12px;
 }
-/* 小梦图标（不变） */
+/* 小梦图标 */
 .xiaomeng-editor-container .xiaomeng-icon {
   width: 18px;
   height: 18px;
@@ -780,7 +795,7 @@
 .xiaomeng-editor-container .xiaomeng-icon::after {
   right: 4px;
 }
-/* 风格下拉菜单（新增动画） */
+/* 风格下拉菜单 */
 .xiaomeng-editor-container .style-dropdown-menu {
   position: absolute;
   bottom: 100%;
@@ -820,7 +835,7 @@
   color: var(--xiaomeng-text-red);
   background: #FFF0F0;
 }
-/* Ai 继续按钮（不变） */
+/* Ai 继续按钮 */
 .xiaomeng-editor-container .ai-continue-btn {
   border: none;
   border-radius: 24px;
@@ -856,7 +871,7 @@
   font-size: 14px;
 }
 /* ==============================================
-   结果选择区（完整样式）
+   结果选择区（适配容器，不超出）
    ============================================== */
 .xiaomeng-editor-container .footer-results-area {
   width: 100%;
@@ -868,12 +883,15 @@
   flex-shrink: 0;
   height: auto;
   min-height: 160px;
+  max-height: 180px;
+  overflow: hidden;
 }
 .xiaomeng-editor-container .results-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .results-title {
   display: flex;
@@ -891,6 +909,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .cancel-btn {
   display: flex;
@@ -904,6 +923,7 @@
   padding: 5px 10px;
   border-radius: 6px;
   transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .cancel-btn:hover {
   background: #E0E0E0;
@@ -921,6 +941,7 @@
   padding: 5px 10px;
   border-radius: 6px;
   transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
 }
 .xiaomeng-editor-container .refresh-btn:hover {
   background: var(--xiaomeng-border);
@@ -930,7 +951,7 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
-/* 结果卡片容器（不变） */
+/* 结果卡片容器 */
 .xiaomeng-editor-container .results-cards-wrapper {
   display: flex;
   gap: 14px;
@@ -940,6 +961,7 @@
   scrollbar-width: none;
   width: 100%;
   min-height: 100px;
+  box-sizing: border-box;
 }
 .xiaomeng-editor-container .results-cards-wrapper::-webkit-scrollbar {
   display: none;
@@ -952,7 +974,7 @@
   font-size: 14px;
   margin: auto;
 }
-/* 结果卡片（新增选中高亮） */
+/* 结果卡片 */
 .xiaomeng-editor-container .result-card {
   min-width: 280px;
   max-width: 280px;
@@ -1048,61 +1070,15 @@
   --xiaomeng-bg: #1E1E1E;
 }
 /* ==============================================
-   全尺寸自适应完整适配
+   移动端适配（保证不超出屏幕）
    ============================================== */
-/* 大屏桌面端 */
-@media (min-width: 1400px) {
-  .xiaomeng-editor-container {
-    max-width: 1300px;
-    max-height: 900px;
-  }
-  .xiaomeng-editor-container .editor-content-wrapper {
-    max-width: 900px;
-  }
-  .xiaomeng-editor-container .result-card {
-    min-width: 300px;
-    max-width: 300px;
-  }
-}
-/* 平板/中小屏桌面端 */
-@media (max-width: 992px) {
-  .xiaomeng-mask {
-    padding: 15px;
-  }
-  .xiaomeng-editor-container {
-    max-width: 95vw;
-    max-height: 90vh;
-  }
-  .xiaomeng-editor-container .xiaomeng-header {
-    padding: 0 16px;
-  }
-  .xiaomeng-editor-container .footer-bottom-bar {
-    padding: 0 12px;
-    gap: 10px;
-  }
-  .xiaomeng-editor-container .bar-right-buttons {
-    gap: 10px;
-  }
-  .xiaomeng-editor-container .style-select-wrapper {
-    max-width: 140px;
-    min-width: 100px;
-  }
-  .xiaomeng-editor-container .result-card {
-    min-width: 260px;
-    max-width: 260px;
-  }
-}
-/* 移动端 */
 @media (max-width: 768px) {
   .xiaomeng-mask {
-    padding: 0;
+    padding: 10px;
   }
   .xiaomeng-editor-container {
-    width: 100vw;
-    height: 100vh;
-    max-width: 100vw;
-    max-height: 100vh;
-    border-radius: 0;
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
   }
   .xiaomeng-editor-container .xiaomeng-header {
     padding: 0 12px;
@@ -1153,8 +1129,15 @@
     flex-wrap: wrap;
     justify-content: center;
   }
+  .xiaomeng-editor-container .settings-modal {
+    padding: 10px;
+  }
+  .xiaomeng-editor-container .settings-modal-content {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+  }
 }
-/* 超小屏移动端 */
+/* 超小屏移动端适配 */
 @media (max-width: 480px) {
   .xiaomeng-editor-container .header-mode-switch {
     display: none;
@@ -1181,5 +1164,10 @@
   .xiaomeng-editor-container .preview-btn {
     padding: 6px 12px;
     font-size: 12px;
+  }
+  .xiaomeng-editor-container .word-count-btn {
+    min-width: 60px;
+    padding: 8px 6px;
+    font-size: 13px;
   }
 }
