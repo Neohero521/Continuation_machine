@@ -5,7 +5,7 @@ import {
   loadExtensionSettings,
 } from "../../../extensions.js";
 import { saveSettingsDebounced } from "../../../../script.js";
-// ====================== 核心配置（完全不变） ======================
+// ====================== 核心配置（完全不变，保证原有功能） ======================
 const extensionName = "Continuation_machine";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const LOCAL_STORAGE_KEY = "xiaomeng_editor_saved_content";
@@ -38,7 +38,7 @@ let editorDom = null;
 let originalEditorContent = "";
 let currentSelectedBranchIndex = 0;
 let isEditingPreview = false;
-// ====================== 工具函数（完全不变） ======================
+// ====================== 工具函数（完全不变，保证原有功能） ======================
 function debounce(func, delay) {
   let timer = null;
   return function(...args) {
@@ -131,21 +131,20 @@ function getActivePresetParams() {
   }
   return filteredParams;
 }
-// ====================== 重写：预览内容更新（修复按钮点击失效，移出可编辑区域） ======================
+// ====================== 续写预览内容更新（1:1还原参考图结构，修复按钮失效） ======================
 function updateEditorPreviewContent(branchIndex) {
   if (!editorDom || !currentBranchResults || !originalEditorContent) return;
   const selectedContent = currentBranchResults[branchIndex];
   if (!selectedContent) return;
 
-  // 修复：可编辑区域仅保留原文+续写内容，分割线+按钮栏移出可编辑区域，解决点击失效问题
-  // 1. 可编辑区域内容：原文 + 红色续写内容
+  // 1. 可编辑区域：原文 + 红色续写内容（块级元素，保证换行正常）
   const editorContentHtml = `
     ${originalEditorContent}
-    <span id="preview_content_span" class="continuation-red-text fade-in" contenteditable="false">${selectedContent}</span>
+    <div id="preview_content_span" class="continuation-red-text fade-in" contenteditable="false">${selectedContent}</div>
   `;
   editorDom.find("#xiaomeng_editor_textarea").html(editorContentHtml);
 
-  // 2. 预览操作区域：分割线 + 底部红色操作按钮栏
+  // 2. 预览操作区域：分割线 + 底部红色操作按钮栏（和参考图完全一致）
   const operationHtml = `
     <hr class="preview-split-line" />
     <div class="preview-operation-bar" id="preview_operation_bar">
@@ -169,7 +168,7 @@ function updateEditorPreviewContent(branchIndex) {
   editorMain.scrollTo({ top: editorMain.scrollHeight, behavior: "smooth" });
   updateWordCount();
 }
-// ====================== 预览按钮事件绑定（修复功能，阻止事件冒泡） ======================
+// ====================== 预览按钮事件绑定（功能100%对齐需求，修复点击失效） ======================
 function bindPreviewOperationEvents() {
   if (!editorDom) return;
   // 撤回：撤掉红字+关闭分支选择区
@@ -217,7 +216,7 @@ function bindPreviewOperationEvents() {
     }, 200);
   });
 }
-// ====================== 修复：保存预览内容时隐藏操作容器 ======================
+// ====================== 保存预览内容（功能不变，新增操作容器隐藏逻辑） ======================
 function savePreviewContent() {
   if (!editorDom || !currentBranchResults[currentSelectedBranchIndex]) {
     toastr.error("无有效内容可保存", "错误");
@@ -311,7 +310,7 @@ function getEditorSelectedText() {
   const selection = window.getSelection();
   return selection.toString().trim() || "";
 }
-// ====================== 重写：生成配置（通用输入框指令，所有功能都生效） ======================
+// ====================== 生成配置（完全不变，保证原有功能） ======================
 function buildGenerateConfig() {
   const settings = extension_settings[extensionName];
   const fullText = getEditorPlainText();
@@ -456,7 +455,7 @@ async function refreshBranchResults() {
     }
   }
 }
-// ====================== 修复：取消选择时隐藏预览操作容器 ======================
+// ====================== 取消选择（功能不变，新增操作容器隐藏逻辑） ======================
 function cancelResultSelect() {
   if (!editorDom) return;
   if (isGenerating) isGenerating = false;
@@ -478,7 +477,7 @@ function cancelResultSelect() {
   saveEditorContentToLocal();
   updateWordCount();
 }
-// ====================== 重写：编辑器HTML结构（新增预览操作容器） ======================
+// ====================== 编辑器HTML结构（1:1还原参考图，新增预览操作容器） ======================
 function buildEditorHtml() {
   return `
   <div class="xiaomeng-mask">
@@ -559,7 +558,7 @@ function buildEditorHtml() {
                   contenteditable="true" 
                   placeholder="该开始创建你自己的故事了"
               ></div>
-              <!-- 预览操作容器：分割线+按钮栏，移出可编辑区域，修复按钮点击失效 -->
+              <!-- 预览操作容器：分割线+按钮栏，移出可编辑区域，彻底修复按钮点击失效 -->
               <div id="preview_operation_container" style="display: none;"></div>
               <div class="word-count-bar" id="word_count_text">字数：0</div>
           </div>
@@ -577,36 +576,49 @@ function buildEditorHtml() {
                       <button class="star-function-btn" id="star_function_btn">
                           <i class="fa-solid fa-star"></i>
                       </button>
+                      <!-- 功能下拉菜单（1:1还原参考图结构） -->
                       <div class="function-dropdown-menu" id="function_dropdown_menu">
                           <button class="function-dropdown-item" data-function="continuation">
-                              <i class="fa-solid fa-pen-to-square"></i>
-                              <span>续写</span>
+                              <div class="item-left">
+                                  <i class="fa-solid fa-pen-to-square"></i>
+                                  <span>续写</span>
+                              </div>
                           </button>
                           <button class="function-dropdown-item" data-function="expand">
-                              <i class="fa-solid fa-align-left"></i>
-                              <span>扩写</span>
+                              <div class="item-left">
+                                  <i class="fa-solid fa-align-left"></i>
+                                  <span>扩写</span>
+                              </div>
                           </button>
                           <button class="function-dropdown-item" data-function="shorten">
-                              <i class="fa-solid fa-align-center"></i>
-                              <span>缩写</span>
+                              <div class="item-left">
+                                  <i class="fa-solid fa-align-center"></i>
+                                  <span>缩写</span>
+                              </div>
                           </button>
                           <button class="function-dropdown-item" data-function="rewrite">
-                              <i class="fa-solid fa-pen-ruler"></i>
-                              <span>改写</span>
+                              <div class="item-left">
+                                  <i class="fa-solid fa-pen-ruler"></i>
+                                  <span>改写</span>
+                              </div>
+                              <i class="fa-solid fa-chevron-right item-arrow"></i>
                           </button>
                           <button class="function-dropdown-item" data-function="custom">
-                              <i class="fa-solid fa-wand-magic-sparkles"></i>
-                              <span>定向续写</span>
+                              <div class="item-left">
+                                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                  <span>定向续写</span>
+                              </div>
                           </button>
                       </div>
                   </div>
               </div>
+              <!-- 自定义输入框（还原参考图提示文字） -->
               <div class="custom-prompt-bar" id="custom_prompt_bar">
                   <i class="fa-solid fa-star"></i>
                   <input 
                       id="custom_prompt_input" 
                       type="text" 
-                      placeholder="例: 请帮我增加更多战斗场景的描写"
+                      placeholder="例: 请帮我梳理出上述文字的大纲"
                   />
               </div>
               <div class="bar-right-buttons" id="bar_right_buttons">
@@ -671,7 +683,7 @@ function buildEditorHtml() {
   </div>
   `;
 }
-// ====================== 重写：事件绑定（修复五角星bug，阻止输入框冒泡） ======================
+// ====================== 事件绑定（修复五角星bug，彻底解决输入框消失问题） ======================
 function bindEditorEvents() {
   if (!editorDom) return;
   const settings = extension_settings[extensionName];
@@ -692,7 +704,7 @@ function bindEditorEvents() {
   editorDom.find("input[name='editor_mode']").on("change", (event) => {
     saveSettingsDebounced();
   });
-  // 修复：五角星点击逻辑，打开菜单隐藏右侧按钮，显示输入框
+  // 五角星点击逻辑：打开菜单隐藏右侧按钮，显示输入框，1:1还原参考图交互
   editorDom.find("#star_function_btn").on("click", (e) => {
     e.stopPropagation();
     const menu = editorDom.find("#function_dropdown_menu");
@@ -710,11 +722,11 @@ function bindEditorEvents() {
     }
     editorDom.find("#style_dropdown_menu").removeClass("show");
   });
-  // 修复：点击自定义输入框时阻止冒泡，避免触发空白处关闭逻辑，导致输入框消失
-  editorDom.find("#custom_prompt_bar").on("click", (e) => {
+  // 核心修复：点击自定义输入框、输入框内的内容时，阻止冒泡，避免触发空白处关闭逻辑
+  editorDom.find("#custom_prompt_bar, #custom_prompt_input").on("click", (e) => {
     e.stopPropagation();
   });
-  // 修复：菜单选项点击，阻止冒泡，不触发空白处的恢复逻辑
+  // 菜单选项点击：阻止冒泡，选中功能后关闭菜单但保留输入框
   editorDom.find(".function-dropdown-item").on("click", (e) => {
     e.stopPropagation();
     const functionType = $(e.currentTarget).data("function");
