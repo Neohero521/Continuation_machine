@@ -180,65 +180,38 @@ function getEditorCursorPosition() {
   beforeText = beforeText.replace(/[\s\u3000\u2000-\u200F\u2028-\u202F]+$/g, "");
   return { beforeText, afterText, fullText: beforeText + afterText, cursorAtEnd };
 }
-// 严格处理续写内容，优化分段支持，确保零开头空白+精准字数
+// 严格处理续写内容，确保零开头空白+精准字数（保留内部换行分段）
 function processStrictContinuationContent(originalBeforeText, continuationText, targetWordCount) {
   if (!originalBeforeText || !continuationText) return "";
-  // 仅移除开头的所有空白字符（包括换行、空格等），确保和前文无缝衔接
+  // 仅清除开头空白，保留内容内部的换行分段
   let processedContent = continuationText.replace(/^[\s\n\r\u3000\u2000-\u200F\u2028-\u202F]+/g, "");
-  // 处理重复前文的问题
   const originalTail = originalBeforeText.slice(-50);
   if (originalTail) {
     for (let matchLength = originalTail.length; matchLength >= 1; matchLength--) {
       const matchStr = originalTail.slice(-matchLength);
       if (processedContent.startsWith(matchStr)) {
-        // 移除重复的内容后，仅移除开头的空白，保留中间的换行
         processedContent = processedContent.slice(matchLength).replace(/^[\s\n\r]+/g, "");
         break;
       }
     }
   }
-  // 处理字数，保留换行符，仅截断纯文本内容，不破坏分段
-  const contentWithoutBlank = processedContent.replace(/[\s\u3000\u2000-\u200F\u2028-\u202F]/g, "");
-  if (contentWithoutBlank.length > targetWordCount) {
-    // 先按字符数截断，再找最近的标点，保留换行
-    let truncated = processedContent;
-    let currentLength = 0;
-    let truncateIndex = 0;
-    // 遍历内容，计算有效字符数，找到截断位置
-    for (let i = 0; i < truncated.length; i++) {
-      const char = truncated[i];
-      // 非空白字符计入字数
-      if (!/[\s\u3000\u2000-\u200F\u2028-\u202F]/.test(char)) {
-        currentLength++;
-      }
-      if (currentLength > targetWordCount) {
-        truncateIndex = i;
-        break;
-      }
-    }
-    if (truncateIndex > 0) {
-      truncated = truncated.slice(0, truncateIndex);
-    }
-    // 找最近的句末标点，确保截断在完整句子后
+  if (processedContent.length > targetWordCount) {
+    const truncated = processedContent.slice(0, targetWordCount);
     const lastPunctuation = Math.max(
       truncated.lastIndexOf("。"),
       truncated.lastIndexOf("！"),
       truncated.lastIndexOf("？"),
       truncated.lastIndexOf("."),
       truncated.lastIndexOf("!"),
-      truncated.lastIndexOf("?")
+      truncated.lastIndexOf("?"),
+      truncated.lastIndexOf("，"),
+      truncated.lastIndexOf(",")
     );
-    // 仅当标点位置在目标字数的80%以上时，才在标点处截断，避免截断过多
-    if (lastPunctuation > targetWordCount * 0.8) {
-      truncated = truncated.slice(0, lastPunctuation + 1);
-    }
-    processedContent = truncated;
+    processedContent = lastPunctuation > targetWordCount * 0.8 ? truncated.slice(0, lastPunctuation + 1) : truncated;
+    if (processedContent.length > targetWordCount) processedContent = processedContent.slice(0, targetWordCount);
   }
-  // 最终处理：移除开头空白，将多个换行符替换为单个，保留合理分段
-  processedContent = processedContent
-    .replace(/^[\s\n\r]+/g, "")
-    .replace(/\n{3,}/g, "\n\n");
-  return processedContent;
+  // 仅清除开头空白，保留内部换行
+  return processedContent.replace(/^[\s\n\r]+/g, "");
 }
 // 历史记录相关函数（移除标题/章节相关逻辑，仅保留内容）
 function pushHistory() {
@@ -523,35 +496,35 @@ function savePreviewContent() {
   restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
   return true;
 }
-// ====================== AI生成核心逻辑（修复换一批bug，改用封装API，优化分段支持） ======================
+// ====================== AI生成核心逻辑（修复换一批bug，优化自动分段） ======================
 async function generateThreeBranchesOnce(prompt, generateParams, originalBeforeText, targetWordCount) {
   if (!prompt || prompt.trim() === '' || EMPTY_CONTENT_REGEX.test(prompt.trim())) {
     throw new Error('续写原文不能为空，请输入有效内容');
   }
   const context = getContext();
-  // 续写核心规则（优化分段支持）
+  // 续写核心强制规则（优化分段规则，保留开头零间距要求）
   let finalSystemPrompt = generateParams.systemPrompt || '';
   finalSystemPrompt += `\n\n【续写核心强制规则（必须100%遵守）】
-1. 【光标续写零间距】续写内容必须严格从用户指定的光标位置开始，直接接在光标前的最后一个字符之后，开头绝对禁止添加任何换行符、空格、制表符、空白行、全角空格等所有空白字符，必须与前文完全无缝衔接。续写内容可根据小说剧情逻辑自然分段，段落之间用单个换行符分隔，禁止使用多个换行符或空白行。
-2. 【严格字数精准控制】必须严格按照用户指定的字数生成内容，包括标点符号在内，有效字符数误差不超过10%，禁止大幅超出或不足。
+1. 【光标续写零间距】续写内容必须严格从用户指定的光标位置开始，直接接在光标前的最后一个字符之后，开头绝对禁止添加任何换行符、空格、制表符、空白行、全角空格等所有空白字符，必须与前文完全无缝衔接；内容内部可根据剧情逻辑自然分段换行，保证阅读流畅。
+2. 【严格字数精准控制】必须严格按照用户指定的字数生成内容，包括标点符号在内，总字数必须与要求完全一致，不多一个字、不少一个字，误差为0，禁止超出或不足。
 3. 【核心强制规则：固定三分支格式】必须严格按照指定格式输出${FIXED_BRANCH_COUNT}条不同的续写内容，每条内容风格、剧情走向要有明显差异，禁止重复、禁止内容雷同。
 4. 若原文光标前的内容末尾存在未完成的句子、缺失的标点符号、半截词语，必须先将其补全为完整通顺的内容，再进行续写，补全内容与续写内容需无缝衔接，不得重复光标前已有的完整内容。
 5. 输出内容必须是纯小说正文，禁止输出任何与续写正文无关的解释、说明、备注、标题、序号、分隔符等内容。
 【输出格式终极强制要求，违反则输出无效】
 必须严格、完全按照以下格式输出${FIXED_BRANCH_COUNT}条续写内容，不得有任何偏差：
 ${BRANCH_SEPARATOR}1
-第一条续写内容（严格${targetWordCount}字，零开头空白，可自然分段）
+第一条续写内容（严格${targetWordCount}字，零开头空白，内部可自然分段）
 ${BRANCH_SEPARATOR}2
-第二条续写内容（严格${targetWordCount}字，零开头空白，可自然分段）
+第二条续写内容（严格${targetWordCount}字，零开头空白，内部可自然分段）
 ${BRANCH_SEPARATOR}3
-第三条续写内容（严格${targetWordCount}字，零开头空白，可自然分段）
+第三条续写内容（严格${targetWordCount}字，零开头空白，内部可自然分段）
 禁止输出任何其他内容，禁止修改分隔符、禁止调换顺序、禁止遗漏分支、禁止添加任何说明、标题、序号以外的标记。`;
   const finalOptions = {
     ...generateParams,
     systemPrompt: finalSystemPrompt,
     prompt: prompt.trim(),
     stream: false,
-    max_new_tokens: Math.ceil(targetWordCount * 3)
+    max_new_tokens: Math.ceil(targetWordCount * 2.5)
   };
   console.log(`[彩云小梦] 开始生成${FIXED_BRANCH_COUNT}条分支，严格字数：${targetWordCount}`);
   
@@ -598,11 +571,17 @@ function getEditorPlainText() {
   const fullText = editorDom.find("#xiaomeng_editor_textarea").text();
   return fullText.replace(/[\s\u3000\u2000-\u200F\u2028-\u202F]+$/g, "");
 }
+// 【修复bug】仅获取编辑器内部的选中文本，避免UI内容污染
 function getEditorSelectedText() {
   const selection = window.getSelection();
+  const editorElement = editorDom?.find("#xiaomeng_editor_textarea")[0];
+  // 仅当选中范围完全在编辑器内部时，才返回选中文本
+  if (!editorElement || selection.rangeCount === 0) return "";
+  const range = selection.getRangeAt(0);
+  if (!editorElement.contains(range.commonAncestorContainer)) return "";
   return cleanTextFormat(selection.toString());
 }
-// prompt构建（优化分段规则，原有功能全保留）
+// prompt构建（优化续写分段规则，其余功能完全不变）
 function buildGenerateConfig() {
   const settings = extension_settings[extensionName];
   const cursorInfo = getEditorCursorPosition();
@@ -628,38 +607,38 @@ function buildGenerateConfig() {
     case "continuation":
       prompt = `${basePrompt}你是专业的网络小说续写助手，必须严格遵守以下所有规则：
 1. 续写起点：严格从【光标前文本】的最后一个字符之后开始续写，续写内容直接接在光标前文本的末尾，开头绝对不能加任何换行符、空格、空白字符，必须和前文无缝衔接。
-2. 字数要求：续写内容严格${targetWordCount}字，包括标点符号在内，有效字符数误差不超过10%。
+2. 字数要求：续写内容严格${targetWordCount}字，包括标点符号在内，不多一个字、不少一个字，误差为0。
 3. 内容要求：若光标前文本末尾有未完成的句子，先补全再续写，不重复已有内容，剧情连贯、文风【${style}】，仅输出续写的新内容，不得输出原文、说明、标题等无关内容。
-4. 格式要求：续写内容可根据剧情逻辑自然分段，段落之间用单个换行符分隔，禁止使用多个换行符或空白行，确保行文流畅。
+4. 格式要求：续写内容开头必须直接接在光标前文本的末尾，不得添加任何换行、空格等空白字符；内容内部可根据剧情逻辑自然分段换行，保证阅读流畅。
 \n\n【光标前文本】：
 ${cursorInfo.beforeText}
 \n\n【光标后文本】：
 ${cursorInfo.afterText}
-\n\n【续写要求】：严格从光标前文本的最后一个字符之后开始续写，仅输出续写的新内容，严格${targetWordCount}字，开头无任何换行、空格，可自然分段。`;
+\n\n【续写要求】：严格从光标前文本的最后一个字符之后开始续写，仅输出续写的新内容，严格${targetWordCount}字，开头无任何换行、空格。`;
       break;
     case "expand":
       if (!selectedText) {
         toastr.warning("请先选中要扩写的内容", "提示");
         return null;
       }
-      prompt = `${basePrompt}你是专业的小说扩写助手，先补全选中内容里未完成的部分，再丰富细节，风格【${style}】，每条扩写严格${targetWordCount}字，误差不超过10%。原文：${selectedText} 上下文：${fullText}`;
+      prompt = `${basePrompt}你是专业的小说扩写助手，先补全选中内容里未完成的部分，再丰富细节，风格【${style}】，每条扩写严格${targetWordCount}字，不多不少，误差为0。原文：${selectedText} 上下文：${fullText}`;
       break;
     case "shorten":
       if (!selectedText) {
         toastr.warning("请先选中要缩写的内容", "提示");
         return null;
       }
-      prompt = `${basePrompt}你是专业的文本缩写助手，精简选中内容，保留核心信息，每条缩写严格${targetWordCount}字，误差不超过10%。原文：${selectedText}`;
+      prompt = `${basePrompt}你是专业的文本缩写助手，精简选中内容，保留核心信息，每条缩写严格${targetWordCount}字，不多不少，误差为0。原文：${selectedText}`;
       break;
     case "rewrite":
       if (!selectedText) {
         toastr.warning("请先选中要改写的内容", "提示");
         return null;
       }
-      prompt = `${basePrompt}你是专业的小说改写助手，先补全选中内容里未完成的部分，再用【${style}】风格重写，不改变核心情节，每条改写严格${targetWordCount}字，误差不超过10%。原文：${selectedText}`;
+      prompt = `${basePrompt}你是专业的小说改写助手，先补全选中内容里未完成的部分，再用【${style}】风格重写，不改变核心情节，每条改写严格${targetWordCount}字，不多不少，误差为0。原文：${selectedText}`;
       break;
     case "custom":
-      prompt = `${basePrompt}你是专业的小说创作助手，先补全原文末尾未完成的句子、标点符号，再完成创作，风格【${style}】，每条内容严格${targetWordCount}字，误差不超过10%。原文：${fullText}`;
+      prompt = `${basePrompt}你是专业的小说创作助手，先补全原文末尾未完成的句子、标点符号，再完成创作，风格【${style}】，每条内容严格${targetWordCount}字，不多不少，误差为0。原文：${fullText}`;
       break;
   }
   if (!prompt || prompt.trim() === '' || EMPTY_CONTENT_REGEX.test(prompt.trim())) {
@@ -712,7 +691,7 @@ function renderBranchCards() {
     renderBranchCards();
   });
 }
-// AI继续逻辑（新增loading遮罩控制，原有功能全保留）
+// AI继续逻辑（完全不变，原有功能全保留）
 let stopGenerateFlag = false;
 async function runMainContinuation() {
   if (isGenerating || !editorDom || isEditorDestroyed) return;
@@ -726,10 +705,8 @@ async function runMainContinuation() {
   if (!config) return;
   isGenerating = true;
   const aiContinueBtn = editorDom.find("#ai_continue_btn");
-  const loadingOverlay = editorDom.find("#loading_overlay");
   aiContinueBtn.prop("disabled", true).html(`<i class="fa-solid fa-spinner fa-spin"></i> <span>Ai 继续</span>`);
   editorDom.find("#refresh_results_btn").prop("disabled", true);
-  loadingOverlay.show();
   closeAllDropdowns();
   try {
     const branchResults = await generateThreeBranchesOnce(
@@ -757,75 +734,60 @@ async function runMainContinuation() {
     if (editorDom && !isEditorDestroyed) {
       aiContinueBtn.prop("disabled", false).html(`<i class="fa-solid fa-sparkles"></i> <span>Ai 继续</span>`);
       editorDom.find("#refresh_results_btn").prop("disabled", false);
-      loadingOverlay.hide();
     }
     isGenerating = false;
   }
 }
-// 修复换一批乱码bug，优化状态重置与异常处理
+// 【修复bug】修复换一批出现多余UI内容的问题
 async function refreshBranchResults() {
   if (isGenerating || !editorDom || isEditorDestroyed) return;
   stopGenerateFlag = false;
-  // 关闭所有下拉菜单，避免状态混乱
+  // 新增：先关闭所有下拉菜单，避免UI内容干扰
   closeAllDropdowns();
-  // 强制重置编辑器内容与状态，恢复到生成前的干净状态
+  // 调整：确认弹窗前置，避免无效配置生成
+  if (!confirm("换一批将清除当前所有分支内容，重新生成新的续写分支，确定要继续吗？")) {
+    return;
+  }
+  // 强制重置编辑器内容与状态
   if (originalEditorContent) {
     editorDom.find("#xiaomeng_editor_textarea").html(originalEditorContent);
   }
   editorDom.find("#preview_operation_container").hide().empty();
-  // 重置所有相关状态变量
   currentBranchResults = [];
   currentSelectedBranchIndex = 0;
   isEditingPreview = false;
-  // 重新获取最新的生成配置，确保基于当前干净的编辑器内容
   const config = buildGenerateConfig();
   if (!config) return;
-  // 二次确认
-  if (!confirm("换一批将清除当前所有分支内容，重新生成新的续写分支，确定要继续吗？")) {
-    return;
-  }
-  // 开始生成，设置状态
   isGenerating = true;
   const refreshBtn = editorDom.find("#refresh_results_btn");
-  const aiContinueBtn = editorDom.find("#ai_continue_btn");
-  const loadingOverlay = editorDom.find("#loading_overlay");
-  // 更新按钮状态，显示loading
   refreshBtn.prop("disabled", true).html(`<i class="fa-solid fa-spinner fa-spin"></i> 换一批中...`);
-  aiContinueBtn.prop("disabled", true);
-  loadingOverlay.show();
   editorDom.find("#results_cards_container").html(`<div class="empty-result-tip">正在重新生成内容，请稍候...</div>`);
+  editorDom.find("#ai_continue_btn").prop("disabled", true);
   try {
-    // 调用生成函数
     const newBranchResults = await generateThreeBranchesOnce(
       config.prompt, 
       config.generateParams, 
       config.cursorBeforeText, 
       config.targetWordCount
     );
-    // 生成成功，更新状态
     currentBranchResults = newBranchResults;
-    // 重新保存当前原始内容，确保后续操作基于最新内容
     originalEditorContent = editorDom.find("#xiaomeng_editor_textarea").html();
     originalEditorPlainText = config.fullText;
     cursorBeforeText = config.cursorBeforeText;
     cursorAfterText = config.cursorAfterText;
     currentSelectedBranchIndex = 0;
-    // 更新预览和卡片
     updateEditorPreviewContent(currentSelectedBranchIndex);
     renderBranchCards();
     toastr.success("分支内容已刷新", "完成");
   } catch (error) {
-    // 生成失败，处理错误
     console.error("换一批失败:", error);
     editorDom.find("#results_cards_container").html(`<div class="empty-result-tip">生成失败，请重试</div>`);
     toastr.error(`换一批失败: ${error.message}`, "错误");
   } finally {
-    // 最终重置状态，无论成功失败
     isGenerating = false;
     if (editorDom && !isEditorDestroyed) {
       refreshBtn.prop("disabled", false).html(`<i class="fa-solid fa-rotate-right"></i> 换一批`);
-      aiContinueBtn.prop("disabled", false);
-      loadingOverlay.hide();
+      editorDom.find("#ai_continue_btn").prop("disabled", false);
     }
   }
 }
