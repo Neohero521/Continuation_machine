@@ -341,49 +341,6 @@
   flex-direction: column;
   gap: 16px;
 }
-.xiaomeng-editor-container .editor-title-input {
-  width: 100%;
-  border: none;
-  outline: none;
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--xiaomeng-text-black);
-  padding: 8px 0;
-  background: transparent;
-  box-sizing: border-box;
-  font-family: inherit;
-  transition: all var(--ani-fast) ease;
-}
-.xiaomeng-editor-container .editor-title-input::placeholder {
-  color: #E0E0E0;
-}
-.xiaomeng-editor-container .editor-title-input:focus {
-  color: var(--xiaomeng-primary);
-}
-.xiaomeng-editor-container .editor-chapter-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.xiaomeng-editor-container .editor-chapter-row i {
-  color: var(--xiaomeng-text-gray);
-  font-size: 15px;
-  flex-shrink: 0;
-}
-.xiaomeng-editor-container .editor-chapter-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  font-size: 16px;
-  color: var(--xiaomeng-text-gray);
-  padding: 4px 0;
-  background: transparent;
-  font-family: inherit;
-  box-sizing: border-box;
-}
-.xiaomeng-editor-container .editor-chapter-input::placeholder {
-  color: #E0E0E0;
-}
 .xiaomeng-editor-container .editor-main-content {
   width: 100%;
   min-height: 300px;
@@ -1142,8 +1099,6 @@
 [data-theme="dark"] .xiaomeng-editor-container .editor-main-content:empty:before {
   color: #333333;
 }
-[data-theme="dark"] .xiaomeng-editor-container .editor-title-input::placeholder,
-[data-theme="dark"] .xiaomeng-editor-container .editor-chapter-input::placeholder,
 [data-theme="dark"] .xiaomeng-editor-container .custom-prompt-bar input::placeholder {
   color: #424242;
 }
@@ -1166,9 +1121,6 @@
   }
   .xiaomeng-editor-container .mode-btn {
     padding: 5px 12px;
-  }
-  .xiaomeng-editor-container .editor-title-input {
-    font-size: 28px;
   }
   .xiaomeng-editor-container .xiaomeng-editor-main {
     padding: 20px 12px 20px 12px;
