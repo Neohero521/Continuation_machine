@@ -10,12 +10,35 @@
             <div class="extension_block flex-container">
                 <input id="open_xiaomeng_editor" class="menu_button primary" type="submit" value="打开彩云小梦编辑器" />
             </div>
-            <!-- 基础设置项 -->
+            <!-- 原有基础设置项 -->
             <div class="extension_block flex-container">
                 <input id="inherit_st_params" type="checkbox" checked />
                 <label for="inherit_st_params">继承ST全局AI生成参数</label>
             </div>
+            <!-- 新增优化设置项（均为可选，默认不影响原有功能） -->
+            <div class="extension_block flex-container">
+                <input id="complete_sentence_end" type="checkbox" />
+                <label for="complete_sentence_end">续写末尾强制完整短句收尾</label>
+            </div>
+            <div class="extension_block flex-container">
+                <input id="enable_world_setting" type="checkbox" />
+                <label for="enable_world_setting">启用世界设定/人设锁定功能</label>
+            </div>
+            <div class="extension_block flex-container">
+                <label for="auto_save_interval">自动保存间隔(ms)</label>
+                <input id="auto_save_interval" type="number" min="100" max="5000" value="500" style="width: 80px; margin-left: 10px;" />
+            </div>
+            <div class="extension_block flex-container">
+                <label for="max_history_steps">最大撤销步数</label>
+                <input id="max_history_steps" type="number" min="10" max="200" value="100" style="width: 80px; margin-left: 10px;" />
+            </div>
             <hr class="sysHR" />
+            <!-- 扩展功能快捷按钮 -->
+            <div class="extension_block flex-container" style="gap: 10px; flex-wrap: wrap;">
+                <input id="open_story_manager" class="menu_button" type="submit" value="故事/章节管理" />
+                <input id="open_world_setting_panel" class="menu_button" type="submit" value="世界设定编辑" />
+                <input id="open_custom_style_panel" class="menu_button" type="submit" value="自定义风格管理" />
+            </div>
         </div>
     </div>
 </div>
