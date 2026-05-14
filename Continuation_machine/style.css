@@ -1,0 +1,1735 @@
+/* ==============================================
+   全局根变量（100%保留原有配置，无任何修改）
+   ============================================== */
+:root {
+  --xiaomeng-primary: #FF5252;
+  --xiaomeng-primary-hover: #FF3838;
+  --xiaomeng-star-gradient: linear-gradient(135deg, #FF79C6 0%, #FF52A2 100%);
+  --xiaomeng-version-gradient: linear-gradient(90deg, #FF80D0 0%, #FF9E7D 100%);
+  --xiaomeng-bg: #FFFFFF;
+  --xiaomeng-mask-bg: rgba(0, 0, 0, 0.4);
+  --xiaomeng-text-black: #333333;
+  --xiaomeng-text-gray: #999999;
+  --xiaomeng-text-red: #FF5252;
+  --xiaomeng-border: #F5F5F5;
+  --xiaomeng-card-bg: #FFFFFF;
+  --xiaomeng-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --xiaomeng-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --xiaomeng-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.15);
+  --xiaomeng-header-height: 60px;
+  --xiaomeng-bottom-bar-height: 56px;
+  --ani-fast: 150ms;
+  --ani-normal: 200ms;
+  --ani-slow: 300ms;
+}
+/* ==============================================
+   全局动画关键帧（100%保留原有配置）
+   ============================================== */
+@keyframes xiaomeng-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes xiaomeng-slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes xiaomeng-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes xiaomeng-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+@keyframes xiaomeng-zoomIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes xiaomeng-progress {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+/* 动画通用类 */
+.xiaomeng-editor-container .fade-in,
+.xiaomeng-modal .fade-in {
+  animation: xiaomeng-fadeIn var(--ani-normal) ease forwards;
+}
+.xiaomeng-editor-container .slide-in,
+.xiaomeng-modal .slide-in {
+  animation: xiaomeng-slideUp var(--ani-normal) ease forwards;
+}
+/* ==============================================
+   全局弹窗样式（100%保留原有配置，无任何修改）
+   ============================================== */
+.xiaomeng-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 20px;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.xiaomeng-modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+.xiaomeng-modal-content {
+  position: relative;
+  width: 100%;
+  max-width: min(600px, calc(100vw - 40px));
+  max-height: min(700px, calc(100vh - 40px));
+  background: var(--xiaomeng-bg);
+  border-radius: 16px;
+  box-shadow: var(--xiaomeng-shadow-lg);
+  overflow: hidden;
+  animation: xiaomeng-zoomIn var(--ani-normal) ease forwards;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.xiaomeng-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid var(--xiaomeng-border);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.xiaomeng-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--xiaomeng-text-black);
+  line-height: 1.4;
+}
+.xiaomeng-modal-close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--xiaomeng-text-gray);
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-modal-close-btn:hover {
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-text-black);
+}
+.xiaomeng-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  box-sizing: border-box;
+}
+.xiaomeng-modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--xiaomeng-border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.xiaomeng-modal-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--ani-fast) ease;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.xiaomeng-modal-btn-default {
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-text-gray);
+}
+.xiaomeng-modal-btn-default:hover {
+  background: #E0E0E0;
+  color: var(--xiaomeng-text-black);
+}
+.xiaomeng-modal-btn-primary {
+  background: var(--xiaomeng-primary);
+  color: white;
+}
+.xiaomeng-modal-btn-primary:hover {
+  background: var(--xiaomeng-primary-hover);
+}
+.xiaomeng-form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+.xiaomeng-form-item:last-child {
+  margin-bottom: 0;
+}
+.xiaomeng-form-item label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--xiaomeng-text-black);
+  line-height: 1.4;
+}
+.xiaomeng-form-item input,
+.xiaomeng-form-item textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--xiaomeng-border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--xiaomeng-text-black);
+  background: transparent;
+  outline: none;
+  transition: all var(--ani-fast) ease;
+  box-sizing: border-box;
+  font-family: inherit;
+  resize: vertical;
+}
+.xiaomeng-form-item input:focus,
+.xiaomeng-form-item textarea:focus {
+  border-color: var(--xiaomeng-primary);
+}
+.xiaomeng-form-item textarea {
+  min-height: 120px;
+  line-height: 1.6;
+}
+/* 故事管理列表样式（优化点击体验） */
+.story-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.story-item {
+  padding: 16px;
+  border: 1px solid var(--xiaomeng-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all var(--ani-fast) ease;
+  box-sizing: border-box;
+  width: 100%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  position: relative;
+}
+.story-item:hover,
+.story-item.active {
+  border-color: var(--xiaomeng-primary);
+  background: #FFF0F0;
+}
+.story-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  pointer-events: none;
+}
+.story-item-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--xiaomeng-text-black);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+.story-item-meta {
+  font-size: 12px;
+  color: var(--xiaomeng-text-gray);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+.story-item-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  z-index: 10;
+  position: relative;
+}
+.story-item-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--xiaomeng-text-gray);
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.story-item-btn:hover {
+  background: var(--xiaomeng-primary);
+  color: white;
+}
+.story-tab-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--xiaomeng-border);
+  box-sizing: border-box;
+}
+.story-tab-item {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--xiaomeng-text-gray);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.story-tab-item.active {
+  color: var(--xiaomeng-primary);
+  border-color: var(--xiaomeng-primary);
+}
+.empty-result-tip {
+  width: 100%;
+  text-align: center;
+  color: var(--xiaomeng-text-gray);
+  padding: 20px 0;
+  font-size: 14px;
+  margin: auto;
+  line-height: 1.6;
+}
+.style-dropdown-divider {
+  height: 1px;
+  background: var(--xiaomeng-border);
+  margin: 8px 0;
+  flex-shrink: 0;
+}
+/* ==============================================
+   深色模式适配（100%保留原有配置）
+   ============================================== */
+[data-theme="dark"] {
+  --xiaomeng-bg: #121212;
+  --xiaomeng-text-black: #F5F5F5;
+  --xiaomeng-text-gray: #9E9E9E;
+  --xiaomeng-border: #2D2D2D;
+  --xiaomeng-card-bg: #1E1E1E;
+  --xiaomeng-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --xiaomeng-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --xiaomeng-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --xiaomeng-mask-bg: rgba(0, 0, 0, 0.6);
+}
+[data-theme="dark"] .xiaomeng-modal-content {
+  --xiaomeng-bg: #1E1E1E;
+}
+[data-theme="dark"] .xiaomeng-modal-btn-default {
+  background: #2D2D2D;
+  color: #9E9E9E;
+}
+[data-theme="dark"] .xiaomeng-modal-btn-default:hover {
+  background: #383838;
+  color: #F5F5F5;
+}
+[data-theme="dark"] .story-item:hover,
+[data-theme="dark"] .story-item.active {
+  background: #2D1A1A;
+}
+/* ==============================================
+   移动端适配（100%保留原有配置，强制显示所有功能按钮）
+   ============================================== */
+@media (max-width: 768px) {
+  .xiaomeng-modal {
+    padding: 10px;
+  }
+  .xiaomeng-modal-content {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+  }
+  .xiaomeng-modal-footer {
+    flex-direction: column;
+    width: 100%;
+  }
+  .xiaomeng-modal-btn {
+    width: 100%;
+  }
+  .story-tab-item {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  .story-item {
+    padding: 12px;
+  }
+  .story-item-title {
+    font-size: 14px;
+  }
+  .story-item-meta {
+    font-size: 11px;
+  }
+  .xiaomeng-mask {
+    padding: 10px;
+  }
+  .xiaomeng-editor-container {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+  }
+  .xiaomeng-editor-container .xiaomeng-header {
+    padding: 0 12px;
+  }
+  .xiaomeng-editor-container .header-logo span {
+    display: none;
+  }
+  /* 强制显示所有header按钮，不隐藏 */
+  .xiaomeng-editor-container .header-right {
+    gap: 6px;
+    flex-shrink: 0;
+    display: flex !important;
+  }
+  .xiaomeng-editor-container .header-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    font-size: 16px !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  .xiaomeng-editor-container .mode-btn {
+    padding: 5px 12px;
+  }
+  .xiaomeng-editor-container .xiaomeng-editor-main {
+    padding: 20px 12px 20px 12px;
+  }
+  .xiaomeng-editor-container .footer-bottom-bar {
+    padding: 0 8px;
+    gap: 12px;
+  }
+  .xiaomeng-editor-container .bar-right-buttons {
+    gap: 12px;
+  }
+  .xiaomeng-editor-container .style-select-wrapper {
+    max-width: 140px;
+    min-width: 100px;
+  }
+  .xiaomeng-editor-container .style-select-btn {
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+  .xiaomeng-editor-container .ai-continue-btn {
+    padding: 10px 18px;
+    font-size: 16px;
+  }
+  .xiaomeng-editor-container .version-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+  .xiaomeng-editor-container .result-card {
+    min-width: 240px;
+    max-width: 240px;
+  }
+  .xiaomeng-editor-container .footer-results-area {
+    padding: 10px 8px;
+  }
+  .xiaomeng-editor-container .preview-operation-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .xiaomeng-editor-container .preview-btn {
+    min-width: 60px;
+    font-size: 14px;
+  }
+  .xiaomeng-editor-container .word-count-btn {
+    min-width: 60px;
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+  .xiaomeng-editor-container .function-dropdown-menu {
+    min-width: 160px;
+  }
+  .xiaomeng-editor-container .function-dropdown-item {
+    font-size: 15px;
+    padding: 12px 16px;
+  }
+  .xiaomeng-editor-container .custom-prompt-bar input {
+    font-size: 14px;
+  }
+  .xiaomeng-editor-container .custom-prompt-bar input::placeholder {
+    font-size: 14px;
+  }
+  .xiaomeng-editor-container .arrow-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+  .xiaomeng-editor-container .star-function-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  /* 移动端设置弹窗适配 */
+  .xiaomeng-editor-container .settings-modal {
+    padding: 10px;
+  }
+  .xiaomeng-editor-container .settings-modal-content {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+  }
+}
+@media (max-width: 480px) {
+  .xiaomeng-modal {
+    padding: 8px;
+  }
+  .xiaomeng-modal-content {
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+  }
+  .xiaomeng-modal-header {
+    padding: 16px;
+  }
+  .xiaomeng-modal-body {
+    padding: 16px;
+  }
+  .xiaomeng-modal-footer {
+    padding: 12px 16px;
+  }
+  /* 小屏隐藏模式开关，强制保留所有功能按钮 */
+  .xiaomeng-editor-container .header-mode-switch {
+    display: none;
+  }
+  .xiaomeng-editor-container .version-btn-wrapper {
+    display: none;
+  }
+  /* 小屏强制显示所有header按钮，不隐藏任何按钮 */
+  .xiaomeng-editor-container .header-right {
+    gap: 4px;
+    flex-shrink: 0;
+    display: flex !important;
+    flex-wrap: nowrap;
+  }
+  .xiaomeng-editor-container .xiaomeng-header {
+    padding: 0 8px;
+    flex-wrap: nowrap;
+  }
+  .xiaomeng-editor-container .header-left {
+    flex-shrink: 0;
+  }
+  .xiaomeng-editor-container .header-icon-btn {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    min-height: 30px !important;
+    font-size: 14px !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+  .xiaomeng-editor-container .footer-bottom-bar {
+    gap: 8px;
+  }
+  .xiaomeng-editor-container .style-select-wrapper {
+    max-width: 100px;
+  }
+  .xiaomeng-editor-container .ai-continue-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  .xiaomeng-editor-container .ai-continue-btn span {
+    display: none;
+  }
+  .xiaomeng-editor-container .preview-operation-bar {
+    gap: 8px;
+  }
+  .xiaomeng-editor-container .preview-btn {
+    min-width: 50px;
+    padding: 6px 8px;
+    font-size: 12px;
+    height: 44px;
+  }
+  .xiaomeng-editor-container .word-count-btn {
+    min-width: 60px;
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+  .xiaomeng-editor-container .function-dropdown-menu {
+    min-width: 160px;
+  }
+  .xiaomeng-editor-container .function-dropdown-item {
+    font-size: 15px;
+    padding: 12px 16px;
+  }
+  .xiaomeng-editor-container .custom-prompt-bar input {
+    font-size: 14px;
+  }
+  .xiaomeng-editor-container .custom-prompt-bar input::placeholder {
+    font-size: 14px;
+  }
+  .xiaomeng-editor-container .arrow-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+  .xiaomeng-editor-container .star-function-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  /* 小屏设置弹窗适配 */
+  .xiaomeng-editor-container .settings-modal {
+    padding: 8px;
+  }
+  .xiaomeng-editor-container .settings-modal-content {
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+  }
+  .xiaomeng-editor-container .settings-modal-header {
+    padding: 16px;
+  }
+  .xiaomeng-editor-container .settings-modal-body {
+    padding: 16px;
+  }
+}
+/* ==============================================
+   原有编辑器专属样式（100%完整保留，无任何修改）
+   ============================================== */
+.xiaomeng-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--xiaomeng-mask-bg);
+  backdrop-filter: blur(3px);
+  z-index: 999990;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  animation: xiaomeng-fadeIn var(--ani-normal) ease forwards;
+  box-sizing: border-box;
+  padding: 20px;
+  overflow: hidden;
+}
+.xiaomeng-mask.show {
+  display: flex;
+}
+.xiaomeng-editor-container {
+  width: 100%;
+  height: 100%;
+  max-width: min(1200px, calc(100vw - 40px));
+  max-height: min(850px, calc(100vh - 40px));
+  background: var(--xiaomeng-bg);
+  border-radius: 16px;
+  box-shadow: var(--xiaomeng-shadow-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  animation: xiaomeng-zoomIn var(--ani-slow) ease forwards;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  position: relative;
+}
+.xiaomeng-editor-container .xiaomeng-header {
+  width: 100%;
+  height: var(--xiaomeng-header-height);
+  background: var(--xiaomeng-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-sizing: border-box;
+  z-index: 100;
+  border-bottom: 1px solid var(--xiaomeng-border);
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+.xiaomeng-editor-container .header-left,
+.xiaomeng-editor-container .header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .header-icon-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--xiaomeng-text-gray);
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-editor-container .header-icon-btn:hover {
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-text-black);
+}
+.xiaomeng-editor-container .header-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--xiaomeng-primary);
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .header-mode-switch {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #FFF0F0;
+  border-radius: 20px;
+  padding: 3px;
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .header-mode-switch input {
+  display: none;
+}
+.xiaomeng-editor-container .mode-btn {
+  padding: 5px 20px;
+  border-radius: 17px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--xiaomeng-text-gray);
+  transition: all var(--ani-fast) ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-editor-container .header-mode-switch input:checked + .mode-btn {
+  background: var(--xiaomeng-primary);
+  color: white;
+}
+.xiaomeng-editor-container .settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 20px;
+}
+.xiaomeng-editor-container .settings-modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+.xiaomeng-editor-container .settings-modal-content {
+  position: relative;
+  width: 100%;
+  max-width: min(500px, calc(100vw - 40px));
+  max-height: min(600px, calc(100vh - 40px));
+  background: var(--xiaomeng-bg);
+  border-radius: 16px;
+  box-shadow: var(--xiaomeng-shadow-lg);
+  overflow: hidden;
+  animation: xiaomeng-zoomIn var(--ani-normal) ease forwards;
+  display: flex;
+  flex-direction: column;
+}
+.xiaomeng-editor-container .settings-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid var(--xiaomeng-border);
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .settings-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--xiaomeng-text-black);
+}
+.xiaomeng-editor-container .settings-close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--xiaomeng-text-gray);
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-editor-container .settings-close-btn:hover {
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-text-black);
+}
+.xiaomeng-editor-container .settings-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  box-sizing: border-box;
+}
+.xiaomeng-editor-container .settings-item {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.xiaomeng-editor-container .settings-item:last-child {
+  margin-bottom: 0;
+}
+.xiaomeng-editor-container .settings-item label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--xiaomeng-text-black);
+}
+.xiaomeng-editor-container .word-count-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.xiaomeng-editor-container .word-count-btn {
+  flex: 1;
+  min-width: 60px;
+  padding: 8px 8px;
+  border: 1px solid var(--xiaomeng-border);
+  background: var(--xiaomeng-bg);
+  color: var(--xiaomeng-text-black);
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--ani-fast) ease;
+  -webkit-tap-highlight-color: transparent;
+  text-align: center;
+}
+.xiaomeng-editor-container .word-count-btn:hover,
+.xiaomeng-editor-container .word-count-btn.active {
+  border-color: var(--xiaomeng-primary);
+  background: var(--xiaomeng-primary);
+  color: white;
+}
+.xiaomeng-editor-container .custom-word-count {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.xiaomeng-editor-container .custom-word-count input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--xiaomeng-border);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--xiaomeng-text-black);
+  background: transparent;
+  outline: none;
+  transition: all var(--ani-fast) ease;
+  box-sizing: border-box;
+}
+.xiaomeng-editor-container .custom-word-count input:focus {
+  border-color: var(--xiaomeng-primary);
+}
+.xiaomeng-editor-container .custom-word-count-btn {
+  padding: 10px 20px;
+  border: none;
+  background: var(--xiaomeng-primary);
+  color: white;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-editor-container .custom-word-count-btn:hover {
+  background: var(--xiaomeng-primary-hover);
+}
+.xiaomeng-editor-container .current-word-count-tip {
+  font-size: 13px;
+  color: var(--xiaomeng-text-gray);
+}
+.xiaomeng-editor-container .current-word-count-tip span {
+  color: var(--xiaomeng-primary);
+  font-weight: 600;
+}
+.xiaomeng-editor-container .settings-switch-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--xiaomeng-border);
+}
+.xiaomeng-editor-container .settings-switch-item:last-child {
+  border-bottom: none;
+}
+.xiaomeng-editor-container .settings-switch-item label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--xiaomeng-text-black);
+  line-height: 1.4;
+}
+.xiaomeng-editor-container .settings-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .settings-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.xiaomeng-editor-container .settings-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--xiaomeng-border);
+  transition: var(--ani-fast);
+  border-radius: 24px;
+}
+.xiaomeng-editor-container .settings-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: var(--ani-fast);
+  border-radius: 50%;
+}
+.xiaomeng-editor-container .settings-switch input:checked + .settings-switch-slider {
+  background-color: var(--xiaomeng-primary);
+}
+.xiaomeng-editor-container .settings-switch input:checked + .settings-switch-slider:before {
+  transform: translateX(20px);
+}
+.xiaomeng-editor-container .xiaomeng-editor-main {
+  width: 100%;
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px 20px 20px;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+  min-height: 0;
+}
+.xiaomeng-editor-container .editor-content-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.xiaomeng-editor-container .editor-main-content {
+  width: 100%;
+  min-height: 300px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--xiaomeng-text-black);
+  padding: 0;
+  background: transparent;
+  box-sizing: border-box;
+  font-family: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  -webkit-user-modify: read-write-plaintext-only;
+}
+.xiaomeng-editor-container .editor-main-content:focus {
+  outline: none;
+}
+.xiaomeng-editor-container .editor-main-content:empty:before {
+  content: attr(placeholder);
+  color: #E0E0E0;
+}
+.xiaomeng-editor-container .continuation-red-text {
+  color: var(--xiaomeng-text-red);
+  outline: none;
+  display: inline;
+  line-height: 1.8 !important;
+  font-size: 16px !important;
+  margin: 0;
+  padding: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  font-family: inherit;
+}
+.xiaomeng-editor-container .continuation-red-text[contenteditable="true"] {
+  outline: 2px dashed rgba(255, 82, 82, 0.3);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.xiaomeng-editor-container .preview-split-line {
+  border: none;
+  border-top: 2px solid var(--xiaomeng-primary);
+  margin: 8px 0 0 0;
+  opacity: 1;
+  width: 100%;
+  flex-shrink: 0;
+  border-radius: 2px 2px 0 0;
+}
+.xiaomeng-editor-container .preview-operation-bar {
+  width: 100%;
+  background: var(--xiaomeng-primary);
+  border-radius: 0 0 12px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  margin: 0 0 16px 0;
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .btn-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .preview-btn {
+  flex: 1;
+  min-width: 60px;
+  height: 52px;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--ani-fast) ease;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.xiaomeng-editor-container .preview-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.xiaomeng-editor-container .preview-btn:active {
+  background: rgba(255, 255, 255, 0.25);
+}
+.xiaomeng-editor-container .preview-btn.active {
+  background: rgba(255, 255, 255, 0.2);
+}
+.xiaomeng-editor-container .xiaomeng-footer {
+  width: 100%;
+  min-height: var(--xiaomeng-bottom-bar-height);
+  background: var(--xiaomeng-bg);
+  border-top: 1px solid var(--xiaomeng-border);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  z-index: 100;
+  flex-shrink: 0;
+  max-height: 220px;
+  overflow: visible !important;
+  position: relative;
+}
+.xiaomeng-editor-container .loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: xiaomeng-fadeIn var(--ani-fast) ease forwards;
+  border-radius: 0 0 16px 16px;
+}
+.xiaomeng-editor-container .loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--xiaomeng-primary);
+  animation: xiaomeng-slideUp var(--ani-normal) ease forwards;
+}
+.xiaomeng-editor-container .loading-spinner i {
+  font-size: 32px;
+  animation: xiaomeng-spin 1s linear infinite;
+}
+.xiaomeng-editor-container .loading-spinner span {
+  font-size: 14px;
+  font-weight: 500;
+}
+.xiaomeng-editor-container .loading-progress-bar {
+  width: 200px;
+  height: 4px;
+  background: rgba(255, 82, 82, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.xiaomeng-editor-container .loading-progress-bar-inner {
+  height: 100%;
+  background: var(--xiaomeng-primary);
+  border-radius: 2px;
+  animation: xiaomeng-progress 2s ease-in-out infinite;
+}
+.xiaomeng-editor-container .footer-bottom-bar {
+  width: 100%;
+  height: var(--xiaomeng-bottom-bar-height);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 16px;
+  box-sizing: border-box;
+  gap: 16px;
+  border-bottom: 1px solid var(--xiaomeng-border);
+  flex-shrink: 0;
+  overflow: visible !important;
+  position: relative;
+}
+.xiaomeng-editor-container .bar-left-group {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  overflow: visible !important;
+}
+.xiaomeng-editor-container .bar-right-buttons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  justify-content: flex-end;
+  transition: all var(--ani-normal) ease;
+  height: 100%;
+  min-width: 0;
+  overflow: visible !important;
+  position: relative;
+}
+.xiaomeng-editor-container .custom-prompt-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  transition: all var(--ani-normal) ease;
+  opacity: 0;
+  width: 0;
+  min-width: 0;
+}
+.xiaomeng-editor-container .custom-prompt-bar[style*="display: block"],
+.xiaomeng-editor-container .custom-prompt-bar[style*="display: flex"] {
+  opacity: 1;
+  width: auto;
+  padding: 10px 0;
+}
+.xiaomeng-editor-container .custom-prompt-bar i {
+  color: var(--xiaomeng-primary);
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .custom-prompt-bar input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: var(--xiaomeng-text-black);
+  padding: 4px 0;
+  background: transparent;
+  font-family: inherit;
+  width: 100%;
+  min-width: 0;
+}
+.xiaomeng-editor-container .custom-prompt-bar input::placeholder {
+  color: var(--xiaomeng-text-gray);
+  font-size: 16px;
+}
+.xiaomeng-editor-container .function-menu-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible !important;
+}
+.xiaomeng-editor-container .star-function-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--xiaomeng-star-gradient);
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--ani-normal) ease;
+  position: relative;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-editor-container .star-function-btn::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--xiaomeng-star-gradient);
+  opacity: 0.7;
+}
+.xiaomeng-editor-container .star-function-btn:hover {
+  transform: scale(1.05);
+  box-shadow: var(--xiaomeng-shadow-sm);
+}
+.xiaomeng-editor-container .star-function-btn:active {
+  transform: scale(0.98);
+}
+.xiaomeng-editor-container .function-dropdown-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 12px;
+  background: var(--xiaomeng-card-bg);
+  border-radius: 12px;
+  box-shadow: var(--xiaomeng-shadow-lg);
+  min-width: 200px;
+  max-height: 400px;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  overflow-y: auto;
+  z-index: 999999 !important;
+  transform-origin: bottom left;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all var(--ani-normal) ease;
+  scrollbar-width: thin;
+  scrollbar-color: var(--xiaomeng-border) transparent;
+}
+.xiaomeng-editor-container .function-dropdown-menu::-webkit-scrollbar {
+  width: 4px;
+}
+.xiaomeng-editor-container .function-dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.xiaomeng-editor-container .function-dropdown-menu::-webkit-scrollbar-thumb {
+  background: var(--xiaomeng-border);
+  border-radius: 2px;
+}
+.xiaomeng-editor-container .function-dropdown-menu.show {
+  display: flex !important;
+  opacity: 1;
+  transform: translateY(0);
+}
+.xiaomeng-editor-container .function-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: none;
+  background: transparent;
+  color: var(--xiaomeng-text-black);
+  font-size: 18px;
+  padding: 16px 20px;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--ani-fast) ease;
+  border-bottom: 1px solid var(--xiaomeng-border);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  width: 100%;
+}
+.xiaomeng-editor-container .function-dropdown-item:last-child {
+  border-bottom: none;
+}
+.xiaomeng-editor-container .function-dropdown-item .item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.xiaomeng-editor-container .function-dropdown-item i {
+  color: var(--xiaomeng-text-gray);
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+  transition: all var(--ani-fast) ease;
+}
+.xiaomeng-editor-container .function-dropdown-item .item-arrow {
+  font-size: 14px;
+  color: var(--xiaomeng-text-gray);
+}
+.xiaomeng-editor-container .function-dropdown-item:hover {
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-text-red);
+}
+.xiaomeng-editor-container .function-dropdown-item:hover i,
+.xiaomeng-editor-container .function-dropdown-item:hover .item-arrow {
+  color: var(--xiaomeng-text-red);
+}
+.xiaomeng-editor-container .arrow-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--xiaomeng-text-black);
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-editor-container .arrow-btn:last-child {
+  color: var(--xiaomeng-text-gray);
+}
+.xiaomeng-editor-container .arrow-btn:hover {
+  background: var(--xiaomeng-border);
+  transform: scale(1.05);
+}
+.xiaomeng-editor-container .arrow-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  background: transparent;
+}
+.xiaomeng-editor-container .version-btn-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible !important;
+}
+.xiaomeng-editor-container .version-btn {
+  border: none;
+  border-radius: 24px;
+  background: var(--xiaomeng-version-gradient);
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 8px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--ani-normal) ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-editor-container .version-btn:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+  box-shadow: var(--xiaomeng-shadow-sm);
+}
+.xiaomeng-editor-container .style-select-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  max-width: 180px;
+  min-width: 140px;
+  overflow: visible !important;
+}
+.xiaomeng-editor-container .style-select-btn {
+  width: 100%;
+  border: none;
+  border-radius: 24px;
+  background: #F9F9F9;
+  color: var(--xiaomeng-text-black);
+  font-size: 16px;
+  font-weight: 500;
+  padding: 8px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--ani-normal) ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-editor-container .style-select-btn:hover {
+  background: #F5F5F5;
+  transform: scale(1.02);
+}
+.xiaomeng-editor-container .style-select-btn i:last-child {
+  font-size: 12px;
+  color: var(--xiaomeng-text-gray);
+}
+.xiaomeng-editor-container .xiaomeng-icon {
+  width: 20px;
+  height: 20px;
+  background: var(--xiaomeng-text-red);
+  border-radius: 50% 50% 40% 40%;
+  position: relative;
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .xiaomeng-icon::before,
+.xiaomeng-editor-container .xiaomeng-icon::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: white;
+}
+.xiaomeng-editor-container .xiaomeng-icon::before {
+  left: 5px;
+}
+.xiaomeng-editor-container .xiaomeng-icon::after {
+  right: 5px;
+}
+.xiaomeng-editor-container .style-dropdown-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 12px;
+  background: var(--xiaomeng-card-bg);
+  border-radius: 12px;
+  box-shadow: var(--xiaomeng-shadow-lg);
+  min-width: 160px;
+  max-height: 400px;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  overflow-y: auto;
+  z-index: 999999 !important;
+  transform-origin: bottom center;
+  opacity: 0;
+  transition: all var(--ani-normal) ease;
+}
+.xiaomeng-editor-container .style-dropdown-menu.show {
+  display: flex !important;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.xiaomeng-editor-container .style-dropdown-item {
+  border: none;
+  background: transparent;
+  color: var(--xiaomeng-text-black);
+  font-size: 18px;
+  padding: 12px 16px;
+  cursor: pointer;
+  text-align: center;
+  transition: all var(--ani-fast) ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  width: 100%;
+}
+.xiaomeng-editor-container .style-dropdown-item:hover,
+.xiaomeng-editor-container .style-dropdown-item.active {
+  color: var(--xiaomeng-text-red);
+  background: #FFF0F0;
+}
+.xiaomeng-editor-container .style-dropdown-item.custom-style-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+.xiaomeng-editor-container .style-dropdown-item.custom-style-item .delete-style-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--xiaomeng-text-gray);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .style-dropdown-item.custom-style-item .delete-style-btn:hover {
+  background: var(--xiaomeng-primary);
+  color: white;
+}
+.xiaomeng-editor-container .ai-continue-btn {
+  border: none;
+  border-radius: 28px;
+  background: var(--xiaomeng-primary);
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 10px 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--ani-normal) ease;
+  flex-shrink: 0;
+  box-shadow: var(--xiaomeng-shadow-sm);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.xiaomeng-editor-container .ai-continue-btn:hover:not(:disabled) {
+  background: var(--xiaomeng-primary-hover);
+  transform: scale(1.02);
+  box-shadow: var(--xiaomeng-shadow-md);
+  animation: xiaomeng-pulse 1s ease infinite;
+}
+.xiaomeng-editor-container .ai-continue-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  animation: none;
+}
+.xiaomeng-editor-container .ai-continue-btn.loading i {
+  animation: xiaomeng-spin 1s linear infinite;
+}
+.xiaomeng-editor-container .ai-continue-btn i {
+  font-size: 16px;
+}
+.xiaomeng-editor-container .word-count-bar {
+  width: 100%;
+  text-align: right;
+  font-size: 12px;
+  color: var(--xiaomeng-text-gray);
+  padding-top: 8px;
+  border-top: 1px solid var(--xiaomeng-border);
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .footer-results-area {
+  width: 100%;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex-shrink: 0;
+  height: auto;
+  min-height: 160px;
+  max-height: 180px;
+  overflow: hidden;
+}
+.xiaomeng-editor-container .results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .results-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--xiaomeng-text-black);
+}
+.xiaomeng-editor-container .results-title i {
+  color: var(--xiaomeng-primary);
+  font-size: 16px;
+}
+.xiaomeng-editor-container .results-header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.xiaomeng-editor-container .cancel-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-text-gray);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-editor-container .cancel-btn:hover {
+  background: #E0E0E0;
+  color: var(--xiaomeng-text-black);
+}
+.xiaomeng-editor-container .refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  color: var(--xiaomeng-text-gray);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: all var(--ani-fast) ease;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-editor-container .refresh-btn:hover {
+  background: var(--xiaomeng-border);
+  color: var(--xiaomeng-primary);
+}
+.xiaomeng-editor-container .refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.xiaomeng-editor-container .results-cards-wrapper {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+  width: 100%;
+  min-height: 100px;
+  box-sizing: border-box;
+}
+.xiaomeng-editor-container .results-cards-wrapper::-webkit-scrollbar {
+  display: none;
+}
+.xiaomeng-editor-container .result-card {
+  min-width: 280px;
+  max-width: 280px;
+  border: 1px solid var(--xiaomeng-border);
+  border-radius: 12px;
+  background: var(--xiaomeng-card-bg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
+  transition: all var(--ani-normal) ease;
+  cursor: pointer;
+  position: relative;
+  box-shadow: var(--xiaomeng-shadow-sm);
+  opacity: 1;
+  visibility: visible;
+  height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+.xiaomeng-editor-container .result-card:hover,
+.xiaomeng-editor-container .result-card.selected {
+  border-color: var(--xiaomeng-primary);
+  background: #FFF0F0;
+  box-shadow: var(--xiaomeng-shadow-md);
+  transform: translateY(-2px);
+}
+.xiaomeng-editor-container .branch-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--xiaomeng-primary);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.xiaomeng-editor-container .card-preview-text {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--xiaomeng-text-black);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  margin-top: 8px;
+}
+/* 深色模式适配补充 */
+[data-theme="dark"] .xiaomeng-mask {
+  --xiaomeng-mask-bg: rgba(0, 0, 0, 0.6);
+}
+[data-theme="dark"] .xiaomeng-editor-container {
+  --xiaomeng-bg: #121212;
+  --xiaomeng-text-black: #F5F5F5;
+  --xiaomeng-text-gray: #9E9E9E;
+  --xiaomeng-border: #2D2D2D;
+  --xiaomeng-card-bg: #1E1E1E;
+  --xiaomeng-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --xiaomeng-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --xiaomeng-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+[data-theme="dark"] .xiaomeng-editor-container .loading-overlay {
+  background: rgba(18, 18, 18, 0.85);
+}
+[data-theme="dark"] .xiaomeng-editor-container .result-card:hover,
+[data-theme="dark"] .xiaomeng-editor-container .result-card.selected {
+  background: #2D1A1A;
+}
+[data-theme="dark"] .xiaomeng-editor-container .style-dropdown-item:hover,
+[data-theme="dark"] .xiaomeng-editor-container .style-dropdown-item.active {
+  background: #2D1A1A;
+}
+[data-theme="dark"] .xiaomeng-editor-container .function-dropdown-item:hover {
+  background: #2D2D2D;
+}
+[data-theme="dark"] .xiaomeng-editor-container .style-select-btn {
+  background: #1E1E1E;
+}
+[data-theme="dark"] .xiaomeng-editor-container .header-mode-switch {
+  background: #1E1E1E;
+}
+[data-theme="dark"] .xiaomeng-editor-container .settings-modal-content {
+  --xiaomeng-bg: #1E1E1E;
+}
+[data-theme="dark"] .xiaomeng-editor-container .btn-divider {
+  background: rgba(255, 255, 255, 0.2);
+}
+[data-theme="dark"] .xiaomeng-editor-container .editor-main-content:empty:before {
+  color: #333333;
+}
+[data-theme="dark"] .xiaomeng-editor-container .custom-prompt-bar input::placeholder {
+  color: #424242;
+}
