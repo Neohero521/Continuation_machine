@@ -2394,7 +2394,7 @@ const Main = {
     History.updateButtons();
     editorDom.closest(".xiaomeng-mask").addClass("show");
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
-    console.log("[彩云小梦] 编辑器已打开，版本v2.8.0 写作功能深度优化版");
+    console.log("[彩云小梦] 编辑器已打开，版本v2.8.1 单分支功能优化版");
   },
 
   exportContentToFile(format = "txt") {
@@ -2593,14 +2593,36 @@ const Main = {
       cursorBeforeText = config.cursorBeforeText;
       cursorAfterText = config.cursorAfterText;
       currentSelectedBranchIndex = 0;
-      editorDom.find(".footer-bottom-bar").slideUp(250, () => {
-        editorDom.find("#results_area").slideDown(250);
-        Preview.updateEditorPreviewContent(currentSelectedBranchIndex);
-        Preview.renderBranchCards();
-      });
+      
       if (config.isSingleBranch) {
-        toastr.success(`${functionName}内容已刷新`, "完成");
+        const generatedContent = newBranchResults[0];
+        
+        if (functionType === 'expand' || functionType === 'shorten' || functionType === 'rewrite') {
+          const selection = window.getSelection();
+          if (selection.rangeCount > 0 && !selection.isCollapsed) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(document.createTextNode(generatedContent));
+            range.collapse(false);
+          }
+        } else {
+          const editorElement = editorDom.find("#xiaomeng_editor_textarea")[0];
+          const escapedContent = Utils.escapeHtml(generatedContent);
+          editorElement.innerHTML = Utils.unescapeHtml(escapedContent);
+          Editor.updateWordCount();
+          History.pushHistory();
+        }
+        
+        editorDom.find(".footer-bottom-bar").show();
+        editorDom.find("#results_area").hide();
+        editorDom.find("#preview_operation_container").hide();
+        toastr.success(`${functionName}重新生成完成`, "完成");
       } else {
+        editorDom.find(".footer-bottom-bar").slideUp(250, () => {
+          editorDom.find("#results_area").slideDown(250);
+          Preview.updateEditorPreviewContent(currentSelectedBranchIndex);
+          Preview.renderBranchCards();
+        });
         toastr.success(`${functionName}内容已刷新，共${FIXED_BRANCH_COUNT}条可选分支`, "完成");
       }
     } catch (error) {
@@ -2671,5 +2693,5 @@ jQuery(async () => {
   $(window).on("beforeunload", () => {
     Main.destroyEditor();
   });
-  console.log("[彩云小梦] 扩展初始化完成，版本v2.8.0 写作功能深度优化版");
+  console.log("[彩云小梦] 扩展初始化完成，版本v2.8.1 单分支功能优化版");
 });
