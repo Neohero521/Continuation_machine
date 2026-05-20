@@ -2211,7 +2211,7 @@ const Main = {
     History.updateButtons();
     editorDom.closest(".xiaomeng-mask").addClass("show");
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
-    console.log("[彩云小梦] 编辑器已打开，版本v2.4.0 深度优化与Bug修复版");
+    console.log("[彩云小梦] 编辑器已打开，版本v2.5.0 界面深度重构版");
   },
 
   exportContentToFile(format = "txt") {
@@ -2419,5 +2419,5 @@ jQuery(async () => {
   $(window).on("beforeunload", () => {
     Main.destroyEditor();
   });
-  console.log("[彩云小梦] 扩展初始化完成，版本v2.4.0 深度优化与Bug修复版");
+  console.log("[彩云小梦] 扩展初始化完成，版本v2.5.0 界面深度重构版");
 });
