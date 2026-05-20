@@ -67,10 +67,56 @@ let recycleBin = [];
 
 const Utils = {
   debounce(func, delay) {
+    let timer = null;
     return function(...args) {
-      if (autoSaveTimer) clearTimeout(autoSaveTimer);
-      autoSaveTimer = setTimeout(() => func.apply(this, args), delay);
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => func.apply(this, args), delay);
     };
+  },
+
+  // 安全的JSON解析
+  safeJsonParse(str, defaultValue = null) {
+    try {
+      return JSON.parse(str);
+    } catch {
+      return defaultValue;
+    }
+  },
+
+  // 安全的localStorage操作
+  safeLocalStorageSet(key, value) {
+    try {
+      localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+      return true;
+    } catch (e) {
+      console.error('[彩云小梦] localStorage写入失败', e);
+      return false;
+    }
+  },
+
+  safeLocalStorageGet(key, defaultValue = null) {
+    try {
+      const value = localStorage.getItem(key);
+      if (value === null) return defaultValue;
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value;
+      }
+    } catch (e) {
+      console.error('[彩云小梦] localStorage读取失败', e);
+      return defaultValue;
+    }
+  },
+
+  safeLocalStorageRemove(key) {
+    try {
+      localStorage.removeItem(key);
+      return true;
+    } catch (e) {
+      console.error('[彩云小梦] localStorage删除失败', e);
+      return false;
+    }
   },
 
   escapeHtml(str) {
@@ -166,6 +212,12 @@ const API = {
       apiCallTimestamps = apiCallTimestamps.slice(-MAX_API_CALLS_PER_MINUTE);
     }
     console.log(`[彩云小梦] 本次API调用已记录，1分钟内累计调用：${apiCallTimestamps.length}次`);
+  },
+
+  // 安全清除API调用历史
+  clearRateLimitHistory() {
+    apiCallTimestamps = [];
+    console.log('[彩云小梦] 已清除API调用限流记录');
   },
 
   async generateRawWithBreakLimit(params) {
@@ -442,98 +494,67 @@ const Storage = {
       plainText: Editor.getEditorPlainText(),
       updateTime: Date.now()
     };
-    try {
-      const storyIndex = storyList.findIndex(item => item.id === currentStoryId);
-      if (storyIndex !== -1) {
-        storyList[storyIndex].content = contentData.content;
-        storyList[storyIndex].plainText = contentData.plainText;
-        storyList[storyIndex].wordCount = Utils.getExactTextLength(contentData.plainText);
-        storyList[storyIndex].updateTime = contentData.updateTime;
-        localStorage.setItem(STORY_LIST_STORAGE_KEY, JSON.stringify(storyList));
-      }
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(contentData));
-    } catch (e) {
-      console.error("[彩云小梦] 本地存储失败", e);
+    
+    const storyIndex = storyList.findIndex(item => item.id === currentStoryId);
+    if (storyIndex !== -1) {
+      storyList[storyIndex].content = contentData.content;
+      storyList[storyIndex].plainText = contentData.plainText;
+      storyList[storyIndex].wordCount = Utils.getExactTextLength(contentData.plainText);
+      storyList[storyIndex].updateTime = contentData.updateTime;
+      Utils.safeLocalStorageSet(STORY_LIST_STORAGE_KEY, storyList);
     }
+    
+    Utils.safeLocalStorageSet(LOCAL_STORAGE_KEY, contentData);
     Editor.updateWordCount();
   },
 
   loadEditorContentFromLocal() {
     const currentStoryId = extension_settings[extensionName].currentStoryId;
-    try {
-      const targetStory = storyList.find(item => item.id === currentStoryId);
-      if (targetStory) {
-        currentWorldSetting = JSON.parse(JSON.stringify(targetStory.worldSetting || { characterSetting: "", worldSetting: "", plotOutline: "" }));
-        return {
-          content: targetStory.content || "",
-          plainText: targetStory.plainText || ""
-        };
-      }
-      const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (savedData) {
-        const parsed = JSON.parse(savedData);
-        return {
-          content: parsed.content || "",
-          plainText: Utils.cleanTextFormat(parsed.plainText || "")
-        };
-      }
-    } catch (e) {
-      console.error("[彩云小梦] 本地内容解析失败", e);
+    
+    const targetStory = storyList.find(item => item.id === currentStoryId);
+    if (targetStory) {
+      currentWorldSetting = Utils.safeJsonParse(JSON.stringify(targetStory.worldSetting || { characterSetting: "", worldSetting: "", plotOutline: "" }));
+      return {
+        content: targetStory.content || "",
+        plainText: targetStory.plainText || ""
+      };
     }
+    
+    const savedData = Utils.safeLocalStorageGet(LOCAL_STORAGE_KEY);
+    if (savedData && typeof savedData === 'object') {
+      return {
+        content: savedData.content || "",
+        plainText: Utils.cleanTextFormat(savedData.plainText || "")
+      };
+    }
+    
     return { content: "", plainText: "" };
   },
 
   initStoryList() {
-    try {
-      const savedStories = localStorage.getItem(STORY_LIST_STORAGE_KEY);
-      storyList = [];
-      if (savedStories) {
-        const parsedStories = JSON.parse(savedStories);
-        if (Array.isArray(parsedStories)) {
-          parsedStories.forEach(story => {
-            storyList.push({
-              id: story.id || Utils.generateUniqueId(),
-              title: Utils.cleanTextFormat(story.title) || "未命名故事",
-              content: story.content || "",
-              plainText: story.plainText || "",
-              wordCount: story.wordCount || 0,
-              createTime: story.createTime || Date.now(),
-              updateTime: story.updateTime || Date.now(),
-              worldSetting: story.worldSetting || { characterSetting: "", worldSetting: "", plotOutline: "" }
-            });
+    const savedStories = Utils.safeLocalStorageGet(STORY_LIST_STORAGE_KEY, []);
+    storyList = [];
+    
+    if (Array.isArray(savedStories)) {
+      savedStories.forEach(story => {
+        if (story && typeof story === 'object') {
+          storyList.push({
+            id: story.id || Utils.generateUniqueId(),
+            title: Utils.cleanTextFormat(story.title) || "未命名故事",
+            content: story.content || "",
+            plainText: story.plainText || "",
+            wordCount: Number(story.wordCount) || 0,
+            createTime: Number(story.createTime) || Date.now(),
+            updateTime: Number(story.updateTime) || Date.now(),
+            worldSetting: Utils.safeJsonParse(JSON.stringify(story.worldSetting), { characterSetting: "", worldSetting: "", plotOutline: "" })
           });
         }
-      }
-      const hasDefaultStory = storyList.some(item => item.id === "default_story");
-      if (!hasDefaultStory) {
-        storyList.unshift({
-          id: "default_story",
-          title: "默认故事",
-          content: "",
-          plainText: "",
-          wordCount: 0,
-          createTime: Date.now(),
-          updateTime: Date.now(),
-          worldSetting: { characterSetting: "", worldSetting: "", plotOutline: "" }
-        });
-      }
-      const currentStoryId = extension_settings[extensionName]?.currentStoryId;
-      if (!currentStoryId || !storyList.some(item => item.id === currentStoryId)) {
-        extension_settings[extensionName].currentStoryId = "default_story";
-        saveSettingsDebounced();
-      }
-      const savedRecycle = localStorage.getItem(RECYCLE_BIN_STORAGE_KEY);
-      recycleBin = [];
-      if (savedRecycle) {
-        const parsedRecycle = JSON.parse(savedRecycle);
-        if (Array.isArray(parsedRecycle)) {
-          recycleBin = parsedRecycle;
-        }
-      }
-      localStorage.setItem(STORY_LIST_STORAGE_KEY, JSON.stringify(storyList));
-    } catch (e) {
-      console.error("[彩云小梦] 故事列表初始化失败", e);
-      storyList = [{
+      });
+    }
+    
+    const hasDefaultStory = storyList.some(item => item.id === "default_story");
+    if (!hasDefaultStory) {
+      storyList.unshift({
         id: "default_story",
         title: "默认故事",
         content: "",
@@ -542,22 +563,25 @@ const Storage = {
         createTime: Date.now(),
         updateTime: Date.now(),
         worldSetting: { characterSetting: "", worldSetting: "", plotOutline: "" }
-      }];
-      recycleBin = [];
+      });
+    }
+    
+    const currentStoryId = extension_settings[extensionName]?.currentStoryId;
+    if (!currentStoryId || !storyList.some(item => item.id === currentStoryId)) {
       extension_settings[extensionName].currentStoryId = "default_story";
       saveSettingsDebounced();
     }
+    
+    recycleBin = Utils.safeLocalStorageGet(RECYCLE_BIN_STORAGE_KEY, []);
+    if (!Array.isArray(recycleBin)) recycleBin = [];
+    
+    Utils.safeLocalStorageSet(STORY_LIST_STORAGE_KEY, storyList);
   },
 
   saveStoryList() {
-    try {
-      localStorage.setItem(STORY_LIST_STORAGE_KEY, JSON.stringify(storyList));
-      localStorage.setItem(RECYCLE_BIN_STORAGE_KEY, JSON.stringify(recycleBin));
-      console.log("[彩云小梦] 故事数据已同步保存", storyList.length, "个故事");
-    } catch (e) {
-      console.error("[彩云小梦] 故事列表保存失败", e);
-      toastr.error("故事数据保存失败，请检查存储空间", "错误");
-    }
+    Utils.safeLocalStorageSet(STORY_LIST_STORAGE_KEY, storyList);
+    Utils.safeLocalStorageSet(RECYCLE_BIN_STORAGE_KEY, recycleBin);
+    console.log("[彩云小梦] 故事数据已同步保存", storyList.length, "个故事");
   },
 
   saveCurrentStoryWorldSetting() {
@@ -574,25 +598,12 @@ const Storage = {
   },
 
   initCustomStyles() {
-    try {
-      const savedStyles = localStorage.getItem(CUSTOM_STYLE_STORAGE_KEY);
-      if (savedStyles) {
-        customStylesList = JSON.parse(savedStyles);
-      } else {
-        customStylesList = [];
-      }
-    } catch (e) {
-      console.error("[彩云小梦] 自定义风格加载失败", e);
-      customStylesList = [];
-    }
+    customStylesList = Utils.safeLocalStorageGet(CUSTOM_STYLE_STORAGE_KEY, []);
+    if (!Array.isArray(customStylesList)) customStylesList = [];
   },
 
   saveCustomStyles() {
-    try {
-      localStorage.setItem(CUSTOM_STYLE_STORAGE_KEY, JSON.stringify(customStylesList));
-    } catch (e) {
-      console.error("[彩云小梦] 自定义风格保存失败", e);
-    }
+    Utils.safeLocalStorageSet(CUSTOM_STYLE_STORAGE_KEY, customStylesList);
   }
 };
 
@@ -1519,6 +1530,17 @@ const UI = {
                       <span class="settings-switch-slider"></span>
                     </label>
                   </div>
+                  <div style="margin-top: 15px; padding: 12px; background: var(--xiaomeng-bg); border-radius: 8px;">
+                    <div style="margin-bottom: 10px; font-weight: 500; color: var(--xiaomeng-text);">API 限流管理</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <span style="font-size: 13px; color: var(--xiaomeng-text-secondary);">
+                        当前 1 分钟内调用: <span id="api_call_count" style="font-weight: 600; color: var(--xiaomeng-primary);">${apiCallTimestamps.length}</span>/${MAX_API_CALLS_PER_MINUTE}
+                      </span>
+                      <button class="menu_button" id="clear_rate_limit_btn" style="padding: 6px 12px; font-size: 13px;">
+                        <i class="fa-solid fa-rotate-right"></i> 清除记录
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1835,6 +1857,14 @@ const UI = {
       saveSettingsDebounced();
     });
     
+    editorDom.find("#clear_rate_limit_btn").on("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      API.clearRateLimitHistory();
+      editorDom.find("#api_call_count").text("0");
+      toastr.success("已清除 API 调用限流记录", "操作成功");
+    });
+    
     editorDom.find("#export_content_btn").on("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -1914,19 +1944,25 @@ const UI = {
     const currentCount = extension_settings[extensionName].continuationWordCount || 200;
     const completeSentenceEnd = extension_settings[extensionName].completeSentenceEnd || defaultSettings.completeSentenceEnd;
     const enableWorldSetting = extension_settings[extensionName].enableWorldSetting || defaultSettings.enableWorldSetting;
+    
+    // 更新API调用计数（先清理过期记录）
+    const now = Date.now();
+    apiCallTimestamps = apiCallTimestamps.filter(timestamp => now - timestamp < API_RATE_LIMIT_WINDOW_MS);
+    
     editorDom.find("#current_word_count_tip").text(currentCount);
     editorDom.find("#custom_word_count_input").val(currentCount);
     editorDom.find(".word-count-btn").removeClass("active");
     editorDom.find(`.word-count-btn[data-count="${currentCount}"]`).addClass("active");
     editorDom.find("#modal_complete_sentence_end").prop("checked", completeSentenceEnd);
     editorDom.find("#modal_enable_world_setting").prop("checked", enableWorldSetting);
+    editorDom.find("#api_call_count").text(apiCallTimestamps.length);
     editorDom.find("#settings_modal").fadeIn(200);
   }
 };
 
 const Main = {
-  destroyEditor() {
-    UI.unbindAllEditorEvents();
+  // 完全重置所有状态变量
+  resetAllState() {
     isGenerating = false;
     stopGenerateFlag = true;
     currentBranchResults = [];
@@ -1936,16 +1972,26 @@ const Main = {
     cursorAfterText = "";
     currentSelectedBranchIndex = 0;
     isEditingPreview = false;
-    isEditorDestroyed = true;
     historyStack = [];
     historyIndex = -1;
     isHistoryProcessing = false;
+    if (autoSaveTimer) {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = null;
+    }
+  },
+
+  destroyEditor() {
+    UI.unbindAllEditorEvents();
+    Main.resetAllState();
     Storage.saveEditorContentToLocal();
     if (editorDom) {
+      editorDom.closest(".xiaomeng-mask").removeClass("show");
       editorDom.remove();
       editorDom = null;
     }
-    console.log("[彩云小梦] 编辑器已销毁");
+    isEditorDestroyed = true;
+    console.log("[彩云小梦] 编辑器已安全销毁");
   },
 
   openXiaomengEditor() {
@@ -1961,9 +2007,7 @@ const Main = {
     editorDom = $(editorHtml);
     $("body").append(editorDom);
     isEditorDestroyed = false;
-    historyStack = [];
-    historyIndex = -1;
-    isHistoryProcessing = false;
+    Main.resetAllState();
     const savedContent = Storage.loadEditorContentFromLocal();
     editorDom.find("#xiaomeng_editor_textarea").html(savedContent.content);
     const settings = extension_settings[extensionName];
@@ -1980,7 +2024,7 @@ const Main = {
     History.updateButtons();
     editorDom.closest(".xiaomeng-mask").addClass("show");
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
-    console.log("[彩云小梦] 编辑器已打开，版本v2.1.0 优化版");
+    console.log("[彩云小梦] 编辑器已打开，版本v2.2.0 深度优化版");
   },
 
   exportContentToFile(format = "txt") {
