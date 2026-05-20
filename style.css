@@ -369,29 +369,358 @@
   background: #2D1A1A;
 }
 /* ==============================================
-   移动端适配（100%保留原有配置，强制显示所有功能按钮）
+   移动端深度优化（全面优化手机端体验）
    ============================================== */
 @media (max-width: 768px) {
+  :root {
+    --xiaomeng-header-height: 52px;
+    --xiaomeng-bottom-bar-height: 52px;
+    --touch-target-min: 44px;
+  }
+  
   .xiaomeng-modal {
     padding: 10px;
+    padding-bottom: env(safe-area-inset-bottom, 10px);
   }
   .xiaomeng-modal-content {
     max-width: calc(100vw - 20px);
     max-height: calc(100vh - 20px);
+    max-height: calc(env(safe-area-inset-top) + env(safe-area-inset-bottom) + 600px);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .xiaomeng-modal-header {
+    padding: 16px 20px;
+    min-height: 52px;
+  }
+  .xiaomeng-modal-header h3 {
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .xiaomeng-modal-close-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+    min-width: var(--touch-target-min);
+    min-height: var(--touch-target-min);
+  }
+  .xiaomeng-modal-body {
+    padding: 16px 20px;
   }
   .xiaomeng-modal-footer {
     flex-direction: column;
     width: 100%;
+    gap: 12px;
+    padding: 16px 20px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
   }
   .xiaomeng-modal-btn {
     width: 100%;
+    height: 48px;
+    font-size: 16px;
+    font-weight: 500;
+    min-height: var(--touch-target-min);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .story-tab-header {
+    gap: 8px;
+    margin-bottom: 16px;
   }
   .story-tab-item {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 10px 16px;
+    font-size: 14px;
+    min-height: var(--touch-target-min);
+    display: flex;
+    align-items: center;
   }
   .story-item {
+    padding: 14px;
+    min-height: 72px;
+    gap: 12px;
+  }
+  .story-item-title {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .story-item-meta {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .story-item-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    min-width: var(--touch-target-min);
+    min-height: var(--touch-target-min);
+  }
+  
+  .xiaomeng-mask {
+    padding: 8px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+  .xiaomeng-editor-container {
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    max-height: calc(env(safe-area-inset-top) + env(safe-area-inset-bottom) + 700px);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .xiaomeng-editor-container .xiaomeng-header {
+    padding: 0 10px;
+    height: var(--xiaomeng-header-height);
+    min-height: var(--xiaomeng-header-height);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .xiaomeng-editor-container .header-left {
+    gap: 8px;
+  }
+  .xiaomeng-editor-container .header-logo {
+    font-size: 15px;
+  }
+  .xiaomeng-editor-container .header-logo span {
+    display: none;
+  }
+  .xiaomeng-editor-container .header-icon-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: var(--touch-target-min) !important;
+    min-height: var(--touch-target-min) !important;
+    font-size: 18px !important;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-shrink: 0;
+  }
+  .xiaomeng-editor-container .header-right {
+    gap: 4px;
+    flex-shrink: 0;
+    display: flex !important;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .xiaomeng-editor-container .header-right::-webkit-scrollbar {
+    display: none;
+  }
+  .xiaomeng-editor-container .header-mode-switch {
+    padding: 2px;
+  }
+  .xiaomeng-editor-container .mode-btn {
+    padding: 6px 14px;
+    font-size: 13px;
+    min-height: 32px;
+  }
+  
+  .xiaomeng-editor-container .xiaomeng-editor-main {
+    padding: 16px 12px;
+    flex: 1;
+    min-height: 200px;
+  }
+  .xiaomeng-editor-container .editor-content-wrapper {
+    gap: 12px;
+  }
+  .xiaomeng-editor-container .editor-main-content {
+    font-size: 16px;
+    line-height: 1.8;
+    min-height: 250px;
+  }
+  
+  .xiaomeng-editor-container .footer-bottom-bar {
+    padding: 0 8px;
+    gap: 8px;
+    height: var(--xiaomeng-bottom-bar-height);
+    min-height: var(--xiaomeng-bottom-bar-height);
+    padding-bottom: env(safe-area-inset-bottom);
+    position: sticky;
+    bottom: 0;
+  }
+  .xiaomeng-editor-container .bar-left-group {
+    gap: 8px;
+  }
+  .xiaomeng-editor-container .bar-right-buttons {
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+  
+  .xiaomeng-editor-container .star-function-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+    min-width: var(--touch-target-min);
+    min-height: var(--touch-target-min);
+  }
+  .xiaomeng-editor-container .arrow-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    min-width: var(--touch-target-min);
+    min-height: var(--touch-target-min);
+  }
+  .xiaomeng-editor-container .version-btn {
+    padding: 8px 14px;
+    font-size: 14px;
+    min-height: var(--touch-target-min);
+    display: flex;
+    align-items: center;
+  }
+  
+  .xiaomeng-editor-container .style-select-wrapper {
+    max-width: 120px;
+    min-width: 90px;
+  }
+  .xiaomeng-editor-container .style-select-btn {
+    font-size: 14px;
+    padding: 8px 10px;
+    min-height: var(--touch-target-min);
+  }
+  .xiaomeng-editor-container .ai-continue-btn {
+    padding: 10px 16px;
+    font-size: 15px;
+    min-height: var(--touch-target-min);
+    min-width: 80px;
+  }
+  
+  .xiaomeng-editor-container .footer-results-area {
+    padding: 12px 8px;
+    min-height: 140px;
+    max-height: 160px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .xiaomeng-editor-container .result-card {
+    min-width: 240px;
+    max-width: 240px;
     padding: 12px;
+    min-height: 90px;
+  }
+  .xiaomeng-editor-container .card-preview-text {
+    font-size: 13px;
+    line-height: 1.6;
+    -webkit-line-clamp: 3;
+  }
+  
+  .xiaomeng-editor-container .preview-operation-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .xiaomeng-editor-container .preview-btn {
+    flex: 1;
+    min-width: 60px;
+    font-size: 14px;
+    height: 48px;
+    min-height: var(--touch-target-min);
+  }
+  
+  .xiaomeng-editor-container .function-dropdown-menu {
+    min-width: 180px;
+    max-height: 350px;
+  }
+  .xiaomeng-editor-container .function-dropdown-item {
+    font-size: 15px;
+    padding: 14px 16px;
+    min-height: var(--touch-target-min);
+    display: flex;
+    align-items: center;
+  }
+  
+  .xiaomeng-editor-container .custom-prompt-bar input {
+    font-size: 15px;
+    padding: 8px 0;
+  }
+  .xiaomeng-editor-container .custom-prompt-bar input::placeholder {
+    font-size: 14px;
+  }
+  
+  .xiaomeng-editor-container .settings-modal {
+    padding: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+  .xiaomeng-editor-container .settings-modal-content {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 20px);
+    border-radius: 20px;
+  }
+  .xiaomeng-editor-container .settings-modal-header {
+    padding: 16px;
+  }
+  .xiaomeng-editor-container .settings-modal-body {
+    padding: 16px;
+  }
+  .xiaomeng-editor-container .word-count-btn {
+    min-width: 56px;
+    padding: 10px 6px;
+    font-size: 13px;
+    min-height: var(--touch-target-min);
+  }
+  .xiaomeng-editor-container .custom-word-count-btn {
+    min-height: var(--touch-target-min);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .xiaomeng-editor-container .settings-switch-item {
+    min-height: var(--touch-target-min);
+    display: flex;
+    align-items: center;
+  }
+  
+  .xiaomeng-editor-container .cancel-btn,
+  .xiaomeng-editor-container .refresh-btn {
+    padding: 8px 14px;
+    font-size: 14px;
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --xiaomeng-header-height: 48px;
+    --xiaomeng-bottom-bar-height: 56px;
+  }
+  
+  .xiaomeng-modal {
+    padding: 6px;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  }
+  .xiaomeng-modal-content {
+    max-width: calc(100vw - 12px);
+    max-height: calc(100vh - 12px);
+    border-radius: 16px;
+  }
+  .xiaomeng-modal-header {
+    padding: 14px 16px;
+  }
+  .xiaomeng-modal-header h3 {
+    font-size: 16px;
+  }
+  .xiaomeng-modal-body {
+    padding: 14px 16px;
+  }
+  .xiaomeng-modal-footer {
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .xiaomeng-modal-btn {
+    height: 44px;
+    font-size: 15px;
+  }
+  
+  .story-item {
+    padding: 12px;
+    min-height: 68px;
   }
   .story-item-title {
     font-size: 14px;
@@ -399,227 +728,234 @@
   .story-item-meta {
     font-size: 11px;
   }
+  
   .xiaomeng-mask {
-    padding: 10px;
+    padding: 4px;
+    padding-bottom: calc(4px + env(safe-area-inset-bottom));
   }
   .xiaomeng-editor-container {
-    max-width: calc(100vw - 20px);
-    max-height: calc(100vh - 20px);
+    max-width: calc(100vw - 8px);
+    max-height: calc(100vh - 8px);
+    border-radius: 16px;
   }
+  
   .xiaomeng-editor-container .xiaomeng-header {
-    padding: 0 12px;
+    padding: 0 6px;
+    height: var(--xiaomeng-header-height);
+    min-height: var(--xiaomeng-header-height);
   }
-  .xiaomeng-editor-container .header-logo span {
-    display: none;
+  .xiaomeng-editor-container .header-left {
+    gap: 4px;
   }
-  /* 强制显示所有header按钮，不隐藏 */
   .xiaomeng-editor-container .header-right {
-    gap: 6px;
-    flex-shrink: 0;
-    display: flex !important;
+    gap: 2px;
   }
   .xiaomeng-editor-container .header-icon-btn {
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
     font-size: 16px !important;
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
   }
-  .xiaomeng-editor-container .mode-btn {
-    padding: 5px 12px;
-  }
-  .xiaomeng-editor-container .xiaomeng-editor-main {
-    padding: 20px 12px 20px 12px;
-  }
-  .xiaomeng-editor-container .footer-bottom-bar {
-    padding: 0 8px;
-    gap: 12px;
-  }
-  .xiaomeng-editor-container .bar-right-buttons {
-    gap: 12px;
-  }
-  .xiaomeng-editor-container .style-select-wrapper {
-    max-width: 140px;
-    min-width: 100px;
-  }
-  .xiaomeng-editor-container .style-select-btn {
-    font-size: 14px;
-    padding: 8px 10px;
-  }
-  .xiaomeng-editor-container .ai-continue-btn {
-    padding: 10px 18px;
-    font-size: 16px;
-  }
-  .xiaomeng-editor-container .version-btn {
-    padding: 8px 16px;
-    font-size: 14px;
-  }
-  .xiaomeng-editor-container .result-card {
-    min-width: 240px;
-    max-width: 240px;
-  }
-  .xiaomeng-editor-container .footer-results-area {
-    padding: 10px 8px;
-  }
-  .xiaomeng-editor-container .preview-operation-bar {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  .xiaomeng-editor-container .preview-btn {
-    min-width: 60px;
-    font-size: 14px;
-  }
-  .xiaomeng-editor-container .word-count-btn {
-    min-width: 60px;
-    padding: 8px 6px;
-    font-size: 13px;
-  }
-  .xiaomeng-editor-container .function-dropdown-menu {
-    min-width: 160px;
-  }
-  .xiaomeng-editor-container .function-dropdown-item {
-    font-size: 15px;
-    padding: 12px 16px;
-  }
-  .xiaomeng-editor-container .custom-prompt-bar input {
-    font-size: 14px;
-  }
-  .xiaomeng-editor-container .custom-prompt-bar input::placeholder {
-    font-size: 14px;
-  }
-  .xiaomeng-editor-container .arrow-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 18px;
-  }
-  .xiaomeng-editor-container .star-function-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
-  }
-  /* 移动端设置弹窗适配 */
-  .xiaomeng-editor-container .settings-modal {
-    padding: 10px;
-  }
-  .xiaomeng-editor-container .settings-modal-content {
-    max-width: calc(100vw - 20px);
-    max-height: calc(100vh - 20px);
-  }
-}
-@media (max-width: 480px) {
-  .xiaomeng-modal {
-    padding: 8px;
-  }
-  .xiaomeng-modal-content {
-    max-width: calc(100vw - 16px);
-    max-height: calc(100vh - 16px);
-  }
-  .xiaomeng-modal-header {
-    padding: 16px;
-  }
-  .xiaomeng-modal-body {
-    padding: 16px;
-  }
-  .xiaomeng-modal-footer {
-    padding: 12px 16px;
-  }
-  /* 小屏隐藏模式开关，强制保留所有功能按钮 */
+  
   .xiaomeng-editor-container .header-mode-switch {
     display: none;
   }
   .xiaomeng-editor-container .version-btn-wrapper {
     display: none;
   }
-  /* 小屏强制显示所有header按钮，不隐藏任何按钮 */
-  .xiaomeng-editor-container .header-right {
-    gap: 4px;
-    flex-shrink: 0;
-    display: flex !important;
-    flex-wrap: nowrap;
+  
+  .xiaomeng-editor-container .xiaomeng-editor-main {
+    padding: 12px 10px;
   }
-  .xiaomeng-editor-container .xiaomeng-header {
-    padding: 0 8px;
-    flex-wrap: nowrap;
+  .xiaomeng-editor-container .editor-main-content {
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 200px;
   }
-  .xiaomeng-editor-container .header-left {
-    flex-shrink: 0;
-  }
-  .xiaomeng-editor-container .header-icon-btn {
-    width: 30px !important;
-    height: 30px !important;
-    min-width: 30px !important;
-    min-height: 30px !important;
-    font-size: 14px !important;
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
+  
   .xiaomeng-editor-container .footer-bottom-bar {
-    gap: 8px;
+    padding: 0 6px;
+    gap: 6px;
+    height: var(--xiaomeng-bottom-bar-height);
+    min-height: var(--xiaomeng-bottom-bar-height);
   }
+  
+  .xiaomeng-editor-container .star-function-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+  .xiaomeng-editor-container .arrow-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+  
   .xiaomeng-editor-container .style-select-wrapper {
-    max-width: 100px;
+    max-width: 90px;
+    min-width: 70px;
   }
+  .xiaomeng-editor-container .style-select-btn {
+    font-size: 12px;
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  .xiaomeng-editor-container .style-select-btn i:first-child {
+    width: 16px;
+    height: 16px;
+  }
+  .xiaomeng-editor-container .style-select-btn i:last-child {
+    font-size: 10px;
+  }
+  
   .xiaomeng-editor-container .ai-continue-btn {
-    padding: 8px 12px;
+    padding: 8px 10px;
     font-size: 14px;
+    min-width: 56px;
+    border-radius: 24px;
   }
   .xiaomeng-editor-container .ai-continue-btn span {
     display: none;
   }
+  .xiaomeng-editor-container .ai-continue-btn i {
+    font-size: 16px;
+  }
+  
+  .xiaomeng-editor-container .footer-results-area {
+    padding: 10px 6px;
+    min-height: 120px;
+    max-height: 140px;
+  }
+  .xiaomeng-editor-container .result-card {
+    min-width: 220px;
+    max-width: 220px;
+    padding: 10px;
+    min-height: 80px;
+  }
+  .xiaomeng-editor-container .card-preview-text {
+    font-size: 12px;
+    -webkit-line-clamp: 3;
+  }
+  
   .xiaomeng-editor-container .preview-operation-bar {
-    gap: 8px;
+    gap: 0;
   }
   .xiaomeng-editor-container .preview-btn {
-    min-width: 50px;
-    padding: 6px 8px;
+    min-width: 48px;
     font-size: 12px;
     height: 44px;
+    padding: 6px 4px;
   }
-  .xiaomeng-editor-container .word-count-btn {
-    min-width: 60px;
-    padding: 8px 6px;
-    font-size: 13px;
-  }
+  
   .xiaomeng-editor-container .function-dropdown-menu {
     min-width: 160px;
+    max-height: 320px;
   }
   .xiaomeng-editor-container .function-dropdown-item {
-    font-size: 15px;
-    padding: 12px 16px;
+    font-size: 14px;
+    padding: 12px 14px;
   }
+  
   .xiaomeng-editor-container .custom-prompt-bar input {
     font-size: 14px;
   }
-  .xiaomeng-editor-container .custom-prompt-bar input::placeholder {
-    font-size: 14px;
-  }
-  .xiaomeng-editor-container .arrow-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 18px;
-  }
-  .xiaomeng-editor-container .star-function-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 16px;
-  }
-  /* 小屏设置弹窗适配 */
+  
   .xiaomeng-editor-container .settings-modal {
-    padding: 8px;
+    padding: 6px;
   }
   .xiaomeng-editor-container .settings-modal-content {
-    max-width: calc(100vw - 16px);
-    max-height: calc(100vh - 16px);
+    max-width: calc(100vw - 12px);
+    max-height: calc(100vh - 12px);
   }
   .xiaomeng-editor-container .settings-modal-header {
-    padding: 16px;
+    padding: 14px;
   }
   .xiaomeng-editor-container .settings-modal-body {
-    padding: 16px;
+    padding: 14px;
+  }
+  .xiaomeng-editor-container .word-count-btn {
+    min-width: 52px;
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+  
+  .xiaomeng-editor-container .cancel-btn,
+  .xiaomeng-editor-container .refresh-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .xiaomeng-editor-container .footer-bottom-bar {
+    gap: 4px;
+  }
+  .xiaomeng-editor-container .style-select-wrapper {
+    display: none;
+  }
+  .xiaomeng-editor-container .ai-continue-btn {
+    min-width: 48px;
+    padding: 6px 8px;
+  }
+  .xiaomeng-editor-container .result-card {
+    min-width: 200px;
+    max-width: 200px;
+  }
+}
+
+@media (max-height: 500px) {
+  .xiaomeng-editor-container {
+    max-height: calc(100vh - 8px);
+    max-height: calc(env(safe-area-inset-top) + env(safe-area-inset-bottom) + 450px);
+  }
+  .xiaomeng-editor-container .xiaomeng-editor-main {
+    min-height: 150px;
+  }
+  .xiaomeng-editor-container .footer-results-area {
+    max-height: 120px;
+  }
+}
+
+@media (hover: none) {
+  .xiaomeng-editor-container .header-icon-btn:hover,
+  .xiaomeng-editor-container .star-function-btn:hover,
+  .xiaomeng-editor-container .arrow-btn:hover,
+  .xiaomeng-editor-container .style-select-btn:hover,
+  .xiaomeng-editor-container .ai-continue-btn:hover,
+  .xiaomeng-editor-container .function-dropdown-item:hover,
+  .xiaomeng-editor-container .style-dropdown-item:hover,
+  .xiaomeng-editor-container .preview-btn:hover,
+  .xiaomeng-editor-container .result-card:hover {
+    transform: none;
+  }
+  
+  .xiaomeng-editor-container .header-icon-btn:active,
+  .xiaomeng-editor-container .star-function-btn:active,
+  .xiaomeng-editor-container .arrow-btn:active,
+  .xiaomeng-editor-container .style-select-btn:active,
+  .xiaomeng-editor-container .ai-continue-btn:active:not(:disabled),
+  .xiaomeng-editor-container .function-dropdown-item:active,
+  .xiaomeng-editor-container .style-dropdown-item:active,
+  .xiaomeng-editor-container .preview-btn:active,
+  .xiaomeng-editor-container .result-card:active {
+    transform: scale(0.95);
+    opacity: 0.85;
+  }
+}
+
+@media (pointer: coarse) {
+  .xiaomeng-editor-container .header-icon-btn,
+  .xiaomeng-editor-container .star-function-btn,
+  .xiaomeng-editor-container .arrow-btn,
+  .xiaomeng-editor-container .style-select-btn,
+  .xiaomeng-editor-container .ai-continue-btn,
+  .xiaomeng-editor-container .preview-btn,
+  .xiaomeng-editor-container .story-item-btn,
+  .xiaomeng-editor-container .xiaomeng-modal-close-btn,
+  .xiaomeng-editor-container .xiaomeng-modal-btn {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 /* ==============================================
