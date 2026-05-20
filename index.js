@@ -194,6 +194,95 @@ const Utils = {
 };
 
 const API = {
+  // 获取 SillyTavern 当前预设（Presets）信息
+  getActivePresetInfo() {
+    const context = getContext();
+    const presetInfo = {
+      name: null,
+      model: null,
+      model_name: null,
+      max_context_length: null,
+      prompt_template: null,
+      system_prompt: null,
+      system_prompt_prefix: null,
+      system_prompt_suffix: null,
+      system_prompt_enabled: null,
+      jailbreak_prompt: null,
+      jailbreak_prompt_enabled: null,
+      instructions_prompt: null,
+      instructions_enabled: null,
+      generation_settings: null,
+      preset_data: null,
+    };
+
+    try {
+      // 尝试从 window 对象获取预设信息
+      if (typeof window !== 'undefined') {
+        // 当前预设名称
+        if (window.current_preset) {
+          presetInfo.name = window.current_preset;
+        }
+        
+        // 当前模型信息
+        if (window.model) {
+          presetInfo.model = window.model;
+        }
+        if (window.model_name) {
+          presetInfo.model_name = window.model_name;
+        }
+        if (window.max_context_length) {
+          presetInfo.max_context_length = window.max_context_length;
+        }
+        
+        // 提示词相关
+        if (window.system_prompt) {
+          presetInfo.system_prompt = window.system_prompt;
+        }
+        if (window.jailbreak_prompt) {
+          presetInfo.jailbreak_prompt = window.jailbreak_prompt;
+        }
+        
+        // 预设列表
+        if (window.presets && typeof window.presets === 'object') {
+          const currentPresetName = window.current_preset || 'default';
+          if (window.presets[currentPresetName]) {
+            presetInfo.preset_data = window.presets[currentPresetName];
+            
+            // 从预设数据中提取详细信息
+            const preset = window.presets[currentPresetName];
+            if (preset.model) presetInfo.model = preset.model;
+            if (preset.max_context_length) presetInfo.max_context_length = preset.max_context_length;
+            if (preset.prompt_template) presetInfo.prompt_template = preset.prompt_template;
+            if (preset.system_prompt) presetInfo.system_prompt = preset.system_prompt;
+            if (preset.system_prompt_prefix) presetInfo.system_prompt_prefix = preset.system_prompt_prefix;
+            if (preset.system_prompt_suffix) presetInfo.system_prompt_suffix = preset.system_prompt_suffix;
+            if (preset.system_prompt_enabled !== undefined) presetInfo.system_prompt_enabled = preset.system_prompt_enabled;
+            if (preset.jailbreak_prompt) presetInfo.jailbreak_prompt = preset.jailbreak_prompt;
+            if (preset.jailbreak_prompt_enabled !== undefined) presetInfo.jailbreak_prompt_enabled = preset.jailbreak_prompt_enabled;
+            if (preset.instructions_prompt) presetInfo.instructions_prompt = preset.instructions_prompt;
+            if (preset.instructions_enabled !== undefined) presetInfo.instructions_enabled = preset.instructions_enabled;
+            
+            // 生成设置
+            if (preset.generation_settings) {
+              presetInfo.generation_settings = preset.generation_settings;
+            }
+          }
+        }
+      }
+
+      // 从上下文获取生成设置（作为补充）
+      if (!presetInfo.generation_settings && context?.generationSettings) {
+        presetInfo.generation_settings = context.generationSettings;
+      }
+
+      console.log('[彩云小梦] 获取到的 SillyTavern 预设信息:', presetInfo);
+    } catch (e) {
+      console.warn('[彩云小梦] 获取 SillyTavern 预设信息失败:', e);
+    }
+
+    return presetInfo;
+  },
+
   // 获取 SillyTavern 完整上下文信息
   getSillyTavernContext() {
     const context = getContext();
@@ -207,9 +296,13 @@ const API = {
       jailbreakPrompt: null,
       generationSettings: null,
       mainPrompt: null,
+      presetInfo: null,
     };
 
     try {
+      // 获取预设信息（优先）
+      ctxInfo.presetInfo = API.getActivePresetInfo();
+
       // 获取角色数据 (charData)
       if (context?.charId && context?.characters) {
         const charId = context.charId;
@@ -256,15 +349,27 @@ const API = {
       // 获取场景信息
       ctxInfo.scenario = context?.scenario || null;
 
-      // 获取各种提示词
+      // 获取各种提示词（优先从预设中获取）
+      if (ctxInfo.presetInfo?.system_prompt) {
+        ctxInfo.systemPrompt = ctxInfo.presetInfo.system_prompt;
+      } else if (typeof window !== 'undefined' && window.system_prompt) {
+        ctxInfo.systemPrompt = window.system_prompt;
+      }
+      
+      if (ctxInfo.presetInfo?.jailbreak_prompt) {
+        ctxInfo.jailbreakPrompt = ctxInfo.presetInfo.jailbreak_prompt;
+      } else if (typeof window !== 'undefined' && window.jailbreak_prompt) {
+        ctxInfo.jailbreakPrompt = window.jailbreak_prompt;
+      }
+
       if (typeof window !== 'undefined') {
-        ctxInfo.systemPrompt = window.system_prompt || null;
-        ctxInfo.jailbreakPrompt = window.jailbreak_prompt || null;
         ctxInfo.mainPrompt = window.main_prompt || null;
       }
 
-      // 获取生成设置
-      if (context?.generationSettings) {
+      // 获取生成设置（优先从预设中获取）
+      if (ctxInfo.presetInfo?.generation_settings) {
+        ctxInfo.generationSettings = ctxInfo.presetInfo.generation_settings;
+      } else if (context?.generationSettings) {
         ctxInfo.generationSettings = context.generationSettings;
       }
 
@@ -690,10 +795,62 @@ const Storage = {
 };
 
 const Generation = {
+  // 整合 SillyTavern 预设（Presets）信息到系统提示词
+  buildPresetPrompt(presetInfo) {
+    let presetPrompt = '';
+    
+    if (!presetInfo) return presetPrompt;
+    
+    // 添加预设名称
+    if (presetInfo.name) {
+      presetPrompt += `\n\n【当前使用的 SillyTavern 预设】${presetInfo.name}`;
+    }
+    
+    // 添加模型信息
+    if (presetInfo.model || presetInfo.model_name) {
+      presetPrompt += `\n【模型信息】${presetInfo.model_name || presetInfo.model || '未指定'}`;
+    }
+    
+    // 添加系统提示词（从预设）
+    if (presetInfo.system_prompt_enabled !== false && presetInfo.system_prompt) {
+      presetPrompt += `\n【预设系统提示词】${presetInfo.system_prompt}`;
+    }
+    
+    // 添加系统提示词前缀和后缀
+    if (presetInfo.system_prompt_prefix) {
+      presetPrompt += `\n【系统提示词前缀】${presetInfo.system_prompt_prefix}`;
+    }
+    if (presetInfo.system_prompt_suffix) {
+      presetPrompt += `\n【系统提示词后缀】${presetInfo.system_prompt_suffix}`;
+    }
+    
+    // 添加 jailbreak 提示词
+    if (presetInfo.jailbreak_prompt_enabled !== false && presetInfo.jailbreak_prompt) {
+      presetPrompt += `\n【预设 Jailbreak 提示词】${presetInfo.jailbreak_prompt}`;
+    }
+    
+    // 添加指令提示词
+    if (presetInfo.instructions_enabled !== false && presetInfo.instructions_prompt) {
+      presetPrompt += `\n【预设指令提示词】${presetInfo.instructions_prompt}`;
+    }
+    
+    // 添加提示词模板
+    if (presetInfo.prompt_template) {
+      presetPrompt += `\n【提示词模板】${presetInfo.prompt_template}`;
+    }
+    
+    return presetPrompt;
+  },
+
   // 整合 SillyTavern 上下文信息到系统提示词
   buildContextPrompt(ctxInfo) {
     let contextPrompt = '';
     
+    // 优先添加预设信息（用户要求的）
+    if (ctxInfo.presetInfo) {
+      contextPrompt += Generation.buildPresetPrompt(ctxInfo.presetInfo);
+    }
+
     // 添加角色数据
     if (ctxInfo.charData) {
       const { name, description, personality, scenario, first_mes, mes_example, tags } = ctxInfo.charData;
@@ -727,11 +884,11 @@ const Generation = {
       });
     }
 
-    // 添加系统提示词和越狱提示词（如果有）
-    if (ctxInfo.systemPrompt) {
+    // 添加额外的系统提示词和越狱提示词（如果预设中没有）
+    if (ctxInfo.systemPrompt && (!ctxInfo.presetInfo || ctxInfo.presetInfo.system_prompt !== ctxInfo.systemPrompt)) {
       contextPrompt += `\n【SillyTavern 系统提示词】${ctxInfo.systemPrompt}`;
     }
-    if (ctxInfo.jailbreakPrompt) {
+    if (ctxInfo.jailbreakPrompt && (!ctxInfo.presetInfo || ctxInfo.presetInfo.jailbreak_prompt !== ctxInfo.jailbreakPrompt)) {
       contextPrompt += `\n【SillyTavern Jailbreak 提示词】${ctxInfo.jailbreakPrompt}`;
     }
     if (ctxInfo.mainPrompt) {

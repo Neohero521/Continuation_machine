@@ -94,6 +94,15 @@ plaintext
 4. 请遵守国家相关法律法规与AI生成内容规范，插件仅用于合法的虚构文学创作，禁止用于生成违规内容
 
 ## 📝 更新日志
+### v2.3.1 SillyTavern 预设深度整合
+- 🎛️ 预设读取：新增 `getActivePresetInfo()` 函数，自动获取当前 SillyTavern 预设的全部内容
+- 📝 预设提示词：自动读取预设中的 system_prompt、system_prompt_prefix/suffix、jailbreak_prompt、instructions_prompt
+- 📋 提示词模板：读取预设的 prompt_template 配置
+- 🤖 模型信息：获取预设指定的模型名称和参数
+- ⚙️ 生成设置：自动读取预设中的 generation_settings 参数
+- 📊 智能整合：新增 `buildPresetPrompt()` 函数，优先使用预设信息生成提示词
+- 🎯 优先顺序：预设信息 > 角色数据 > 全局提示词，确保生成内容符合当前预设配置
+
 ### v2.3.0 SillyTavern 深度上下文整合
 - 🔗 深度整合：新增 `getSillyTavernContext()` 函数，完整获取 SillyTavern 的所有上下文信息
 - 🎭 角色数据：自动读取当前角色信息（角色名、描述、性格、场景、示例对话、标签等）
