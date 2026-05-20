@@ -22,6 +22,9 @@ const defaultSettings = {
   currentStyle: "脑洞大开",
   customPrompt: "",
   continuationWordCount: 200,
+  expansionWordCount: 500,
+  shortenWordCount: 100,
+  rewriteWordCount: 200,
   completeSentenceEnd: false,
   enableWorldSetting: false,
   autoSaveInterval: 500,
@@ -897,6 +900,82 @@ const Generation = {
     return finalBranches;
   },
 
+  async generateSingleBranch(prompt, generateParams, targetWordCount, selectedText, functionType) {
+    if (!prompt || prompt.trim() === '' || EMPTY_CONTENT_REGEX.test(prompt.trim())) {
+      throw new Error('生成内容不能为空');
+    }
+    const settings = extension_settings[extensionName];
+    
+    const ctxInfo = API.getSillyTavernContext();
+    let finalSystemPrompt = generateParams.systemPrompt || '';
+    finalSystemPrompt += Generation.buildContextPrompt(ctxInfo);
+    
+    if (settings.enableWorldSetting) {
+      const { characterSetting, worldSetting, plotOutline } = currentWorldSetting;
+      if (characterSetting || worldSetting || plotOutline) {
+        finalSystemPrompt += `\n\n【彩云小梦 - 小说固定设定（必须100%严格遵守，不得偏离）】
+1. 人物设定：${characterSetting || '无特殊设定'}
+2. 世界观设定：${worldSetting || '无特殊设定'}
+3. 剧情大纲：${plotOutline || '无特殊设定'}
+所有创作内容必须严格遵循上述设定。`;
+      }
+    }
+    
+    let functionName = '创作';
+    switch (functionType) {
+      case 'expand': functionName = '扩写'; break;
+      case 'shorten': functionName = '缩写'; break;
+      case 'rewrite': functionName = '改写'; break;
+    }
+    
+    finalSystemPrompt += `\n\n【核心强制规则（必须100%遵守）】
+1. 字数要求：严格按指定字数生成内容，误差不超过10%
+2. 仅输出一段内容，禁止输出多条分支
+3. 扩写需丰富细节，缩写需精简核心，改写需保持情节`;
+    
+    if (functionType === 'expand') {
+      finalSystemPrompt += `\n4. 扩写格式：仅输出一条扩写内容，零开头空白，严格控制字数，保留原文换行格式`;
+    } else if (functionType === 'rewrite') {
+      finalSystemPrompt += `\n4. 改写格式：仅输出一条改写内容，零开头空白，严格控制字数，保留原文换行格式`;
+    } else if (functionType === 'shorten') {
+      finalSystemPrompt += `\n4. 缩写格式：仅输出一条缩写内容，零开头空白，严格控制字数`;
+    }
+    
+    const finalOptions = {
+      ...generateParams,
+      systemPrompt: finalSystemPrompt,
+      prompt: prompt.trim(),
+      stream: false,
+      max_new_tokens: Math.ceil(targetWordCount * 2.5)
+    };
+    
+    console.log(`[彩云小梦] 开始生成单个${functionName}结果，目标字数：${targetWordCount}`);
+    
+    let content = await API.generateRawWithBreakLimit(finalOptions);
+    
+    content = Utils.cleanTextFormat(content);
+    content = content.replace(/^[\s\n\r\u3000\u2000-\u200F\u2028-\u202F]+/g, "");
+    
+    if (content.length > targetWordCount) {
+      const truncated = content.slice(0, targetWordCount);
+      const lastPunctuation = Math.max(
+        truncated.lastIndexOf("。"),
+        truncated.lastIndexOf("！"),
+        truncated.lastIndexOf("？"),
+        truncated.lastIndexOf("."),
+        truncated.lastIndexOf("!"),
+        truncated.lastIndexOf("?"),
+        truncated.lastIndexOf("\n")
+      );
+      const validEndPos = Math.max(lastPunctuation, targetWordCount * 0.7);
+      content = validEndPos > 0 ? truncated.slice(0, validEndPos + 1) : truncated;
+      if (content.length > targetWordCount) content = content.slice(0, targetWordCount);
+    }
+    
+    console.log(`[彩云小梦] ${functionName}生成成功，内容长度：${content.length}字符`);
+    return [content];
+  },
+
   buildGenerateConfig() {
     const settings = extension_settings[extensionName];
     const cursorInfo = Editor.getEditorCursorPosition();
@@ -906,7 +985,8 @@ const Generation = {
     const mode = editorDom.find("input[name='editor_mode']:checked").val();
     const functionType = settings.currentFunction;
     const userInstruction = Utils.cleanTextFormat(editorDom.find("#custom_prompt_input").val());
-    const targetWordCount = settings.continuationWordCount || 200;
+    let targetWordCount = settings.continuationWordCount || 200;
+    let isSingleBranch = false;
     if (!fullText || EMPTY_CONTENT_REGEX.test(fullText)) {
       toastr.warning("编辑器正文不能为空，请输入有效内容", "提示");
       return null;
@@ -950,21 +1030,49 @@ ${cursorInfo.afterText}
           toastr.warning("请先选中要扩写的内容", "提示");
           return null;
         }
-        prompt = `${basePrompt}你是专业的小说扩写助手，先补全选中内容里未完成的部分，再丰富细节，${fullStylePrompt}，每条扩写严格${targetWordCount}字，不多不少，误差为0，必须严格保留原文的分段换行格式。原文：${selectedText} 上下文：${fullText}`;
+        targetWordCount = settings.expansionWordCount || 500;
+        isSingleBranch = true;
+        prompt = `${basePrompt}你是专业的小说扩写助手，请对原文进行扩写：
+1. 先补全选中内容里未完成的部分
+2. 再丰富细节描写和情节发展
+3. ${fullStylePrompt}
+4. 扩写内容严格${targetWordCount}字，误差不超过10%
+5. 必须严格保留原文的分段换行格式
+
+原文：${selectedText}
+
+上下文：${fullText}`;
         break;
       case "shorten":
         if (!selectedText) {
           toastr.warning("请先选中要缩写的内容", "提示");
           return null;
         }
-        prompt = `${basePrompt}你是专业的文本缩写助手，精简选中内容，保留核心信息和分段格式，每条缩写严格${targetWordCount}字，不多不少，误差为0。原文：${selectedText}`;
+        targetWordCount = settings.shortenWordCount || 100;
+        isSingleBranch = true;
+        prompt = `${basePrompt}你是专业的文本缩写助手，请精简选中内容：
+1. 保留核心信息和关键情节
+2. 删除冗余描写和不必要的细节
+3. 保持文章逻辑连贯
+4. 缩写内容严格${targetWordCount}字，误差不超过10%
+
+原文：${selectedText}`;
         break;
       case "rewrite":
         if (!selectedText) {
           toastr.warning("请先选中要改写的内容", "提示");
           return null;
         }
-        prompt = `${basePrompt}你是专业的小说改写助手，先补全选中内容里未完成的部分，再用【${styleName}】风格重写，${fullStylePrompt}，不改变核心情节和分段格式，每条改写严格${targetWordCount}字，不多不少，误差为0。原文：${selectedText}`;
+        targetWordCount = settings.rewriteWordCount || 200;
+        isSingleBranch = true;
+        prompt = `${basePrompt}你是专业的小说改写助手，请用【${styleName}】风格改写选中内容：
+1. 先补全选中内容里未完成的部分
+2. 用指定的风格重写，但保持核心情节不变
+3. ${fullStylePrompt}
+4. 改写内容严格${targetWordCount}字，误差不超过10%
+5. 必须严格保留原文的分段换行格式
+
+原文：${selectedText}`;
         break;
       case "custom":
         prompt = `${basePrompt}你是专业的小说创作助手，先补全原文末尾未完成的句子、标点符号，再完成创作，${fullStylePrompt}，每条内容严格${targetWordCount}字，不多不少，误差为0，必须严格保留原文的分段换行格式。原文：${fullText}`;
@@ -979,7 +1087,9 @@ ${cursorInfo.afterText}
       cursorBeforeText: cursorInfo.beforeText,
       cursorAfterText: cursorInfo.afterText,
       fullText: fullText,
+      selectedText: selectedText,
       targetWordCount: targetWordCount,
+      isSingleBranch: isSingleBranch,
       prompt,
       generateParams: {
         ...baseParams,
@@ -2284,7 +2394,7 @@ const Main = {
     History.updateButtons();
     editorDom.closest(".xiaomeng-mask").addClass("show");
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
-    console.log("[彩云小梦] 编辑器已打开，版本v2.7.1 Bug修复版");
+    console.log("[彩云小梦] 编辑器已打开，版本v2.8.0 写作功能深度优化版");
   },
 
   exportContentToFile(format = "txt") {
@@ -2329,25 +2439,45 @@ const Main = {
     if (!config) return;
     isGenerating = true;
     const aiContinueBtn = editorDom.find("#ai_continue_btn");
-    aiContinueBtn.prop("disabled", true).addClass("loading").html(`<i class="fa-solid fa-spinner fa-spin"></i> <span>Ai 继续</span>`);
+    const functionType = extension_settings[extensionName].currentFunction;
+    const functionNameMap = {
+      'continuation': '续写',
+      'expand': '扩写',
+      'shorten': '缩写',
+      'rewrite': '改写',
+      'custom': '创作'
+    };
+    const functionName = functionNameMap[functionType] || '创作';
+    aiContinueBtn.prop("disabled", true).addClass("loading").html(`<i class="fa-solid fa-spinner fa-spin"></i> <span>Ai ${functionName}</span>`);
     editorDom.find("#refresh_results_btn").prop("disabled", true);
     Editor.closeAllDropdowns();
     editorDom.find("#loading_overlay").show().html(`
       <div class="loading-spinner">
         <i class="fa-solid fa-spinner fa-spin"></i>
-        <span>小梦正在创作中...</span>
+        <span>小梦正在${functionName}中...</span>
         <div class="loading-progress-bar">
           <div class="loading-progress-bar-inner"></div>
         </div>
       </div>
     `);
     try {
-      const branchResults = await Generation.generateThreeBranchesOnce(
-        config.prompt, 
-        config.generateParams, 
-        config.cursorBeforeText, 
-        config.targetWordCount
-      );
+      let branchResults;
+      if (config.isSingleBranch) {
+        branchResults = await Generation.generateSingleBranch(
+          config.prompt,
+          config.generateParams,
+          config.targetWordCount,
+          config.selectedText,
+          functionType
+        );
+      } else {
+        branchResults = await Generation.generateThreeBranchesOnce(
+          config.prompt, 
+          config.generateParams, 
+          config.cursorBeforeText, 
+          config.targetWordCount
+        );
+      }
       currentBranchResults = branchResults;
       originalEditorContent = editorDom.find("#xiaomeng_editor_textarea").html();
       originalEditorPlainText = config.fullText;
@@ -2359,13 +2489,17 @@ const Main = {
         editorDom.find("#results_area").slideDown(250);
         Preview.renderBranchCards();
       });
-      toastr.success(`续写内容已生成，共${FIXED_BRANCH_COUNT}条可选分支`, "完成");
+      if (config.isSingleBranch) {
+        toastr.success(`${functionName}内容已生成`, "完成");
+      } else {
+        toastr.success(`${functionName}内容已生成，共${FIXED_BRANCH_COUNT}条可选分支`, "完成");
+      }
     } catch (error) {
-      console.error("续写失败:", error);
-      toastr.error(`续写生成失败: ${error.message}`, "错误");
+      console.error(`${functionName}失败:`, error);
+      toastr.error(`${functionName}生成失败: ${error.message}`, "错误");
     } finally {
       if (editorDom && !isEditorDestroyed) {
-        aiContinueBtn.prop("disabled", false).removeClass("loading").html(`<i class="fa-solid fa-sparkles"></i> <span>Ai 继续</span>`);
+        aiContinueBtn.prop("disabled", false).removeClass("loading").html(`<i class="fa-solid fa-sparkles"></i> <span>Ai ${functionName}</span>`);
         editorDom.find("#refresh_results_btn").prop("disabled", false);
         editorDom.find("#loading_overlay").hide();
       }
@@ -2388,30 +2522,50 @@ const Main = {
     isEditingPreview = false;
     const config = Generation.buildGenerateConfig();
     if (!config) return;
-    if (!confirm("换一批将清除当前所有分支内容，重新生成新的续写分支，确定要继续吗？")) {
+    const functionType = extension_settings[extensionName].currentFunction;
+    const functionNameMap = {
+      'continuation': '续写',
+      'expand': '扩写',
+      'shorten': '缩写',
+      'rewrite': '改写',
+      'custom': '创作'
+    };
+    const functionName = functionNameMap[functionType] || '创作';
+    if (!confirm(`重新生成将清除当前所有内容，确定要继续吗？`)) {
       return;
     }
     isGenerating = true;
     const refreshBtn = editorDom.find("#refresh_results_btn");
-    refreshBtn.prop("disabled", true).html(`<i class="fa-solid fa-spinner fa-spin"></i> 换一批中...`);
+    refreshBtn.prop("disabled", true).html(`<i class="fa-solid fa-spinner fa-spin"></i> 重新生成中...`);
     editorDom.find("#results_cards_container").html(`<div class="empty-result-tip">正在重新生成内容，请稍候...</div>`);
     editorDom.find("#ai_continue_btn").prop("disabled", true);
     editorDom.find("#loading_overlay").show().html(`
       <div class="loading-spinner">
         <i class="fa-solid fa-spinner fa-spin"></i>
-        <span>正在重新生成分支...</span>
+        <span>正在重新生成${functionName}...</span>
         <div class="loading-progress-bar">
           <div class="loading-progress-bar-inner"></div>
         </div>
       </div>
     `);
     try {
-      const newBranchResults = await Generation.generateThreeBranchesOnce(
-        config.prompt, 
-        config.generateParams, 
-        config.cursorBeforeText, 
-        config.targetWordCount
-      );
+      let newBranchResults;
+      if (config.isSingleBranch) {
+        newBranchResults = await Generation.generateSingleBranch(
+          config.prompt,
+          config.generateParams,
+          config.targetWordCount,
+          config.selectedText,
+          functionType
+        );
+      } else {
+        newBranchResults = await Generation.generateThreeBranchesOnce(
+          config.prompt, 
+          config.generateParams, 
+          config.cursorBeforeText, 
+          config.targetWordCount
+        );
+      }
       currentBranchResults = newBranchResults;
       originalEditorContent = editorDom.find("#xiaomeng_editor_textarea").html();
       originalEditorPlainText = config.fullText;
@@ -2423,15 +2577,19 @@ const Main = {
         Preview.updateEditorPreviewContent(currentSelectedBranchIndex);
         Preview.renderBranchCards();
       });
-      toastr.success("分支内容已刷新", "完成");
+      if (config.isSingleBranch) {
+        toastr.success(`${functionName}内容已刷新`, "完成");
+      } else {
+        toastr.success(`${functionName}内容已刷新，共${FIXED_BRANCH_COUNT}条可选分支`, "完成");
+      }
     } catch (error) {
-      console.error("换一批失败:", error);
+      console.error(`重新生成${functionName}失败:`, error);
       editorDom.find("#results_cards_container").html(`<div class="empty-result-tip">生成失败，请重试</div>`);
-      toastr.error(`换一批失败: ${error.message}`, "错误");
+      toastr.error(`重新生成失败: ${error.message}`, "错误");
     } finally {
       isGenerating = false;
       if (editorDom && !isEditorDestroyed) {
-        refreshBtn.prop("disabled", false).html(`<i class="fa-solid fa-rotate-right"></i> 换一批`);
+        refreshBtn.prop("disabled", false).html(`<i class="fa-solid fa-rotate-right"></i> 重新生成`);
         editorDom.find("#ai_continue_btn").prop("disabled", false);
         editorDom.find("#loading_overlay").hide();
       }
@@ -2492,5 +2650,5 @@ jQuery(async () => {
   $(window).on("beforeunload", () => {
     Main.destroyEditor();
   });
-  console.log("[彩云小梦] 扩展初始化完成，版本v2.7.1 Bug修复版");
+  console.log("[彩云小梦] 扩展初始化完成，版本v2.8.0 写作功能深度优化版");
 });
