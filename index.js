@@ -527,10 +527,11 @@ const Editor = {
 
   closeAllDropdowns() {
     if (!editorDom || isEditorDestroyed) return;
+    console.log("[彩云小梦] 关闭所有下拉菜单");
     editorDom.find("#function_dropdown_menu").removeClass("show");
     editorDom.find("#style_dropdown_menu").removeClass("show");
-    editorDom.find("#custom_prompt_bar").slideUp(200);
-    editorDom.find("#bar_right_buttons").slideDown(200);
+    editorDom.find("#custom_prompt_bar").slideUp(150);
+    editorDom.find("#bar_right_buttons").slideDown(150);
   }
 };
 
@@ -1892,15 +1893,20 @@ const UI = {
       e.stopPropagation();
       const menu = editorDom.find("#function_dropdown_menu");
       const isMenuOpen = menu.hasClass("show");
+      
+      // 先关闭风格菜单
       editorDom.find("#style_dropdown_menu").removeClass("show");
+      
       if (!isMenuOpen) {
+        console.log("[彩云小梦] 打开功能下拉菜单");
         menu.addClass("show");
-        editorDom.find("#bar_right_buttons").slideUp(200);
-        editorDom.find("#custom_prompt_bar").slideDown(200);
+        editorDom.find("#bar_right_buttons").slideUp(150);
+        editorDom.find("#custom_prompt_bar").slideDown(150);
       } else {
+        console.log("[彩云小梦] 关闭功能下拉菜单");
         menu.removeClass("show");
-        editorDom.find("#custom_prompt_bar").slideUp(200);
-        editorDom.find("#bar_right_buttons").slideDown(200);
+        editorDom.find("#custom_prompt_bar").slideUp(150);
+        editorDom.find("#bar_right_buttons").slideDown(150);
       }
     });
     
@@ -1933,11 +1939,18 @@ const UI = {
       e.stopPropagation();
       const menu = editorDom.find("#style_dropdown_menu");
       const isMenuOpen = menu.hasClass("show");
-      Editor.closeAllDropdowns();
+      
+      // 先关闭所有其他菜单
+      editorDom.find("#function_dropdown_menu").removeClass("show");
+      editorDom.find("#custom_prompt_bar").slideUp(150);
+      editorDom.find("#bar_right_buttons").slideDown(150);
+      
       if (!isMenuOpen) {
+        console.log("[彩云小梦] 打开风格下拉菜单");
         Modals.renderStyleDropdown();
         menu.addClass("show");
       } else {
+        console.log("[彩云小梦] 关闭风格下拉菜单");
         menu.removeClass("show");
       }
     });
@@ -1949,7 +1962,6 @@ const UI = {
       extension_settings[extensionName].currentStyle = style;
       saveSettingsDebounced();
       editorDom.find("#current_style_text").text(style);
-      $(e.currentTarget).addClass("active").siblings().removeClass("active");
       editorDom.find("#style_dropdown_menu").removeClass("show");
       toastr.info(`已切换到${style}风格`, "提示");
     });
@@ -1964,6 +1976,9 @@ const UI = {
       const isInStyleMenu = target.closest("#style_dropdown_menu, #style_select_btn").length > 0;
       const isInCustomPrompt = target.closest("#custom_prompt_bar").length > 0;
       const isInSettingsModal = target.closest("#settings_modal .settings-modal-content").length > 0;
+      
+      console.log("[彩云小梦] 文档点击事件", { isInFunctionMenu, isInStyleMenu, isInCustomPrompt, isInSettingsModal });
+      
       if (!isInFunctionMenu && !isInStyleMenu && !isInCustomPrompt && !isInSettingsModal) {
         Editor.closeAllDropdowns();
       }
@@ -2196,7 +2211,7 @@ const Main = {
     History.updateButtons();
     editorDom.closest(".xiaomeng-mask").addClass("show");
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
-    console.log("[彩云小梦] 编辑器已打开，版本v2.2.0 深度优化版");
+    console.log("[彩云小梦] 编辑器已打开，版本v2.4.0 深度优化与Bug修复版");
   },
 
   exportContentToFile(format = "txt") {
@@ -2404,5 +2419,5 @@ jQuery(async () => {
   $(window).on("beforeunload", () => {
     Main.destroyEditor();
   });
-  console.log("[彩云小梦] 扩展初始化完成，版本v2.1.0 优化版");
+  console.log("[彩云小梦] 扩展初始化完成，版本v2.4.0 深度优化与Bug修复版");
 });
