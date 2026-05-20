@@ -171,6 +171,36 @@ const Utils = {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   },
 
+  // 生成彩虹装饰条SVG（借鉴图片风格）
+  generateRainbowAccentSVG(width = 80, height = 16) {
+    const colors = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#9B59B6'];
+    const segmentWidth = width / colors.length;
+    
+    return `
+      <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+        ${colors.map((color, index) => `
+          <rect 
+            x="${index * segmentWidth}" 
+            y="0" 
+            width="${segmentWidth}" 
+            height="${height}" 
+            fill="${color}"
+          />
+        `).join('')}
+      </svg>
+    `;
+  },
+
+  // 生成彩虹装饰条HTML
+  generateRainbowAccentHTML(width = 80, height = 16) {
+    const colors = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#9B59B6'];
+    const segments = colors.map((color, index) => 
+      `<div class="xiaomeng-rainbow-segment xiaomeng-rainbow-segment-${index + 1}" style="background: ${color};"></div>`
+    ).join('');
+    
+    return `<div class="xiaomeng-rainbow-accent" style="width: ${width}px; height: ${height}px;">${segments}</div>`;
+  },
+
   checkTextDuplication(originalText, checkText, threshold = 0.3) {
     if (!originalText || !checkText) return false;
     const originalClean = originalText.replace(/[\s\n\r]/g, "");
@@ -2211,7 +2241,7 @@ const Main = {
     History.updateButtons();
     editorDom.closest(".xiaomeng-mask").addClass("show");
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
-    console.log("[彩云小梦] 编辑器已打开，版本v2.5.0 界面深度重构版");
+    console.log("[彩云小梦] 编辑器已打开，版本v2.6.0 1:1借鉴图片风格");
   },
 
   exportContentToFile(format = "txt") {
@@ -2419,5 +2449,5 @@ jQuery(async () => {
   $(window).on("beforeunload", () => {
     Main.destroyEditor();
   });
-  console.log("[彩云小梦] 扩展初始化完成，版本v2.5.0 界面深度重构版");
+  console.log("[彩云小梦] 扩展初始化完成，版本v2.6.0 1:1借鉴图片风格");
 });

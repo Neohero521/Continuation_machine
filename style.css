@@ -1,42 +1,43 @@
 /* ==============================================
-   全局根变量 - 借鉴图片配色风格重构
-   配色特点：灰色系、简洁卡片、彩虹进度条
+   全局根变量 - 完全借鉴图片配色风格
+   配色特点：浅灰背景、粗边框卡片、简洁设计
    ============================================== */
 :root {
-  --xiaomeng-primary: #FF6B6B;
-  --xiaomeng-primary-hover: #FF5252;
+  --xiaomeng-primary: #333333;
+  --xiaomeng-primary-hover: #111111;
   --xiaomeng-star-gradient: linear-gradient(135deg, #FF79C6 0%, #FF52A2 100%);
   --xiaomeng-version-gradient: linear-gradient(90deg, #FF80D0 0%, #FF9E7D 100%);
   
-  /* 图片配色风格 - 灰色系 */
-  --xiaomeng-bg: #F5F5F5;
-  --xiaomeng-card-bg: #FFFFFF;
+  /* 完全借鉴图片配色 */
+  --xiaomeng-bg: #E0E0E0;
+  --xiaomeng-card-bg: #FAFAFA;
   --xiaomeng-card-hover: #E8E8E8;
   --xiaomeng-card-active: #D4D4D4;
   --xiaomeng-mask-bg: rgba(0, 0, 0, 0.3);
   
   /* 文字颜色 */
-  --xiaomeng-text-black: #333333;
+  --xiaomeng-text-black: #222222;
   --xiaomeng-text-gray: #666666;
   --xiaomeng-text-light-gray: #999999;
   --xiaomeng-text-red: #FF6B6B;
   
-  /* 边框颜色 */
-  --xiaomeng-border: #CCCCCC;
-  --xiaomeng-border-dark: #999999;
-  --xiaomeng-border-dashed: #CCCCCC;
+  /* 边框颜色 - 粗边框风格 */
+  --xiaomeng-border: #333333;
+  --xiaomeng-border-dark: #222222;
+  --xiaomeng-border-dashed: #666666;
+  --xiaomeng-border-thickness: 2px;
   
-  /* 阴影 */
-  --xiaomeng-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --xiaomeng-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.12);
-  --xiaomeng-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
+  /* 阴影 - 非常轻微 */
+  --xiaomeng-shadow-sm: 0 2px 0 rgba(0, 0, 0, 0.1);
+  --xiaomeng-shadow-md: 0 3px 0 rgba(0, 0, 0, 0.12);
+  --xiaomeng-shadow-lg: 0 4px 0 rgba(0, 0, 0, 0.15);
   
-  /* 彩虹进度条颜色 */
-  --xiaomeng-rainbow-start: #FF6B6B;
-  --xiaomeng-rainbow-mid1: #FFD93D;
-  --xiaomeng-rainbow-mid2: #6BCB77;
-  --xiaomeng-rainbow-mid3: #4D96FF;
-  --xiaomeng-rainbow-end: #9B59B6;
+  /* 彩虹装饰条颜色 */
+  --xiaomeng-rainbow-1: #FF6B6B;
+  --xiaomeng-rainbow-2: #FFD93D;
+  --xiaomeng-rainbow-3: #6BCB77;
+  --xiaomeng-rainbow-4: #4D96FF;
+  --xiaomeng-rainbow-5: #9B59B6;
   
   /* 高度变量 */
   --xiaomeng-header-height: 60px;
@@ -95,211 +96,223 @@
 }
 
 /* ==============================================
-   彩虹进度条样式（借鉴图片风格）
+   彩虹装饰条样式（完全借鉴图片风格）
    ============================================== */
-.xiaomeng-rainbow-bar {
-  height: 4px;
-  border-radius: 2px;
-  background: linear-gradient(
-    90deg,
-    var(--xiaomeng-rainbow-start) 0%,
-    var(--xiaomeng-rainbow-mid1) 25%,
-    var(--xiaomeng-rainbow-mid2) 50%,
-    var(--xiaomeng-rainbow-mid3) 75%,
-    var(--xiaomeng-rainbow-end) 100%
-  );
-  background-size: 200% 100%;
-  animation: xiaomeng-rainbow-progress 3s linear infinite;
+.xiaomeng-rainbow-accent {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 60px;
+  height: 12px;
+  display: flex;
+  gap: 0;
 }
 
-.xiaomeng-rainbow-bar-static {
+.xiaomeng-rainbow-segment {
+  flex: 1;
+  height: 100%;
+}
+
+.xiaomeng-rainbow-segment-1 { background: var(--xiaomeng-rainbow-1); }
+.xiaomeng-rainbow-segment-2 { background: var(--xiaomeng-rainbow-2); }
+.xiaomeng-rainbow-segment-3 { background: var(--xiaomeng-rainbow-3); }
+.xiaomeng-rainbow-segment-4 { background: var(--xiaomeng-rainbow-4); }
+.xiaomeng-rainbow-segment-5 { background: var(--xiaomeng-rainbow-5); }
+
+/* ==============================================
+   彩虹进度条样式
+   ============================================== */
+.xiaomeng-rainbow-progress {
   height: 4px;
-  border-radius: 2px;
+  background: var(--xiaomeng-card-bg);
+  border: 1px solid var(--xiaomeng-border);
+  overflow: hidden;
+}
+
+.xiaomeng-rainbow-progress-fill {
+  height: 100%;
   background: linear-gradient(
     90deg,
-    var(--xiaomeng-rainbow-start) 0%,
-    var(--xiaomeng-rainbow-mid1) 25%,
-    var(--xiaomeng-rainbow-mid2) 50%,
-    var(--xiaomeng-rainbow-mid3) 75%,
-    var(--xiaomeng-rainbow-end) 100%
+    var(--xiaomeng-rainbow-1),
+    var(--xiaomeng-rainbow-2),
+    var(--xiaomeng-rainbow-3),
+    var(--xiaomeng-rainbow-4)
   );
+  transition: width 0.3s ease;
 }
 
 /* ==============================================
-   卡片式布局样式（借鉴图片风格）
+   卡片式布局样式（完全借鉴图片风格）
    ============================================== */
 .xiaomeng-card {
   background: var(--xiaomeng-card-bg);
-  border: 1px solid var(--xiaomeng-border);
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: var(--xiaomeng-shadow-sm);
+  border: var(--xiaomeng-border-thickness) solid var(--xiaomeng-border);
+  border-radius: 0;
+  padding: 20px;
+  position: relative;
+  box-shadow: 4px 4px 0 var(--xiaomeng-border);
   transition: all var(--ani-fast) ease;
 }
 
 .xiaomeng-card:hover {
-  box-shadow: var(--xiaomeng-shadow-md);
-  border-color: var(--xiaomeng-border-dark);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--xiaomeng-border);
 }
 
 .xiaomeng-card-header {
   font-weight: bold;
-  font-size: 16px;
+  font-size: 24px;
   color: var(--xiaomeng-text-black);
-  margin-bottom: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--xiaomeng-border);
+  margin-bottom: 12px;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .xiaomeng-card-subtitle {
-  font-size: 12px;
+  font-size: 16px;
   color: var(--xiaomeng-text-light-gray);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 /* ==============================================
-   按钮样式（借鉴图片风格）
+   按钮样式（完全借鉴图片风格）
    ============================================== */
 .xiaomeng-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
+  padding: 12px 24px;
   background: var(--xiaomeng-card-bg);
-  border: 1px solid var(--xiaomeng-border);
-  border-radius: 6px;
-  font-size: 14px;
+  border: var(--xiaomeng-border-thickness) solid var(--xiaomeng-border);
+  border-radius: 0;
+  font-size: 18px;
   color: var(--xiaomeng-text-black);
   cursor: pointer;
   transition: all var(--ani-fast) ease;
   outline: none;
+  font-weight: normal;
+  box-shadow: 3px 3px 0 var(--xiaomeng-border);
 }
 
 .xiaomeng-btn:hover {
   background: var(--xiaomeng-card-hover);
-  border-color: var(--xiaomeng-border-dark);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--xiaomeng-border);
 }
 
 .xiaomeng-btn:active {
   background: var(--xiaomeng-card-active);
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--xiaomeng-border);
 }
 
 .xiaomeng-btn.active {
   background: var(--xiaomeng-card-active);
-  border-color: var(--xiaomeng-border-dark);
   font-weight: bold;
+  box-shadow: 2px 2px 0 var(--xiaomeng-border);
 }
 
 .xiaomeng-btn-dashed {
-  border: 2px dashed var(--xiaomeng-border-dashed);
+  border: var(--xiaomeng-border-thickness) dashed var(--xiaomeng-border-dashed);
   background: transparent;
+  box-shadow: none;
 }
 
 .xiaomeng-btn-dashed:hover {
   border-color: var(--xiaomeng-border-dark);
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--xiaomeng-card-hover);
 }
 
 /* ==============================================
-   步骤导航样式（借鉴图片风格）
+   步骤导航样式（完全借鉴图片风格）
    ============================================== */
 .xiaomeng-step-nav {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .xiaomeng-step-item {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
+  padding: 16px 20px;
   background: var(--xiaomeng-card-bg);
-  border: 1px solid var(--xiaomeng-border);
-  border-radius: 6px;
+  border: var(--xiaomeng-border-thickness) solid var(--xiaomeng-border);
+  border-radius: 0;
   cursor: pointer;
   transition: all var(--ani-fast) ease;
 }
 
 .xiaomeng-step-item:hover {
-  border-color: var(--xiaomeng-border-dark);
+  background: var(--xiaomeng-card-hover);
 }
 
 .xiaomeng-step-item.active {
-  background: #E8E8E8;
-  border-color: var(--xiaomeng-border-dark);
+  background: #D4D4D4;
 }
 
 .xiaomeng-step-item.active .xiaomeng-step-number {
-  background: var(--xiaomeng-primary);
-  color: white;
+  color: var(--xiaomeng-text-black);
 }
 
 .xiaomeng-step-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  background: #E8E8E8;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: bold;
+  font-size: 18px;
+  font-weight: normal;
   color: var(--xiaomeng-text-gray);
   margin-right: 12px;
-  transition: all var(--ani-fast) ease;
+  opacity: 0.6;
 }
 
 .xiaomeng-step-title {
-  font-size: 14px;
+  font-size: 18px;
   color: var(--xiaomeng-text-black);
 }
 
 /* ==============================================
-   选项列表样式（借鉴图片风格）
+   选项列表样式（完全借鉴图片风格）
    ============================================== */
 .xiaomeng-option-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .xiaomeng-option-item {
-  padding: 16px;
+  padding: 20px;
   background: var(--xiaomeng-card-bg);
-  border: 1px solid var(--xiaomeng-border);
-  border-radius: 6px;
+  border: var(--xiaomeng-border-thickness) solid var(--xiaomeng-border);
+  border-radius: 0;
   cursor: pointer;
   transition: all var(--ani-fast) ease;
 }
 
 .xiaomeng-option-item:hover {
   background: var(--xiaomeng-card-hover);
-  border-color: var(--xiaomeng-border-dark);
 }
 
 .xiaomeng-option-item.selected {
-  background: #E8E8E8;
-  border-color: var(--xiaomeng-border-dark);
+  background: #D4D4D4;
 }
 
 .xiaomeng-option-item.skip {
-  border: 2px dashed var(--xiaomeng-border-dashed);
+  border: var(--xiaomeng-border-thickness) dashed var(--xiaomeng-border-dashed);
   background: transparent;
 }
 
 .xiaomeng-option-item.skip:hover {
   border-color: var(--xiaomeng-border-dark);
+  background: var(--xiaomeng-card-hover);
 }
 
 .xiaomeng-option-title {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: bold;
   color: var(--xiaomeng-text-black);
   margin-bottom: 4px;
 }
 
 .xiaomeng-option-subtitle {
-  font-size: 12px;
+  font-size: 16px;
   color: var(--xiaomeng-text-light-gray);
 }
 /* ==============================================
