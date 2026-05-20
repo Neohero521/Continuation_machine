@@ -1369,26 +1369,32 @@ const StoryManager = {
   },
 
   openStoryManagerModal() {
+    console.log("[彩云小梦] 打开故事管理模态框");
     $(".xiaomeng-modal#story_manager_modal").off().remove();
     Storage.initStoryList();
     const modalId = "story_manager_modal";
     const modalHtml = `
       <div class="xiaomeng-modal" id="${modalId}">
         <div class="xiaomeng-modal-mask"></div>
-        <div class="xiaomeng-modal-content">
+        <div class="xiaomeng-modal-content xiaomeng-card-modal">
           <div class="xiaomeng-modal-header">
-            <h3>故事/章节管理</h3>
-            <button class="xiaomeng-modal-close-btn" id="story_manager_close_btn">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <h3>故事/章节管理</h3>
+              ${Utils.generateRainbowAccentHTML(60, 10)}
+            </div>
+            <button class="xiaomeng-modal-close-btn xiaomeng-btn-close" id="story_manager_close_btn">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div class="xiaomeng-modal-body">
-            <div class="story-tab-header">
-              <div class="story-tab-item active" data-tab="story">我的故事</div>
-              <div class="story-tab-item" data-tab="recycle">最近删除</div>
+            <div class="xiaomeng-tab-header">
+              <div class="xiaomeng-tab-item active" data-tab="story">我的故事</div>
+              <div class="xiaomeng-tab-item" data-tab="recycle">最近删除</div>
             </div>
-            <div class="extension_block flex-container">
-              <input id="new_story_btn" class="menu_button primary" type="submit" value="新建故事" style="width: 100%;" />
+            <div style="margin: 16px 0;">
+              <button id="new_story_btn" class="xiaomeng-btn xiaomeng-btn-primary" style="width: 100%;">
+                <i class="fa-solid fa-plus"></i> 新建故事
+              </button>
             </div>
             <div class="story-list" id="story_list_container"></div>
           </div>
@@ -1400,17 +1406,28 @@ const StoryManager = {
     modal.hide().fadeIn(200);
     StoryManager.renderStoryList(modal);
     
-    modal.find("#story_manager_close_btn, .xiaomeng-modal-mask").on("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+    const closeModal = () => {
+      console.log("[彩云小梦] 关闭故事管理模态框");
       modal.fadeOut(200, () => {
         modal.off().remove();
       });
+    };
+    
+    modal.find("#story_manager_close_btn").on("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
+    });
+    
+    modal.find(".xiaomeng-modal-mask").on("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
     });
     
     modal.find(".xiaomeng-modal-content").on("click", (e) => e.stopPropagation());
     
-    modal.find(".story-tab-item").on("click", (e) => {
+    modal.find(".xiaomeng-tab-item").on("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       const tab = $(e.currentTarget).data("tab");
@@ -1440,13 +1457,13 @@ const StoryManager = {
       Storage.saveStoryList();
       StoryManager.renderStoryList(modal);
       StoryManager.switchStory(newStory.id);
+      closeModal();
     });
     
-    $(document).off("keydown.xiaomeng_story_modal").one("keydown.xiaomeng_story_modal", (e) => {
+    $(document).off("keydown.xiaomeng_story_modal").on("keydown.xiaomeng_story_modal", (e) => {
       if (e.key === "Escape" && modal.length > 0) {
-        modal.fadeOut(200, () => {
-          modal.off().remove();
-        });
+        closeModal();
+        $(document).off("keydown.xiaomeng_story_modal");
       }
     });
   }
@@ -1454,6 +1471,7 @@ const StoryManager = {
 
 const Modals = {
   openWorldSettingModal() {
+    console.log("[彩云小梦] 打开世界设定模态框");
     $(".xiaomeng-modal#world_setting_modal").off().remove();
     Storage.initStoryList();
     const currentStoryId = extension_settings[extensionName].currentStoryId;
@@ -1464,30 +1482,33 @@ const Modals = {
     const modalHtml = `
       <div class="xiaomeng-modal" id="world_setting_modal">
         <div class="xiaomeng-modal-mask"></div>
-        <div class="xiaomeng-modal-content">
+        <div class="xiaomeng-modal-content xiaomeng-card-modal">
           <div class="xiaomeng-modal-header">
-            <h3>世界设定/人设锁定</h3>
-            <button class="xiaomeng-modal-close-btn" id="world_setting_close_btn">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <h3>世界设定/人设锁定</h3>
+              ${Utils.generateRainbowAccentHTML(60, 10)}
+            </div>
+            <button class="xiaomeng-modal-close-btn xiaomeng-btn-close" id="world_setting_close_btn">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div class="xiaomeng-modal-body">
-            <div class="xiaomeng-form-item">
-              <label>人物设定</label>
-              <textarea id="character_setting_input" placeholder="请输入主角、配角的人设信息，包括姓名、性格、身份、能力、人物关系等，生成内容将严格遵循此设定"></textarea>
+            <div class="xiaomeng-form-group">
+              <label class="xiaomeng-form-label">人物设定</label>
+              <textarea class="xiaomeng-form-textarea" id="character_setting_input" placeholder="请输入主角、配角的人设信息，包括姓名、性格、身份、能力、人物关系等，生成内容将严格遵循此设定"></textarea>
             </div>
-            <div class="xiaomeng-form-item">
-              <label>世界观设定</label>
-              <textarea id="world_setting_input" placeholder="请输入小说的世界观背景，包括时代、地域、势力划分、规则体系、特殊设定等"></textarea>
+            <div class="xiaomeng-form-group">
+              <label class="xiaomeng-form-label">世界观设定</label>
+              <textarea class="xiaomeng-form-textarea" id="world_setting_input" placeholder="请输入小说的世界观背景，包括时代、地域、势力划分、规则体系、特殊设定等"></textarea>
             </div>
-            <div class="xiaomeng-form-item">
-              <label>剧情大纲</label>
-              <textarea id="plot_outline_input" placeholder="请输入小说的核心剧情走向、关键节点、伏笔设定等，生成内容将贴合大纲发展"></textarea>
+            <div class="xiaomeng-form-group">
+              <label class="xiaomeng-form-label">剧情大纲</label>
+              <textarea class="xiaomeng-form-textarea" id="plot_outline_input" placeholder="请输入小说的核心剧情走向、关键节点、伏笔设定等，生成内容将贴合大纲发展"></textarea>
             </div>
           </div>
           <div class="xiaomeng-modal-footer">
-            <button class="xiaomeng-modal-btn xiaomeng-modal-btn-default" id="world_setting_cancel_btn">取消</button>
-            <button class="xiaomeng-modal-btn xiaomeng-modal-btn-primary" id="world_setting_save_btn">保存设定</button>
+            <button class="xiaomeng-btn xiaomeng-btn-default" id="world_setting_cancel_btn">取消</button>
+            <button class="xiaomeng-btn xiaomeng-btn-primary" id="world_setting_save_btn">保存设定</button>
           </div>
         </div>
       </div>
@@ -1500,10 +1521,29 @@ const Modals = {
     modal.find("#world_setting_input").val(currentWorldSetting.worldSetting);
     modal.find("#plot_outline_input").val(currentWorldSetting.plotOutline);
     
-    modal.find("#world_setting_close_btn, #world_setting_cancel_btn, .xiaomeng-modal-mask").on("click", (e) => {
+    const closeModal = () => {
+      console.log("[彩云小梦] 关闭世界设定模态框");
+      modal.fadeOut(200, () => {
+        modal.off().remove();
+      });
+    };
+    
+    modal.find("#world_setting_close_btn").on("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      modal.fadeOut(200, () => modal.remove());
+      closeModal();
+    });
+    
+    modal.find("#world_setting_cancel_btn").on("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
+    });
+    
+    modal.find(".xiaomeng-modal-mask").on("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeModal();
     });
     
     modal.find(".xiaomeng-modal-content").on("click", (e) => e.stopPropagation());
@@ -1521,12 +1561,13 @@ const Modals = {
       extension_settings[extensionName].enableWorldSetting = true;
       saveSettingsDebounced();
       toastr.success("世界设定已保存，仅对当前故事生效，生成内容将自动遵循此设定", "操作成功");
-      modal.fadeOut(200, () => modal.remove());
+      closeModal();
     });
     
-    $(document).off("keydown.xiaomeng_modal").one("keydown.xiaomeng_modal", (e) => {
+    $(document).off("keydown.xiaomeng_world_modal").on("keydown.xiaomeng_world_modal", (e) => {
       if (e.key === "Escape" && modal.length > 0) {
-        modal.fadeOut(200, () => modal.remove());
+        closeModal();
+        $(document).off("keydown.xiaomeng_world_modal");
       }
     });
   },
@@ -2241,7 +2282,7 @@ const Main = {
     History.updateButtons();
     editorDom.closest(".xiaomeng-mask").addClass("show");
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
-    console.log("[彩云小梦] 编辑器已打开，版本v2.6.0 1:1借鉴图片风格");
+    console.log("[彩云小梦] 编辑器已打开，版本v2.7.0 模态框修复与UI重构");
   },
 
   exportContentToFile(format = "txt") {
@@ -2449,5 +2490,5 @@ jQuery(async () => {
   $(window).on("beforeunload", () => {
     Main.destroyEditor();
   });
-  console.log("[彩云小梦] 扩展初始化完成，版本v2.6.0 1:1借鉴图片风格");
+  console.log("[彩云小梦] 扩展初始化完成，版本v2.7.0 模态框修复与UI重构");
 });
