@@ -390,12 +390,11 @@ const History = {
       return;
     }
     const maxSteps = extension_settings[extensionName].maxHistorySteps || defaultSettings.maxHistorySteps;
-    if (historyStack.length > maxSteps) {
+    if (historyStack.length >= maxSteps) {
       historyStack.shift();
-    } else {
-      historyIndex++;
     }
     historyStack.push(currentState);
+    historyIndex = historyStack.length - 1;
     History.updateButtons();
   },
 
@@ -888,7 +887,9 @@ const Preview = {
     isEditingPreview = false;
     
     Storage.saveEditorContentToLocal();
+    isHistoryProcessing = true;
     History.pushHistory();
+    isHistoryProcessing = false;
     Editor.updateWordCount();
     toastr.success("已保存续写内容", "操作成功");
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
@@ -918,7 +919,11 @@ const Preview = {
     isEditingPreview = false;
     editorDom.find("#results_cards_container").html(`<div class="empty-result-tip">暂无生成内容</div>`);
     Storage.saveEditorContentToLocal();
-    History.pushHistory();
+    if (originalEditorContent) {
+      isHistoryProcessing = true;
+      History.pushHistory();
+      isHistoryProcessing = false;
+    }
     Editor.updateWordCount();
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
   },
@@ -985,7 +990,9 @@ const StoryManager = {
       editorDom.find("#xiaomeng_editor_textarea").html(savedContent.content);
       historyStack = [];
       historyIndex = -1;
+      isHistoryProcessing = true;
       History.pushHistory();
+      isHistoryProcessing = false;
       History.updateButtons();
       Editor.updateWordCount();
       Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
@@ -1253,15 +1260,15 @@ const Modals = {
           <div class="xiaomeng-modal-body">
             <div class="xiaomeng-form-item">
               <label>人物设定</label>
-              <textarea id="character_setting_input" placeholder="请输入主角、配角的人设信息，包括姓名、性格、身份、能力、人物关系等，生成内容将严格遵循此设定">${Utils.escapeHtml(currentWorldSetting.characterSetting)}</textarea>
+              <textarea id="character_setting_input" placeholder="请输入主角、配角的人设信息，包括姓名、性格、身份、能力、人物关系等，生成内容将严格遵循此设定"></textarea>
             </div>
             <div class="xiaomeng-form-item">
               <label>世界观设定</label>
-              <textarea id="world_setting_input" placeholder="请输入小说的世界观背景，包括时代、地域、势力划分、规则体系、特殊设定等">${Utils.escapeHtml(currentWorldSetting.worldSetting)}</textarea>
+              <textarea id="world_setting_input" placeholder="请输入小说的世界观背景，包括时代、地域、势力划分、规则体系、特殊设定等"></textarea>
             </div>
             <div class="xiaomeng-form-item">
               <label>剧情大纲</label>
-              <textarea id="plot_outline_input" placeholder="请输入小说的核心剧情走向、关键节点、伏笔设定等，生成内容将贴合大纲发展">${Utils.escapeHtml(currentWorldSetting.plotOutline)}</textarea>
+              <textarea id="plot_outline_input" placeholder="请输入小说的核心剧情走向、关键节点、伏笔设定等，生成内容将贴合大纲发展"></textarea>
             </div>
           </div>
           <div class="xiaomeng-modal-footer">
@@ -1274,6 +1281,10 @@ const Modals = {
     $("body").append(modalHtml);
     const modal = $("#world_setting_modal");
     modal.hide().fadeIn(200);
+    
+    modal.find("#character_setting_input").val(currentWorldSetting.characterSetting);
+    modal.find("#world_setting_input").val(currentWorldSetting.worldSetting);
+    modal.find("#plot_outline_input").val(currentWorldSetting.plotOutline);
     
     modal.find("#world_setting_close_btn, #world_setting_cancel_btn, .xiaomeng-modal-mask").on("click", (e) => {
       e.preventDefault();
@@ -1950,6 +1961,9 @@ const Main = {
     editorDom = $(editorHtml);
     $("body").append(editorDom);
     isEditorDestroyed = false;
+    historyStack = [];
+    historyIndex = -1;
+    isHistoryProcessing = false;
     const savedContent = Storage.loadEditorContentFromLocal();
     editorDom.find("#xiaomeng_editor_textarea").html(savedContent.content);
     const settings = extension_settings[extensionName];
@@ -1960,11 +1974,13 @@ const Main = {
     editorDom.find("#bar_right_buttons").show();
     UI.bindEditorEvents();
     Editor.updateWordCount();
+    isHistoryProcessing = true;
     History.pushHistory();
+    isHistoryProcessing = false;
     History.updateButtons();
     editorDom.closest(".xiaomeng-mask").addClass("show");
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
-    console.log("[彩云小梦] 编辑器已打开，版本v2.0.0 优化版");
+    console.log("[彩云小梦] 编辑器已打开，版本v2.1.0 优化版");
   },
 
   exportContentToFile(format = "txt") {
@@ -2172,5 +2188,5 @@ jQuery(async () => {
   $(window).on("beforeunload", () => {
     Main.destroyEditor();
   });
-  console.log("[彩云小梦] 扩展初始化完成，版本v2.0.0 优化版");
+  console.log("[彩云小梦] 扩展初始化完成，版本v2.1.0 优化版");
 });
