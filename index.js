@@ -2394,7 +2394,7 @@ const Main = {
     History.updateButtons();
     editorDom.closest(".xiaomeng-mask").addClass("show");
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
-    console.log("[彩云小梦] 编辑器已打开，版本v2.8.1 单分支功能优化版");
+    console.log("[彩云小梦] 编辑器已打开，版本v2.9.0 字数设置可自定义版");
   },
 
   exportContentToFile(format = "txt") {
@@ -2650,6 +2650,10 @@ const Main = {
     $("#inherit_st_params").prop("checked", settings.inheritStParams);
     $("#complete_sentence_end").prop("checked", settings.completeSentenceEnd);
     $("#enable_world_setting").prop("checked", settings.enableWorldSetting);
+    $("#continuation_word_count").val(settings.continuationWordCount);
+    $("#expansion_word_count").val(settings.expansionWordCount);
+    $("#shorten_word_count").val(settings.shortenWordCount);
+    $("#rewrite_word_count").val(settings.rewriteWordCount);
     $("#auto_save_interval").val(settings.autoSaveInterval);
     $("#max_history_steps").val(settings.maxHistorySteps);
     console.log("[彩云小梦] 设置已加载");
@@ -2673,6 +2677,34 @@ jQuery(async () => {
     extension_settings[extensionName].enableWorldSetting = Boolean($(event.target).prop("checked"));
     saveSettingsDebounced();
   });
+  $("#continuation_word_count").on("change", (event) => {
+    const value = parseInt($(event.target).val());
+    if (!isNaN(value) && value >= 50 && value <= 2000) {
+      extension_settings[extensionName].continuationWordCount = value;
+      saveSettingsDebounced();
+    }
+  });
+  $("#expansion_word_count").on("change", (event) => {
+    const value = parseInt($(event.target).val());
+    if (!isNaN(value) && value >= 100 && value <= 3000) {
+      extension_settings[extensionName].expansionWordCount = value;
+      saveSettingsDebounced();
+    }
+  });
+  $("#shorten_word_count").on("change", (event) => {
+    const value = parseInt($(event.target).val());
+    if (!isNaN(value) && value >= 20 && value <= 500) {
+      extension_settings[extensionName].shortenWordCount = value;
+      saveSettingsDebounced();
+    }
+  });
+  $("#rewrite_word_count").on("change", (event) => {
+    const value = parseInt($(event.target).val());
+    if (!isNaN(value) && value >= 50 && value <= 2000) {
+      extension_settings[extensionName].rewriteWordCount = value;
+      saveSettingsDebounced();
+    }
+  });
   $("#auto_save_interval").on("change", (event) => {
     const value = parseInt($(event.target).val());
     if (!isNaN(value) && value >= 100 && value <= 5000) {
@@ -2693,5 +2725,5 @@ jQuery(async () => {
   $(window).on("beforeunload", () => {
     Main.destroyEditor();
   });
-  console.log("[彩云小梦] 扩展初始化完成，版本v2.8.1 单分支功能优化版");
+  console.log("[彩云小梦] 扩展初始化完成，版本v2.9.0 字数设置可自定义版");
 });
