@@ -2484,14 +2484,35 @@ const Main = {
       cursorBeforeText = config.cursorBeforeText;
       cursorAfterText = config.cursorAfterText;
       currentSelectedBranchIndex = 0;
-      Preview.updateEditorPreviewContent(currentSelectedBranchIndex);
-      editorDom.find(".footer-bottom-bar").slideUp(250, () => {
-        editorDom.find("#results_area").slideDown(250);
-        Preview.renderBranchCards();
-      });
+      
       if (config.isSingleBranch) {
-        toastr.success(`${functionName}内容已生成`, "完成");
+        const generatedContent = branchResults[0];
+        const editorElement = editorDom.find("#xiaomeng_editor_textarea")[0];
+        
+        if (functionType === 'expand' || functionType === 'shorten' || functionType === 'rewrite') {
+          const selection = window.getSelection();
+          if (selection.rangeCount > 0 && !selection.isCollapsed) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(document.createTextNode(generatedContent));
+            range.collapse(false);
+          }
+        } else {
+          const escapedContent = Utils.escapeHtml(generatedContent);
+          editorElement.innerHTML = Utils.unescapeHtml(escapedContent);
+          Editor.updateWordCount();
+          History.pushHistory();
+        }
+        
+        editorDom.find(".footer-bottom-bar").show();
+        editorDom.find("#results_area").hide();
+        toastr.success(`${functionName}完成，内容已替换选区`, "完成");
       } else {
+        Preview.updateEditorPreviewContent(currentSelectedBranchIndex);
+        editorDom.find(".footer-bottom-bar").slideUp(250, () => {
+          editorDom.find("#results_area").slideDown(250);
+          Preview.renderBranchCards();
+        });
         toastr.success(`${functionName}内容已生成，共${FIXED_BRANCH_COUNT}条可选分支`, "完成");
       }
     } catch (error) {
