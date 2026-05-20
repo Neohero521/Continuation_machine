@@ -285,93 +285,13 @@ const API = {
 
   // 获取 SillyTavern 完整上下文信息
   getSillyTavernContext() {
-    const context = getContext();
     const ctxInfo = {
-      charData: null,
-      messageHistory: null,
-      worldInfo: null,
-      persona: null,
-      scenario: null,
-      systemPrompt: null,
-      jailbreakPrompt: null,
-      generationSettings: null,
-      mainPrompt: null,
       presetInfo: null,
     };
 
     try {
-      // 获取预设信息（优先）
+      // 获取预设信息
       ctxInfo.presetInfo = API.getActivePresetInfo();
-
-      // 获取角色数据 (charData)
-      if (context?.charId && context?.characters) {
-        const charId = context.charId;
-        if (context.characters[charId]) {
-          ctxInfo.charData = {
-            name: context.characters[charId].name || '',
-            description: context.characters[charId].description || '',
-            personality: context.characters[charId].personality || '',
-            scenario: context.characters[charId].scenario || '',
-            first_mes: context.characters[charId].first_mes || '',
-            mes_example: context.characters[charId].mes_example || '',
-            creator: context.characters[charId].creator || '',
-            char_version: context.characters[charId].char_version || '',
-            tags: context.characters[charId].tags || [],
-          };
-        }
-      }
-
-      // 获取消息历史
-      if (context?.chat && Array.isArray(context.chat)) {
-        ctxInfo.messageHistory = context.chat.map(msg => ({
-          name: msg.name || '',
-          is_user: msg.is_user || false,
-          is_system: msg.is_system || false,
-          content: msg.mes || '',
-        }));
-      }
-
-      // 获取世界设定/世界观信息
-      if (context?.worldInfo && Array.isArray(context.worldInfo)) {
-        ctxInfo.worldInfo = context.worldInfo.map(wi => ({
-          key: wi.key || wi.keys || '',
-          content: wi.content || wi.value || '',
-        }));
-      }
-
-      // 获取 persona 信息
-      if (context?.persona) {
-        ctxInfo.persona = typeof context.persona === 'string' 
-          ? context.persona 
-          : context.persona.description || context.persona.content || null;
-      }
-
-      // 获取场景信息
-      ctxInfo.scenario = context?.scenario || null;
-
-      // 获取各种提示词（优先从预设中获取）
-      if (ctxInfo.presetInfo?.system_prompt) {
-        ctxInfo.systemPrompt = ctxInfo.presetInfo.system_prompt;
-      } else if (typeof window !== 'undefined' && window.system_prompt) {
-        ctxInfo.systemPrompt = window.system_prompt;
-      }
-      
-      if (ctxInfo.presetInfo?.jailbreak_prompt) {
-        ctxInfo.jailbreakPrompt = ctxInfo.presetInfo.jailbreak_prompt;
-      } else if (typeof window !== 'undefined' && window.jailbreak_prompt) {
-        ctxInfo.jailbreakPrompt = window.jailbreak_prompt;
-      }
-
-      if (typeof window !== 'undefined') {
-        ctxInfo.mainPrompt = window.main_prompt || null;
-      }
-
-      // 获取生成设置（优先从预设中获取）
-      if (ctxInfo.presetInfo?.generation_settings) {
-        ctxInfo.generationSettings = ctxInfo.presetInfo.generation_settings;
-      } else if (context?.generationSettings) {
-        ctxInfo.generationSettings = context.generationSettings;
-      }
 
       console.log('[彩云小梦] 获取到的 SillyTavern 上下文信息:', ctxInfo);
     } catch (e) {
@@ -842,67 +762,13 @@ const Generation = {
     return presetPrompt;
   },
 
-  // 整合 SillyTavern 上下文信息到系统提示词
+  // 整合 SillyTavern 预设信息到系统提示词
   buildContextPrompt(ctxInfo) {
     let contextPrompt = '';
     
-    // 优先添加预设信息（用户要求的）
+    // 添加预设信息
     if (ctxInfo.presetInfo) {
       contextPrompt += Generation.buildPresetPrompt(ctxInfo.presetInfo);
-    }
-
-    // 添加角色数据
-    if (ctxInfo.charData) {
-      const { name, description, personality, scenario, first_mes, mes_example, tags } = ctxInfo.charData;
-      contextPrompt += `\n\n【SillyTavern 角色设定（请作为创作参考）】
-【角色名】${name || '未命名角色'}
-【角色描述】${description || '无描述'}
-【性格特点】${personality || '无设定'}
-【场景设定】${scenario || '无设定'}
-【示例对话/第一条消息】${first_mes || '无'}
-【对话示例】${mes_example || '无'}
-【标签】${tags && tags.length > 0 ? tags.join(', ') : '无标签'}`;
-    }
-
-    // 添加用户 persona
-    if (ctxInfo.persona) {
-      contextPrompt += `\n【用户设定/代入角色】${ctxInfo.persona}`;
-    }
-
-    // 添加场景信息
-    if (ctxInfo.scenario && (!ctxInfo.charData || ctxInfo.scenario !== ctxInfo.charData.scenario)) {
-      contextPrompt += `\n【当前场景】${ctxInfo.scenario}`;
-    }
-
-    // 添加世界信息
-    if (ctxInfo.worldInfo && ctxInfo.worldInfo.length > 0) {
-      contextPrompt += `\n【SillyTavern 世界知识/信息库】`;
-      ctxInfo.worldInfo.forEach((wi, index) => {
-        if (wi.key && wi.content) {
-          contextPrompt += `\n${index + 1}. ${wi.key}: ${wi.content}`;
-        }
-      });
-    }
-
-    // 添加额外的系统提示词和越狱提示词（如果预设中没有）
-    if (ctxInfo.systemPrompt && (!ctxInfo.presetInfo || ctxInfo.presetInfo.system_prompt !== ctxInfo.systemPrompt)) {
-      contextPrompt += `\n【SillyTavern 系统提示词】${ctxInfo.systemPrompt}`;
-    }
-    if (ctxInfo.jailbreakPrompt && (!ctxInfo.presetInfo || ctxInfo.presetInfo.jailbreak_prompt !== ctxInfo.jailbreakPrompt)) {
-      contextPrompt += `\n【SillyTavern Jailbreak 提示词】${ctxInfo.jailbreakPrompt}`;
-    }
-    if (ctxInfo.mainPrompt) {
-      contextPrompt += `\n【SillyTavern 主提示词】${ctxInfo.mainPrompt}`;
-    }
-
-    // 添加对话历史（最近的，避免太长）
-    if (ctxInfo.messageHistory && ctxInfo.messageHistory.length > 0) {
-      const recentHistory = ctxInfo.messageHistory.slice(-10); // 最近10条
-      contextPrompt += `\n【SillyTavern 近期对话历史（创作参考）】`;
-      recentHistory.forEach(msg => {
-        const roleLabel = msg.is_system ? '【系统】' : msg.is_user ? '【用户】' : '【角色】';
-        contextPrompt += `\n${roleLabel}: ${msg.content}`;
-      });
     }
 
     return contextPrompt;
