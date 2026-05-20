@@ -2000,6 +2000,8 @@ const UI = {
         extension_settings[extensionName].currentFunction = functionType;
         saveSettingsDebounced();
         editorDom.find("#function_dropdown_menu").removeClass("show");
+        editorDom.find("#custom_prompt_bar").slideUp(150);
+        editorDom.find("#bar_right_buttons").slideDown(150);
         editorDom.find("#custom_prompt_input").focus();
         toastr.info(`已切换到${$(e.currentTarget).find("span").text()}功能`, "提示");
       }
@@ -2282,7 +2284,7 @@ const Main = {
     History.updateButtons();
     editorDom.closest(".xiaomeng-mask").addClass("show");
     Editor.restoreCursorToEnd(editorDom.find("#xiaomeng_editor_textarea")[0]);
-    console.log("[彩云小梦] 编辑器已打开，版本v2.7.0 模态框修复与UI重构");
+    console.log("[彩云小梦] 编辑器已打开，版本v2.7.1 Bug修复版");
   },
 
   exportContentToFile(format = "txt") {
@@ -2490,5 +2492,5 @@ jQuery(async () => {
   $(window).on("beforeunload", () => {
     Main.destroyEditor();
   });
-  console.log("[彩云小梦] 扩展初始化完成，版本v2.7.0 模态框修复与UI重构");
+  console.log("[彩云小梦] 扩展初始化完成，版本v2.7.1 Bug修复版");
 });
